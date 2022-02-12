@@ -86,6 +86,8 @@ class DataReader:
     def get_full_data(self) -> pd.DataFrame:
         p = self.get_preprocessed_data_path() / "transactions.feather"
         df = pd.read_feather(p)
+        # convert date to pandas datetime
+        df["t_dat"] = pd.to_datetime(df["t_dat"])
         return df
 
     def get_articles(self) -> pd.DataFrame:

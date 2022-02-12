@@ -22,11 +22,13 @@ def transaction_to_consecutive_ids() -> None:
     raw_new_user_ids_dict = dict(zip(unique_user_ids, mapped_ids))
     new_raw_user_ids_dict = {v: k for k, v in raw_new_user_ids_dict.items()}
     tr["customer_id"] = tr["customer_id"].map(raw_new_user_ids_dict.get)
+    # mapping item ids
     unique_item_ids = tr["article_id"].unique()
     mapped_ids = np.arange(len(unique_item_ids))
     raw_new_item_ids_dict = dict(zip(unique_item_ids, mapped_ids))
     new_raw_item_ids_dict = {v: k for k, v in raw_new_item_ids_dict.items()}
     tr["article_id"] = tr["article_id"].map(raw_new_item_ids_dict.get)
+
     df_name = "transactions.feather"
     # save preprocessed df
     tr.to_feather(dr.get_preprocessed_data_path() / df_name)
