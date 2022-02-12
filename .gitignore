@@ -1,3 +1,7 @@
 #gitignore
 */__pycache__
+utils/__pycache__
 .venv
+submission
+hnmchallenge/*/__pycache__/
+

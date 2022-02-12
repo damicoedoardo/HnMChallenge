@@ -1,7 +1,9 @@
+from unittest import removeResult
 from dotenv import load_dotenv
 import os
 import pandas as pd
 from hnmchallenge.data_reader import DataReader
+
 
 if __name__ == "__main__":
 
