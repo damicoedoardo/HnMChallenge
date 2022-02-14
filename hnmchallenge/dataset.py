@@ -1,7 +1,8 @@
 from tkinter.messagebox import NO
 from typing import Tuple
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 import scipy.sparse as sps
 
 from hnmchallenge.data_reader import DataReader
@@ -18,6 +19,11 @@ class Dataset:
         self.kind = kind
         # to be loaded
         self.train, self.val, self.test = self._load_splits()
+        (
+            self.train_user_subset,
+            self.val_user_subset,
+            self.test_user_subset,
+        ) = self._load_splits_user_subset()
 
     def _load_splits(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """Load the train validation and test data as dataframes
@@ -39,6 +45,28 @@ class Dataset:
         train, val, test = data_df_list
         return train, val, test
 
+    def _load_splits_user_subset(
+        self,
+    ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+        """Load the train validation and test data as dataframes
+
+        Returns:
+            Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]: train, val and test df
+        """
+        dr = DataReader()
+        pdp = dr.get_preprocessed_data_path()
+
+        train_name = "train_df_user_subset.feather"
+        val_name = "val_df_user_subset.feather"
+        test_name = "test_df_user_subset.feather"
+
+        data_df_list = []
+        for data_split_name in [train_name, val_name, test_name]:
+            data_df_list.append(pd.read_feather(pdp / data_split_name))
+
+        train, val, test = data_df_list
+        return train, val, test
+
     def get_train_df(self) -> pd.DataFrame:
         return self.train
 
@@ -47,6 +75,15 @@ class Dataset:
 
     def get_test_df(self) -> pd.DataFrame:
         return self.test
+
+    def get_train_df_user_subset(self) -> pd.DataFrame:
+        return self.train_user_subset
+
+    def get_val_df_user_subset(self) -> pd.DataFrame:
+        return self.val_user_subset
+
+    def get_test_df_user_subset(self) -> pd.DataFrame:
+        return self.test_user_subset
 
     def get_user_item_interaction_matrix(
         self, interaction_df: pd.DataFrame
@@ -59,5 +96,9 @@ class Dataset:
         Returns:
             sps.coo_matrix: user-item interaction matrix in coo format
         """
-        sp_m = interactions_to_sparse_matrix(interactions=interaction_df)
+        sp_m = interactions_to_sparse_matrix(
+            interactions=interaction_df,
+            users_num=self._CUSTOMERS_NUM,
+            items_num=self._ARTICLES_NUM,
+        )
         return sp_m

@@ -1,5 +1,5 @@
 # Insight-Centre Dublin
-**Author:** Edoardo D'Amico
+**Author:** Edoardo D'Amico, edoardo.damico@insight-centre.org
 
 ## Project Setup
 

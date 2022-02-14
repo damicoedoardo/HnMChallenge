@@ -1,7 +1,6 @@
-from black import main
+import numpy as np
 import pandas as pd
 from hnmchallenge.data_reader import DataReader
-import numpy as np
 
 if __name__ == "__main__":
     dr = DataReader()

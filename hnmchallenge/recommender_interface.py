@@ -65,8 +65,8 @@ class AbstractRecommender(ABC):
 
     def recommend(
         self,
+        interactions: pd.DataFrame,
         cutoff: int = 12,
-        interactions: pd.DataFrame = None,
         batch_size: int = -1,
     ) -> pd.DataFrame:
         """
@@ -78,17 +78,13 @@ class AbstractRecommender(ABC):
         Args:
             cutoff (int): cutoff used to retrieve the recommendations
             interactions (pd.DataFrame): interactions of the users for which retrieve predictions
-                If None, predict for the whole users in the training set
             batch_size (int): size of user batch to retrieve recommendations for,
                 If -1 no batching procedure is done
 
         Returns:
             pd.DataFrame: DataFrame with predictions for users
         """
-        # if interactions is None we are predicting for the whole users in the train dataset
-        if interactions is None:
-            interactions = self.train_data
-
+        # if interactions is None we are predicting for the wh  ole users in the train dataset
         logger.info(set_color(f"Recommending items", "cyan"))
 
         user_ids = interactions[DEFAULT_USER_COL].unique()

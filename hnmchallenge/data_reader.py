@@ -2,16 +2,17 @@
 __author__ = "Edoardo D'Amico"
 __email__ = "edoardo.d'amico@insight-centre.org"
 
-from operator import index
-from typing import Tuple
-from dotenv import load_dotenv
-from pathlib import Path
-import pandas as pd
+import logging
 import os
 import pickle
-from hnmchallenge.constant import *
-import logging
+from operator import index
+from pathlib import Path
+from typing import Tuple
 
+import pandas as pd
+from dotenv import load_dotenv
+
+from hnmchallenge.constant import *
 from hnmchallenge.utils.logger import set_color
 
 load_dotenv()
@@ -50,21 +51,6 @@ class DataReader:
         self.get_preprocessed_data_path().mkdir(parents=True, exist_ok=True)
         self.get_mapping_dict_path().mkdir(parents=True, exist_ok=True)
         self.get_submission_folder().mkdir(parents=True, exist_ok=True)
-
-    def create_submission(self, df: pd.DataFrame, sub_name: str) -> None:
-        assert DEFAULT_USER_COL in df.columns, f"Missing col: {DEFAULT_USER_COL}"
-        assert (
-            DEFAULT_PREDICTION_COL in df.columns
-        ), f"Missing col: {DEFAULT_PREDICTION_COL}"
-        # check both customer id and item id are in str format
-        assert isinstance(
-            df.head()[DEFAULT_USER_COL].values[0], str
-        ), f"Expected type str for col: {DEFAULT_USER_COL}"
-        assert isinstance(
-            df.head()[DEFAULT_PREDICTION_COL].values[0], str
-        ), f"Expected type str for col: {DEFAULT_USER_COL}"
-        df.to_csv(str(self.get_submission_folder() / sub_name) + ".csv", index=False)
-        logger.info(set_color(f"Submission: {sub_name} created succesfully!", "yellow"))
 
     def get_new_raw_mapping_dict(self) -> Tuple[dict, dict]:
         uids_p = self.get_mapping_dict_path() / "new_raw_user_ids_dict.pkl"
