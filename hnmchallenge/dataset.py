@@ -17,7 +17,6 @@ class Dataset:
         dataset_kinds = ["STANDARD", "SMALL"]
         assert kind in dataset_kinds, f"dataset kind must be in {dataset_kinds}"
         self.kind = kind
-        # to be loaded
         self.train, self.val, self.test = self._load_splits()
         (
             self.train_user_subset,
