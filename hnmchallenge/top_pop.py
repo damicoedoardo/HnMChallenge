@@ -17,5 +17,5 @@ if __name__ == "__main__":
     _, item_map_dict = dr.get_new_raw_mapping_dict()
     pop_items_raw = [item_map_dict[i] for i in pop_items]
     pop_items_raw_str = " ".join(pop_items_raw)
-    tu[DEFAULT_PRED_COL] = pop_items_raw_str
+    tu[DEFAULT_PREDICTION_COL] = pop_items_raw_str
     dr.create_submission(tu, sub_name="TopPop-1M")

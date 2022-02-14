@@ -1,4 +1,3 @@
-from black import main
 from hnmchallenge.data_reader import DataReader
 from hnmchallenge.constant import *
 

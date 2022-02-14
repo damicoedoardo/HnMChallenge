@@ -53,13 +53,15 @@ class DataReader:
 
     def create_submission(self, df: pd.DataFrame, sub_name: str) -> None:
         assert DEFAULT_USER_COL in df.columns, f"Missing col: {DEFAULT_USER_COL}"
-        assert DEFAULT_PRED_COL in df.columns, f"Missing col: {DEFAULT_PRED_COL}"
+        assert (
+            DEFAULT_PREDICTION_COL in df.columns
+        ), f"Missing col: {DEFAULT_PREDICTION_COL}"
         # check both customer id and item id are in str format
         assert isinstance(
             df.head()[DEFAULT_USER_COL].values[0], str
         ), f"Expected type str for col: {DEFAULT_USER_COL}"
         assert isinstance(
-            df.head()[DEFAULT_PRED_COL].values[0], str
+            df.head()[DEFAULT_PREDICTION_COL].values[0], str
         ), f"Expected type str for col: {DEFAULT_USER_COL}"
         df.to_csv(str(self.get_submission_folder() / sub_name) + ".csv", index=False)
         logger.info(set_color(f"Submission: {sub_name} created succesfully!", "yellow"))
@@ -67,6 +69,15 @@ class DataReader:
     def get_new_raw_mapping_dict(self) -> Tuple[dict, dict]:
         uids_p = self.get_mapping_dict_path() / "new_raw_user_ids_dict.pkl"
         iids_p = self.get_mapping_dict_path() / "new_raw_item_ids_dict.pkl"
+        with open(uids_p, "rb") as f:
+            uids_dict = pickle.load(f)
+        with open(iids_p, "rb") as f:
+            iids_dict = pickle.load(f)
+        return uids_dict, iids_dict
+
+    def get_raw_new_mapping_dict(self) -> Tuple[dict, dict]:
+        uids_p = self.get_mapping_dict_path() / "raw_new_user_ids_dict.pkl"
+        iids_p = self.get_mapping_dict_path() / "raw_new_item_ids_dict.pkl"
         with open(uids_p, "rb") as f:
             uids_dict = pickle.load(f)
         with open(iids_p, "rb") as f:
@@ -82,6 +93,12 @@ class DataReader:
             self.get_preprocessed_data_path() / "target_user.feather"
         )
         return target_user
+
+    def get_zero_interatction_users(self) -> pd.DataFrame:
+        zero_interaction_users = pd.read_feather(
+            self.get_preprocessed_data_path() / "zero_int_users.feather"
+        )
+        return zero_interaction_users
 
     def get_full_data(self) -> pd.DataFrame:
         p = self.get_preprocessed_data_path() / "transactions.feather"
