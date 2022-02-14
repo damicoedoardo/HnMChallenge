@@ -21,12 +21,13 @@ class TopPop(AbstractRecommender):
         full_data = dr.get_full_data()
         # TODO:add timeframe on range of time selected
         # compute popularity
-        full_data["pop"] = (
-            full_data[full_data["t_dat"] > "2020-08-31"]
-            .groupby(DEFAULT_ITEM_COL)[DEFAULT_USER_COL]
-            .transform("count")
+        item_pop = (
+            full_data.groupby(DEFAULT_ITEM_COL)
+            .count()["t_dat"]
+            .reset_index()
+            .rename(columns={"t_dat": "pop"})
+            .sort_values(DEFAULT_ITEM_COL)
         )
-        item_pop = full_data[[DEFAULT_ITEM_COL, "pop"]].drop_duplicates().fillna(0)
         # cast score to float32 to save memory
         self.item_pop = item_pop.astype({"pop": np.float32})
 
