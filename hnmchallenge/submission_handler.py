@@ -29,6 +29,9 @@ class SubmissionHandler:
         grp_recs_df[DEFAULT_ITEM_COL] = grp_recs_df[DEFAULT_ITEM_COL].apply(
             lambda x: " ".join(list(map(item_map_dict.get, x)))
         )
+        grp_recs_df = grp_recs_df.rename(
+            columns={DEFAULT_ITEM_COL: DEFAULT_PREDICTION_COL}
+        )
 
         # check both customer id and item id are in str format
         assert isinstance(
@@ -38,6 +41,6 @@ class SubmissionHandler:
             grp_recs_df.head()[DEFAULT_PREDICTION_COL].values[0], str
         ), f"Expected type str for col: {DEFAULT_USER_COL}"
         grp_recs_df.to_csv(
-            str(self.get_submission_folder() / sub_name) + ".csv", index=False
+            str(self.dr.get_submission_folder() / sub_name) + ".csv", index=False
         )
         logger.info(set_color(f"Submission: {sub_name} created succesfully!", "yellow"))

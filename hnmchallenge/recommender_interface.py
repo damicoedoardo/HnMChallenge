@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
+from p_tqdm import p_imap, p_map
+from pathos.pools import ProcessPool
 from tqdm import tqdm
 
 from hnmchallenge.constant import *
@@ -68,6 +70,7 @@ class AbstractRecommender(ABC):
         interactions: pd.DataFrame,
         cutoff: int = 12,
         batch_size: int = -1,
+        num_cpus: int = 5,
     ) -> pd.DataFrame:
         """
         Give recommendations up to a given cutoff to users inside `user_idxs` list
@@ -80,6 +83,7 @@ class AbstractRecommender(ABC):
             interactions (pd.DataFrame): interactions of the users for which retrieve predictions
             batch_size (int): size of user batch to retrieve recommendations for,
                 If -1 no batching procedure is done
+            cores (int): number of cores to use to parallelise batch recommendations
 
         Returns:
             pd.DataFrame: DataFrame with predictions for users
@@ -91,8 +95,44 @@ class AbstractRecommender(ABC):
         # if  batch_size == -1 we are not batching the recommendation process
         num_batches = 1 if batch_size == -1 else math.ceil(len(user_ids) / batch_size)
         user_batches = np.array_split(user_ids, num_batches)
+        # set users ids as index for fast look-up
+        interactions.set_index([DEFAULT_USER_COL], inplace=True)
+        train_dfs = [
+            interactions.copy()[interactions.index.isin(u_batch)].reset_index()
+            for u_batch in user_batches
+        ]
+        # reset users as columns
+        interactions.reset_index(inplace=True)
 
-        recs_dfs_list = []
+        def _rec(interactions_df):
+            scores = self.predict(interactions_df)
+            # set the score of the items used during the training to -inf
+            scores_df = AbstractRecommender.remove_seen_items(scores, interactions_df)
+            array_scores = scores_df.to_numpy()
+            user_ids = scores_df.index.values
+            # TODO: we can use GPU here (tensorflow ?)
+            items, scores = get_top_k(
+                scores=array_scores, top_k=cutoff, sort_top_k=True
+            )
+            # create user array to match shape of retrievied items
+            users = np.repeat(user_ids, cutoff).reshape(len(user_ids), -1)
+            recs_df = pd.DataFrame(
+                zip(users.flatten(), items.flatten(), scores.flatten()),
+                columns=[DEFAULT_USER_COL, DEFAULT_ITEM_COL, DEFAULT_PREDICTION_COL],
+            )
+            return recs_df
+
+        if batch_size == -1:
+            recs_dfs_list = [_rec(train_dfs[0])]
+        else:
+            # pool = ProcessPool(nodes=5)
+
+            recs_dfs_list = p_map(_rec, train_dfs, num_cpus=num_cpus)  # , num_cpus=5)
+
+            # results = tqdm(pool.imap(_rec, train_dfs))
+            # recs_dfs_list = list(results)
+
+        """ recs_dfs_list = []
         interactions.set_index([DEFAULT_USER_COL], inplace=True)
         for u_batch in tqdm(user_batches):
             int = interactions[interactions.index.isin(u_batch)]
@@ -117,9 +157,9 @@ class AbstractRecommender(ABC):
                 zip(users.flatten(), items.flatten(), scores.flatten()),
                 columns=[DEFAULT_USER_COL, DEFAULT_ITEM_COL, DEFAULT_PREDICTION_COL],
             )
-            recs_dfs_list.append(recs_df)
+            recs_dfs_list.append(recs_df) """
         # move customer id from index to be a column
-        interactions.reset_index(inplace=True)
+        # interactions.reset_index(inplace=True)
 
         # concat all the batch recommendations dfs
         recommendation_df = pd.concat(recs_dfs_list, axis=0)
