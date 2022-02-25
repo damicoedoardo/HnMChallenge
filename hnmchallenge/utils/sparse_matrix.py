@@ -95,7 +95,7 @@ def interactions_to_sparse_matrix(
     data = np.ones(len(row_data))
 
     user_item_matrix = sps.coo_matrix(
-        (data, (row_data, col_data)), shape=(row_num, col_num)
+        (data, (row_data, col_data)), shape=(row_num, col_num), dtype="float32"
     )
     return user_item_matrix, user_ids_mapping_dict, item_ids_mapping_dict
 

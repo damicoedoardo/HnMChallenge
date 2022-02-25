@@ -1,10 +1,13 @@
 import logging
 import math
 from abc import ABC, abstractmethod
+from textwrap import dedent
+from time import time
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as sps
+import torch
 from p_tqdm import p_imap, p_map
 from pathos.pools import ProcessPool
 from tqdm import tqdm
@@ -93,13 +96,15 @@ class AbstractRecommender(ABC):
             pd.DataFrame: DataFrame with predictions for users
         """
         # if interactions is None we are predicting for the wh  ole users in the train dataset
-        logger.info(set_color(f"Recommending items", "cyan"))
+        logger.info(set_color(f"Recommending items MONOCORE", "cyan"))
 
         unique_user_ids = interactions[DEFAULT_USER_COL].unique()
+        logger.info(set_color(f"Predicting for: {len(unique_user_ids)} users", "cyan"))
         # if  batch_size == -1 we are not batching the recommendation process
         num_batches = (
             1 if batch_size == -1 else math.ceil(len(unique_user_ids) / batch_size)
         )
+        logger.info(set_color(f"num batches: {num_batches}", "cyan"))
         user_batches = np.array_split(unique_user_ids, num_batches)
 
         # MONO-CORE VERSION
@@ -108,7 +113,9 @@ class AbstractRecommender(ABC):
             interactions_slice = interactions[
                 interactions[DEFAULT_USER_COL].isin(user_batch)
             ]
+            logger.info(set_color(f"getting predictions...", "cyan"))
             scores = self.predict(interactions_slice)
+            logger.info(set_color(f"done...", "cyan"))
             # set the score of the items used during the training to -inf
             if remove_seen:
                 scores = AbstractRecommender.remove_seen_items(
@@ -128,7 +135,50 @@ class AbstractRecommender(ABC):
             )
             recs_dfs_list.append(recs_df)
 
-        """ 
+        # concat all the batch recommendations dfs
+        recommendation_df = pd.concat(recs_dfs_list, axis=0)
+        # add item rank
+        recommendation_df["rank"] = np.tile(
+            np.arange(1, cutoff + 1), len(unique_user_ids)
+        )
+
+        return recommendation_df
+
+    def recommend_multicore(
+        self,
+        interactions: pd.DataFrame,
+        cutoff: int = 12,
+        remove_seen: bool = True,
+        batch_size: int = -1,
+        num_cpus: int = 5,
+    ) -> pd.DataFrame:
+        """
+        Give recommendations up to a given cutoff to users inside `user_idxs` list
+
+        Note:
+            predictions are in the following format | userID | itemID | prediction | item_rank
+
+        Args:
+            cutoff (int): cutoff used to retrieve the recommendations
+            interactions (pd.DataFrame): interactions of the users for which retrieve predictions
+            batch_size (int): size of user batch to retrieve recommendations for,
+                If -1 no batching procedure is done
+            num_cpus (int): number of cores to use to parallelise batch recommendations
+            remove_seen (bool): remove items that have been bought ones from the prediction
+
+        Returns:
+            pd.DataFrame: DataFrame with predictions for users
+        """
+        # if interactions is None we are predicting for the wh  ole users in the train dataset
+        logger.info(set_color(f"Recommending items MULTICORE", "cyan"))
+
+        unique_user_ids = interactions[DEFAULT_USER_COL].unique()
+        # if  batch_size == -1 we are not batching the recommendation process
+        num_batches = (
+            1 if batch_size == -1 else math.ceil(len(unique_user_ids) / batch_size)
+        )
+        user_batches = np.array_split(unique_user_ids, num_batches)
+
         # MULTI-CORE VERSION
         train_dfs = [
             interactions[interactions[DEFAULT_USER_COL].isin(u_batch)]
@@ -157,14 +207,19 @@ class AbstractRecommender(ABC):
         if batch_size == -1:
             recs_dfs_list = [_rec(train_dfs[0])]
         else:
+            # pool = ProcessPool(nodes=num_cpus)
+            # results = pool.imap(_rec, train_dfs)
+            # recs_dfs_list = list(results)
+
             recs_dfs_list = p_map(_rec, train_dfs, num_cpus=num_cpus)
- """
+
         # concat all the batch recommendations dfs
         recommendation_df = pd.concat(recs_dfs_list, axis=0)
         # add item rank
         recommendation_df["rank"] = np.tile(
             np.arange(1, cutoff + 1), len(unique_user_ids)
         )
+
         return recommendation_df
 
 
@@ -194,12 +249,38 @@ class ItemSimilarityRecommender(AbstractRecommender, ABC):
         # compute scores as the dot product between user interactions and the similarity matrix
         if not sps.issparse(self.similarity_matrix):
             logger.info(set_color(f"DENSE Item Similarity MUL...", "cyan"))
-            dense_interactions = sparse_interaction.todense()
-            scores = np.dot(dense_interactions, self.similarity_matrix)
+            dense_interactions = sparse_interaction.toarray()
+
+            # construc torch tensors
+            sim_tensor = torch.from_numpy(self.similarity_matrix)
+            interactions_tensor = torch.from_numpy(dense_interactions)
+
+            sim_tensor_list = sim_tensor.split(10_000)
+            interactions_tensor_list = interactions_tensor.split(10_000, dim=1)
+
+            res = []
+            torch.cuda.empty_cache()
+            for sim_tensor, interactions_tensor in tqdm(
+                zip(sim_tensor_list, interactions_tensor_list)
+            ):
+                print("a")
+                part_res = torch.matmul(
+                    interactions_tensor.to("cuda"), sim_tensor.to("cuda")
+                )
+                res.append(part_res.cpu().numpy())
+                torch.cuda.empty_cache()
+
+            scores_torch = torch.concat(res)
+
+            # bring scores to cpu and convert to numpy
+            scores = scores_torch.cpu().numpy()
         else:
             logger.info(set_color(f"SPARSE Item Similarity MUL...", "cyan"))
+            s = time()
             scores = sparse_interaction @ self.similarity_matrix
-            scores = scores.todense()
+            print(f"took {time()-s}s")
+            scores = scores.toarray()
+            print(f"took2 {time()-s}s")
 
         scores_df = pd.DataFrame(scores, index=list(user_mapping_dict.keys()))
         return scores_df
