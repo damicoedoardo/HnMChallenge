@@ -107,3 +107,8 @@ class DataReader:
         path = self.get_data_path() / self._TRANSACTIONS
         df = pd.read_csv(path, dtype={"article_id": str})
         return df
+
+    def get_zero_interactions_recs(self) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "zero_interactions_recs.feather"
+        zero_interactions_recs_df = pd.read_feather(p)
+        return zero_interactions_recs_df

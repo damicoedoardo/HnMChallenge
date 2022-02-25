@@ -1,4 +1,3 @@
-from tkinter.messagebox import NO
 from typing import Tuple
 
 import numpy as np
@@ -95,7 +94,7 @@ class Dataset:
         Returns:
             sps.coo_matrix: user-item interaction matrix in coo format
         """
-        sp_m = interactions_to_sparse_matrix(
+        sp_m, _, _ = interactions_to_sparse_matrix(
             interactions=interaction_df,
             users_num=self._CUSTOMERS_NUM,
             items_num=self._ARTICLES_NUM,

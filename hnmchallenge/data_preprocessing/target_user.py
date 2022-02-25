@@ -1,5 +1,5 @@
-from hnmchallenge.data_reader import DataReader
 from hnmchallenge.constant import *
+from hnmchallenge.data_reader import DataReader
 
 
 def save_target_user() -> None:

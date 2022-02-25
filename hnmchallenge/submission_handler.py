@@ -32,15 +32,18 @@ class SubmissionHandler:
         grp_recs_df = grp_recs_df.rename(
             columns={DEFAULT_ITEM_COL: DEFAULT_PREDICTION_COL}
         )
+        # concat the recommendations for zero length users with the other predictions
+        zero_interactions_recs = self.dr.get_zero_interactions_recs()
+        final_recs = pd.concat([grp_recs_df, zero_interactions_recs], axis=0)
 
         # check both customer id and item id are in str format
         assert isinstance(
-            grp_recs_df.head()[DEFAULT_USER_COL].values[0], str
+            final_recs.head()[DEFAULT_USER_COL].values[0], str
         ), f"Expected type str for col: {DEFAULT_USER_COL}"
         assert isinstance(
-            grp_recs_df.head()[DEFAULT_PREDICTION_COL].values[0], str
+            final_recs.head()[DEFAULT_PREDICTION_COL].values[0], str
         ), f"Expected type str for col: {DEFAULT_USER_COL}"
-        grp_recs_df.to_csv(
+        final_recs.to_csv(
             str(self.dr.get_submission_folder() / sub_name) + ".csv", index=False
         )
         logger.info(set_color(f"Submission: {sub_name} created succesfully!", "yellow"))

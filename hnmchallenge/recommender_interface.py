@@ -4,14 +4,16 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 import pandas as pd
+import scipy.sparse as sps
 from p_tqdm import p_imap, p_map
 from pathos.pools import ProcessPool
 from tqdm import tqdm
 
 from hnmchallenge.constant import *
 from hnmchallenge.dataset import Dataset
+from hnmchallenge.utils.decorator import timing
 from hnmchallenge.utils.logger import set_color
-from hnmchallenge.utils.sparse_matrix import get_top_k
+from hnmchallenge.utils.sparse_matrix import get_top_k, interactions_to_sparse_matrix
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +71,7 @@ class AbstractRecommender(ABC):
         self,
         interactions: pd.DataFrame,
         cutoff: int = 12,
+        remove_seen: bool = True,
         batch_size: int = -1,
         num_cpus: int = 5,
     ) -> pd.DataFrame:
@@ -83,7 +86,8 @@ class AbstractRecommender(ABC):
             interactions (pd.DataFrame): interactions of the users for which retrieve predictions
             batch_size (int): size of user batch to retrieve recommendations for,
                 If -1 no batching procedure is done
-            cores (int): number of cores to use to parallelise batch recommendations
+            num_cpus (int): number of cores to use to parallelise batch recommendations
+            remove_seen (bool): remove items that have been bought ones from the prediction
 
         Returns:
             pd.DataFrame: DataFrame with predictions for users
@@ -91,25 +95,53 @@ class AbstractRecommender(ABC):
         # if interactions is None we are predicting for the wh  ole users in the train dataset
         logger.info(set_color(f"Recommending items", "cyan"))
 
-        user_ids = interactions[DEFAULT_USER_COL].unique()
+        unique_user_ids = interactions[DEFAULT_USER_COL].unique()
         # if  batch_size == -1 we are not batching the recommendation process
-        num_batches = 1 if batch_size == -1 else math.ceil(len(user_ids) / batch_size)
-        user_batches = np.array_split(user_ids, num_batches)
-        # set users ids as index for fast look-up
-        interactions.set_index([DEFAULT_USER_COL], inplace=True)
+        num_batches = (
+            1 if batch_size == -1 else math.ceil(len(unique_user_ids) / batch_size)
+        )
+        user_batches = np.array_split(unique_user_ids, num_batches)
+
+        # MONO-CORE VERSION
+        recs_dfs_list = []
+        for user_batch in tqdm(user_batches):
+            interactions_slice = interactions[
+                interactions[DEFAULT_USER_COL].isin(user_batch)
+            ]
+            scores = self.predict(interactions_slice)
+            # set the score of the items used during the training to -inf
+            if remove_seen:
+                scores = AbstractRecommender.remove_seen_items(
+                    scores, interactions_slice
+                )
+            array_scores = scores.to_numpy()
+            user_ids = scores.index.values
+            # TODO: we can use GPU here (tensorflow ?)
+            items, scores = get_top_k(
+                scores=array_scores, top_k=cutoff, sort_top_k=True
+            )
+            # create user array to match shape of retrievied items
+            users = np.repeat(user_ids, cutoff).reshape(len(user_ids), -1)
+            recs_df = pd.DataFrame(
+                zip(users.flatten(), items.flatten(), scores.flatten()),
+                columns=[DEFAULT_USER_COL, DEFAULT_ITEM_COL, DEFAULT_PREDICTION_COL],
+            )
+            recs_dfs_list.append(recs_df)
+
+        """ 
+        # MULTI-CORE VERSION
         train_dfs = [
-            interactions.copy()[interactions.index.isin(u_batch)].reset_index()
+            interactions[interactions[DEFAULT_USER_COL].isin(u_batch)]
             for u_batch in user_batches
         ]
-        # reset users as columns
-        interactions.reset_index(inplace=True)
 
         def _rec(interactions_df):
             scores = self.predict(interactions_df)
             # set the score of the items used during the training to -inf
-            scores_df = AbstractRecommender.remove_seen_items(scores, interactions_df)
-            array_scores = scores_df.to_numpy()
-            user_ids = scores_df.index.values
+            if remove_seen:
+                scores = AbstractRecommender.remove_seen_items(scores, interactions_df)
+            array_scores = scores.to_numpy()
+            user_ids = scores.index.values
             # TODO: we can use GPU here (tensorflow ?)
             items, scores = get_top_k(
                 scores=array_scores, top_k=cutoff, sort_top_k=True
@@ -125,44 +157,49 @@ class AbstractRecommender(ABC):
         if batch_size == -1:
             recs_dfs_list = [_rec(train_dfs[0])]
         else:
-            # pool = ProcessPool(nodes=5)
-
-            recs_dfs_list = p_map(_rec, train_dfs, num_cpus=num_cpus)  # , num_cpus=5)
-
-            # results = tqdm(pool.imap(_rec, train_dfs))
-            # recs_dfs_list = list(results)
-
-        """ recs_dfs_list = []
-        interactions.set_index([DEFAULT_USER_COL], inplace=True)
-        for u_batch in tqdm(user_batches):
-            int = interactions[interactions.index.isin(u_batch)]
-
-            # compute scores
-            scores = self.predict(int.reset_index())
-
-            # set the score of the items used during the training to -inf
-            scores_df = AbstractRecommender.remove_seen_items(scores, int.reset_index())
-
-            array_scores = scores_df.to_numpy()
-            user_ids = scores_df.index.values
-
-            # TODO: we can use GPU here (tensorflow ?)
-            items, scores = get_top_k(
-                scores=array_scores, top_k=cutoff, sort_top_k=True
-            )
-            # create user array to match shape of retrievied items
-            users = np.repeat(user_ids, cutoff).reshape(len(user_ids), -1)
-
-            recs_df = pd.DataFrame(
-                zip(users.flatten(), items.flatten(), scores.flatten()),
-                columns=[DEFAULT_USER_COL, DEFAULT_ITEM_COL, DEFAULT_PREDICTION_COL],
-            )
-            recs_dfs_list.append(recs_df) """
-        # move customer id from index to be a column
-        # interactions.reset_index(inplace=True)
-
+            recs_dfs_list = p_map(_rec, train_dfs, num_cpus=num_cpus)
+ """
         # concat all the batch recommendations dfs
         recommendation_df = pd.concat(recs_dfs_list, axis=0)
         # add item rank
-        recommendation_df["rank"] = np.tile(np.arange(1, cutoff + 1), len(user_ids))
+        recommendation_df["rank"] = np.tile(
+            np.arange(1, cutoff + 1), len(unique_user_ids)
+        )
         return recommendation_df
+
+
+class ItemSimilarityRecommender(AbstractRecommender, ABC):
+    """Item similarity matrix recommender interface
+
+    Each recommender extending this class has to implement compute_similarity_matrix() method
+    """
+
+    def __init__(self, dataset):
+        super().__init__(dataset=dataset)
+        self.similarity_matrix = None
+
+    @abstractmethod
+    def compute_similarity_matrix(self):
+        """Compute similarity matrix and assign it to self.similarity_matrix"""
+        pass
+
+    def predict(self, interactions):
+        assert (
+            self.similarity_matrix is not None
+        ), "Similarity matrix is not computed, call compute_similarity_matrix()"
+
+        sparse_interaction, user_mapping_dict, _ = interactions_to_sparse_matrix(
+            interactions, items_num=self.dataset._ARTICLES_NUM, users_num=None
+        )
+        # compute scores as the dot product between user interactions and the similarity matrix
+        if not sps.issparse(self.similarity_matrix):
+            logger.info(set_color(f"DENSE Item Similarity MUL...", "cyan"))
+            dense_interactions = sparse_interaction.todense()
+            scores = np.dot(dense_interactions, self.similarity_matrix)
+        else:
+            logger.info(set_color(f"SPARSE Item Similarity MUL...", "cyan"))
+            scores = sparse_interaction @ self.similarity_matrix
+            scores = scores.todense()
+
+        scores_df = pd.DataFrame(scores, index=list(user_mapping_dict.keys()))
+        return scores_df
