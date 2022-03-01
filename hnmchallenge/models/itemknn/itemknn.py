@@ -14,13 +14,15 @@ from sparsesvd import sparsesvd
 class ItemKNN(ItemSimilarityRecommender):
     name = "ItemKNN"
 
-    def __init__(self, dataset: Dataset, topk: int):
-        super().__init__(dataset=dataset)
+    def __init__(self, dataset: Dataset, topk: int, time_weight: bool = False):
+        super().__init__(dataset=dataset, time_weight=time_weight)
         self.topk = topk
 
     def compute_similarity_matrix(self, interaction_df: pd.DataFrame) -> None:
         sparse_interaction, user_mapping_dict, _ = interactions_to_sparse_matrix(
-            interaction_df, items_num=self.dataset._ARTICLES_NUM, users_num=None
+            interaction_df,
+            items_num=self.dataset._ARTICLES_NUM,
+            users_num=None,
         )
         sim = cosine_similarity(
             sparse_interaction.T, sparse_interaction.T, dense_output=False

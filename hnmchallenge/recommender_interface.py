@@ -3,6 +3,7 @@ import math
 from abc import ABC, abstractmethod
 from textwrap import dedent
 from time import time
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -13,6 +14,7 @@ from pathos.pools import ProcessPool
 from tqdm import tqdm
 
 from hnmchallenge.constant import *
+from hnmchallenge.data_reader import DataReader
 from hnmchallenge.dataset import Dataset
 from hnmchallenge.utils.decorator import timing
 from hnmchallenge.utils.logger import set_color
@@ -29,6 +31,8 @@ class AbstractRecommender(ABC):
     def __init__(self, dataset: Dataset):
         self.train_data = dataset.get_train_df()
         self.dataset = dataset
+        # to be set
+        self.item_multiple_buy = None
 
     @abstractmethod
     def predict(self, interactions: pd.DataFrame) -> pd.DataFrame:
@@ -42,19 +46,22 @@ class AbstractRecommender(ABC):
 
     @staticmethod
     def remove_seen_items(
-        scores: pd.DataFrame, interactions: pd.DataFrame
+        scores: pd.DataFrame,
+        interactions: pd.DataFrame,
     ) -> pd.DataFrame:
         """Methods to set scores of items used at training time to `-np.inf`
 
         Args:
             scores (pd.DataFrame): items scores for each user, indexed by user id
-            interactions (pd.DataFrane): interactions of the users for which retrieve predictions
+            interactions (pd.DataFrame): interactions of the users for which retrieve predictions
+            items_multiple_buy (pd.DataFrame): items that can be recommended multiple times
 
         Returns:
             pd.DataFrame: dataframe of scores for each user indexed by user id
         """
 
         logger.info(set_color(f"Removing seen items", "cyan"))
+
         user_list = interactions[DEFAULT_USER_COL].values
         item_list = interactions[DEFAULT_ITEM_COL].values
 
@@ -66,6 +73,7 @@ class AbstractRecommender(ABC):
         user_list_mapped = np.array([mapping_dict.get(u) for u in user_list])
 
         scores_array[user_list_mapped, item_list] = -np.inf
+
         scores = pd.DataFrame(scores_array, index=user_index)
 
         return scores
@@ -76,7 +84,6 @@ class AbstractRecommender(ABC):
         cutoff: int = 12,
         remove_seen: bool = True,
         batch_size: int = -1,
-        num_cpus: int = 5,
     ) -> pd.DataFrame:
         """
         Give recommendations up to a given cutoff to users inside `user_idxs` list
@@ -89,7 +96,6 @@ class AbstractRecommender(ABC):
             interactions (pd.DataFrame): interactions of the users for which retrieve predictions
             batch_size (int): size of user batch to retrieve recommendations for,
                 If -1 no batching procedure is done
-            num_cpus (int): number of cores to use to parallelise batch recommendations
             remove_seen (bool): remove items that have been bought ones from the prediction
 
         Returns:
@@ -229,8 +235,9 @@ class ItemSimilarityRecommender(AbstractRecommender, ABC):
     Each recommender extending this class has to implement compute_similarity_matrix() method
     """
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, time_weight: bool = False):
         super().__init__(dataset=dataset)
+        self.time_weight = time_weight
         self.similarity_matrix = None
 
     @abstractmethod
@@ -242,45 +249,49 @@ class ItemSimilarityRecommender(AbstractRecommender, ABC):
         assert (
             self.similarity_matrix is not None
         ), "Similarity matrix is not computed, call compute_similarity_matrix()"
-
+        if self.time_weight:
+            print("Predicting using time_weight importance...")
         sparse_interaction, user_mapping_dict, _ = interactions_to_sparse_matrix(
-            interactions, items_num=self.dataset._ARTICLES_NUM, users_num=None
+            interactions,
+            items_num=self.dataset._ARTICLES_NUM,
+            users_num=None,
+            time_weight=self.time_weight,
         )
         # compute scores as the dot product between user interactions and the similarity matrix
         if not sps.issparse(self.similarity_matrix):
             logger.info(set_color(f"DENSE Item Similarity MUL...", "cyan"))
-            dense_interactions = sparse_interaction.toarray()
+            scores = sparse_interaction @ self.similarity_matrix
 
-            # construc torch tensors
-            sim_tensor = torch.from_numpy(self.similarity_matrix)
-            interactions_tensor = torch.from_numpy(dense_interactions)
+            # gpu
+            # dense_interactions = sparse_interaction.toarray()
 
-            sim_tensor_list = sim_tensor.split(10_000)
-            interactions_tensor_list = interactions_tensor.split(10_000, dim=1)
+            # # construc torch tensors
+            # sim_tensor = torch.from_numpy(self.similarity_matrix)
+            # interactions_tensor = torch.from_numpy(dense_interactions)
 
-            res = []
-            torch.cuda.empty_cache()
-            for sim_tensor, interactions_tensor in tqdm(
-                zip(sim_tensor_list, interactions_tensor_list)
-            ):
-                print("a")
-                part_res = torch.matmul(
-                    interactions_tensor.to("cuda"), sim_tensor.to("cuda")
-                )
-                res.append(part_res.cpu().numpy())
-                torch.cuda.empty_cache()
+            # sim_tensor_list = sim_tensor.split(10_000)
+            # interactions_tensor_list = interactions_tensor.split(10_000, dim=1)
 
-            scores_torch = torch.concat(res)
+            # res = []
+            # torch.cuda.empty_cache()
+            # for sim_tensor, interactions_tensor in tqdm(
+            #     zip(sim_tensor_list, interactions_tensor_list)
+            # ):
+            #     print("a")
+            #     part_res = torch.matmul(
+            #         interactions_tensor.to("cuda"), sim_tensor.to("cuda")
+            #     )
+            #     res.append(part_res.cpu().numpy())
+            #     torch.cuda.empty_cache()
 
-            # bring scores to cpu and convert to numpy
-            scores = scores_torch.cpu().numpy()
+            # scores_torch = torch.concat(res)
+
+            # # bring scores to cpu and convert to numpy
+            # scores = scores_torch.cpu().numpy()
         else:
             logger.info(set_color(f"SPARSE Item Similarity MUL...", "cyan"))
-            s = time()
             scores = sparse_interaction @ self.similarity_matrix
-            print(f"took {time()-s}s")
             scores = scores.toarray()
-            print(f"took2 {time()-s}s")
 
         scores_df = pd.DataFrame(scores, index=list(user_mapping_dict.keys()))
         return scores_df

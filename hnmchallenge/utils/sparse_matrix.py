@@ -1,3 +1,4 @@
+import datetime
 import logging
 from typing import Tuple, Union
 
@@ -49,6 +50,7 @@ def interactions_to_sparse_matrix(
     interactions: pd.DataFrame,
     users_num: Union[int, None] = None,
     items_num: Union[int, None] = None,
+    time_weight: bool = False,
 ) -> sps.coo_matrix:
     """Convert interactions df into a sparse matrix
 
@@ -92,7 +94,28 @@ def interactions_to_sparse_matrix(
 
     row_data = interactions[DEFAULT_USER_COL].values
     col_data = interactions[DEFAULT_ITEM_COL].values
-    data = np.ones(len(row_data))
+
+    if time_weight:
+        logger.info(set_color("Applying time weight on user-item interactions", "red"))
+        interactions["last_buy"] = interactions.groupby(DEFAULT_USER_COL)[
+            "t_dat"
+        ].transform(max)
+        interactions["first_buy"] = interactions.groupby(DEFAULT_USER_COL)[
+            "t_dat"
+        ].transform(min)
+        interactions["time_score"] = (
+            (interactions["t_dat"] - interactions["first_buy"])
+            / (interactions["last_buy"] - interactions["first_buy"])
+        ) ** 100
+
+        # min_dat = interactions["t_dat"].min()
+        # max_dat = interactions["t_dat"].max()
+        # interactions["time_score"] = (
+        #     (interactions["t_dat"] - min_dat) / (max_dat - min_dat)
+        # ) ** 50
+        data = interactions["time_score"].values
+    else:
+        data = np.ones(len(row_data))
 
     user_item_matrix = sps.coo_matrix(
         (data, (row_data, col_data)), shape=(row_num, col_num), dtype="float32"

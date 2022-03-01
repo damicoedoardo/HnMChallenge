@@ -9,8 +9,8 @@ from sparsesvd import sparsesvd
 class SGMC(ItemSimilarityRecommender):
     name = "SGMC"
 
-    def __init__(self, dataset: Dataset, k: int = 256):
-        super().__init__(dataset=dataset)
+    def __init__(self, dataset: Dataset, k: int = 256, time_weight: bool = False):
+        super().__init__(dataset=dataset, time_weight=time_weight)
         self.k = k
 
     def compute_similarity_matrix(self, interaction_df: pd.DataFrame) -> None:
@@ -29,7 +29,10 @@ class SGMC(ItemSimilarityRecommender):
         d_inv[np.isinf(d_inv)] = 0.0
         d_mat = sps.diags(d_inv)
         d_mat_i = d_mat
-        d_mat_i_inv = sps.diags(1 / d_inv)
+
+        inv_d_inv = 1 / d_inv
+        inv_d_inv[np.isinf(inv_d_inv)] = 0.0
+        d_mat_i_inv = sps.diags(inv_d_inv)
 
         norm_adj = norm_adj.dot(d_mat)
         norm_adj = norm_adj.tocsc()

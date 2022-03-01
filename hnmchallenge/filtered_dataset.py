@@ -8,20 +8,14 @@ from hnmchallenge.data_reader import DataReader
 from hnmchallenge.utils.sparse_matrix import interactions_to_sparse_matrix
 
 
-class Dataset:
-    _ARTICLES_NUM = 104547  # total number of items in the full data
-    _CUSTOMERS_NUM = 1362281  # total number of users in the full data
+class FilterdDataset:
+    # TODO: let's finish that.
+    _ARTICLES_NUM = 22_069  # total number of items in the full data
+    _CUSTOMERS_NUM = 1_136_206  # total number of users in the full data
 
-    def __init__(self, kind: str = "STANDARD") -> None:
-        dataset_kinds = ["STANDARD", "SMALL"]
-        assert kind in dataset_kinds, f"dataset kind must be in {dataset_kinds}"
-        self.kind = kind
+    def __init__(self) -> None:
         self.train, self.val, self.test = self._load_splits()
-        (
-            self.train_user_subset,
-            self.val_user_subset,
-            self.test_user_subset,
-        ) = self._load_splits_user_subset()
+        self.train_user_subset = self._load_splits_user_subset()
 
     def _load_splits(self) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
         """Load the train validation and test data as dataframes
@@ -32,9 +26,9 @@ class Dataset:
         dr = DataReader()
         pdp = dr.get_preprocessed_data_path()
 
-        train_name = "train_df.feather" if self.kind == "STANDARD" else "small_train_df"
-        val_name = "val_df.feather"
-        test_name = "test_df.feather"
+        train_name = "filtered_train_df.feather"
+        val_name = "filtered_val_df.feather"
+        test_name = "filtered_test_df.feather"
 
         data_df_list = []
         for data_split_name in [train_name, val_name, test_name]:
@@ -54,16 +48,9 @@ class Dataset:
         dr = DataReader()
         pdp = dr.get_preprocessed_data_path()
 
-        train_name = "train_df_user_subset.feather"
-        val_name = "val_df_user_subset.feather"
-        test_name = "test_df_user_subset.feather"
-
-        data_df_list = []
-        for data_split_name in [train_name, val_name, test_name]:
-            data_df_list.append(pd.read_feather(pdp / data_split_name))
-
-        train, val, test = data_df_list
-        return train, val, test
+        train_name = "filtered_train_small_df.feather"
+        train = pd.read_feather(pdp / train_name)
+        return train
 
     def get_train_df(self) -> pd.DataFrame:
         return self.train
@@ -76,12 +63,6 @@ class Dataset:
 
     def get_train_df_user_subset(self) -> pd.DataFrame:
         return self.train_user_subset
-
-    def get_val_df_user_subset(self) -> pd.DataFrame:
-        return self.val_user_subset
-
-    def get_test_df_user_subset(self) -> pd.DataFrame:
-        return self.test_user_subset
 
     def get_user_item_interaction_matrix(
         self, interaction_df: pd.DataFrame
@@ -100,12 +81,3 @@ class Dataset:
             items_num=self._ARTICLES_NUM,
         )
         return sp_m
-
-    def get_black_list_item(self) -> np.array:
-        dr = DataReader()
-        p = dr.get_preprocessed_data_path()
-        with open(p / "item_last_month.npy", "rb") as f:
-            item_last_month = np.load(f)
-        ar = np.arange(self._ARTICLES_NUM)
-        black_list_item = ar[~np.isin(ar, item_last_month)]
-        return black_list_item
