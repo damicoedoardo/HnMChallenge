@@ -97,22 +97,22 @@ def interactions_to_sparse_matrix(
 
     if time_weight:
         logger.info(set_color("Applying time weight on user-item interactions", "red"))
-        interactions["last_buy"] = interactions.groupby(DEFAULT_USER_COL)[
-            "t_dat"
-        ].transform(max)
-        interactions["first_buy"] = interactions.groupby(DEFAULT_USER_COL)[
-            "t_dat"
-        ].transform(min)
-        interactions["time_score"] = (
-            (interactions["t_dat"] - interactions["first_buy"])
-            / (interactions["last_buy"] - interactions["first_buy"])
-        ) ** 100
-
-        # min_dat = interactions["t_dat"].min()
-        # max_dat = interactions["t_dat"].max()
+        # interactions["last_buy"] = interactions.groupby(DEFAULT_USER_COL)[
+        #     "t_dat"
+        # ].transform(max)
+        # interactions["first_buy"] = interactions.groupby(DEFAULT_USER_COL)[
+        #     "t_dat"
+        # ].transform(min)
         # interactions["time_score"] = (
-        #     (interactions["t_dat"] - min_dat) / (max_dat - min_dat)
+        #     (interactions["t_dat"] - interactions["first_buy"])
+        #     / (interactions["last_buy"] - interactions["first_buy"])
         # ) ** 50
+
+        min_dat = interactions["t_dat"].min()
+        max_dat = interactions["t_dat"].max()
+        interactions["time_score"] = (
+            (interactions["t_dat"] - min_dat) / (max_dat - min_dat)
+        ) ** 2
         data = interactions["time_score"].values
     else:
         data = np.ones(len(row_data))
