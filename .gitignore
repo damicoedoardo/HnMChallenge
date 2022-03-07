@@ -4,6 +4,7 @@ utils/__pycache__
 .venv
 submission
 hnmchallenge/*/__pycache__/
+.env
 
 hnmchallenge/data_analysis/transactions.ipynb
 hnmchallenge/data_analysis/transactions.ipynb
