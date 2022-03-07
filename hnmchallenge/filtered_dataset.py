@@ -81,10 +81,13 @@ class FilterdDataset:
             items_num=self._ARTICLES_NUM,
         )
         return sp_m
-        
-    def get_user_multiply_buy(self) -> pd.DataFrame:
+
+    def get_filtered_user_multiply_buy(self) -> pd.DataFrame:
         dr = DataReader()
         p = dr.get_preprocessed_data_path()
-        user_diff_score = pd.read_feather(p /"filtered_split_user_multiple_buy.feather", columns=None, use_threads=True)
+        user_diff_score = pd.read_feather(
+            p / "filtered_split_user_multiple_buy.feather",
+            columns=None,
+            use_threads=True,
+        )
         return user_diff_score
-

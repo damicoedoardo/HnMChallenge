@@ -49,15 +49,22 @@ class SubmissionHandler:
         logger.info(set_color(f"Submission: {sub_name} created succesfully!", "yellow"))
 
     def create_submission_filtered_data(
-        self, recs_df: pd.DataFrame, sub_name: str
+        self, recs_dfs: list[pd.DataFrame], sub_name: str
     ) -> None:
-        assert DEFAULT_USER_COL in recs_df.columns, f"Missing col: {DEFAULT_USER_COL}"
-        assert (
-            DEFAULT_PREDICTION_COL in recs_df.columns
-        ), f"Missing col: {DEFAULT_PREDICTION_COL}"
+        assert len(recs_dfs) > 0, "recs_df is empty"
+        for df in recs_dfs:
+            assert DEFAULT_USER_COL in df.columns, f"Missing col: {DEFAULT_USER_COL}"
+            assert (
+                DEFAULT_PREDICTION_COL in df.columns
+            ), f"Missing col: {DEFAULT_PREDICTION_COL}"
 
         user_map_dict, item_map_dict = self.dr.get_filtered_new_raw_mapping_dict()
-        grp_recs_df = recs_df.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(list)
+        # concatemate together the predictions for the different user clusters
+        recs_dfs_concat = pd.concat(recs_dfs, axis=0)
+
+        grp_recs_df = recs_dfs_concat.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(
+            list
+        )
         grp_recs_df = grp_recs_df.to_frame().reset_index()
         # map back to original ids
         grp_recs_df[DEFAULT_USER_COL] = grp_recs_df[DEFAULT_USER_COL].apply(
