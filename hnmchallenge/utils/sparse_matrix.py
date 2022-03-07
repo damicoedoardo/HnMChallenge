@@ -1,11 +1,14 @@
+import datetime
 import logging
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
 import scipy.sparse as sps
 from hnmchallenge.constant import *
+from hnmchallenge.utils.decorator import timing
 from hnmchallenge.utils.logger import set_color
+from hnmchallenge.utils.pandas_utils import remap_column_consecutive
 
 logger = logging.getLogger(__name__)
 
@@ -42,15 +45,21 @@ def adjacency_from_interactions(
     return adjacency
 
 
+@timing
 def interactions_to_sparse_matrix(
-    interactions: pd.DataFrame, users_num: int, items_num: int
+    interactions: pd.DataFrame,
+    users_num: Union[int, None] = None,
+    items_num: Union[int, None] = None,
+    time_weight: bool = False,
 ) -> sps.coo_matrix:
     """Convert interactions df into a sparse matrix
 
     Args:
         interactions (pd.DataFrame): interactions data
         users_num (int): number of users, used to initialise the shape of the sparse matrix
+            if None user ids are remapped to consecutive
         items_num (int): number of items, used to initialise the shape of the sparse matrix
+            if None item ids are remapped to consecutive
 
     Returns:
         user_item_matrix (sps.coo_matrix): users interactions in csr sparse format
@@ -62,14 +71,56 @@ def interactions_to_sparse_matrix(
     row_num = users_num
     col_num = items_num
 
+    user_ids_mapping_dict = None
+    item_ids_mapping_dict = None
+
+    if users_num is None:
+        interactions, user_ids_mapping_dict = remap_column_consecutive(
+            interactions, DEFAULT_USER_COL
+        )
+        logger.warning(
+            set_color("users_num is None, remap user ids to consecutive", "red")
+        )
+        row_num = len(user_ids_mapping_dict.keys())
+
+    if items_num is None:
+        interactions, item_ids_mapping_dict = remap_column_consecutive(
+            interactions, DEFAULT_ITEM_COL
+        )
+        logger.warning(
+            set_color("items_num is None, remap item ids to consecutive", "red")
+        )
+        col_num = len(item_ids_mapping_dict.keys())
+
     row_data = interactions[DEFAULT_USER_COL].values
     col_data = interactions[DEFAULT_ITEM_COL].values
-    data = np.ones(len(row_data))
+
+    if time_weight:
+        logger.info(set_color("Applying time weight on user-item interactions", "red"))
+        # interactions["last_buy"] = interactions.groupby(DEFAULT_USER_COL)[
+        #     "t_dat"
+        # ].transform(max)
+        # interactions["first_buy"] = interactions.groupby(DEFAULT_USER_COL)[
+        #     "t_dat"
+        # ].transform(min)
+        # interactions["time_score"] = (
+        #     (interactions["t_dat"] - interactions["first_buy"])
+        #     / (interactions["last_buy"] - interactions["first_buy"])
+        # ) ** 50
+
+        min_dat = interactions["t_dat"].min()
+        max_dat = interactions["t_dat"].max()
+        interactions["time_score"] = (
+            (interactions["t_dat"] - min_dat) / (max_dat - min_dat)
+        ) ** 2
+        data = interactions["time_score"].values
+    else:
+        data = np.ones(len(row_data))
 
     user_item_matrix = sps.coo_matrix(
-        (data, (row_data, col_data)), shape=(row_num, col_num)
+        (data, (row_data, col_data)), shape=(row_num, col_num), dtype="float32"
     )
-    return user_item_matrix
+    return user_item_matrix, user_ids_mapping_dict, item_ids_mapping_dict
 
 
 def get_top_k(
@@ -90,16 +141,14 @@ def get_top_k(
     logger.info(set_color(f"Sort_top_k:{sort_top_k}", "cyan"))
     # ensure we're working with a dense ndarray
     if isinstance(scores, sps.spmatrix):
-        logger.warning(
-            set_color("Scores are in a sparse format, densify them", "white")
-        )
+        logger.warning(set_color("Scores are in a sparse format, densify them", "red"))
         scores = scores.todense()
 
     if scores.shape[1] < top_k:
         logger.warning(
             set_color(
                 "Number of items is less than top_k, limiting top_k to number of items",
-                "white",
+                "red",
             )
         )
     k = min(top_k, scores.shape[1])
@@ -117,3 +166,20 @@ def get_top_k(
         top_scores = top_scores[test_user_idx, sort_ind]
 
     return np.array(top_items), np.array(top_scores)
+
+
+def truncate_top_k(x, k):
+    """Keep top_k highest values elements for each row of a numpy array
+
+    Args:
+        x (np.Array): numpy array
+        k (int): number of elements to keep for each row
+
+    Returns:
+        np.Array: processed array
+    """
+    s = x.shape
+    ind = np.argpartition(x, -k, axis=1)[:, :-k]
+    rows = np.arange(s[0])[:, None]
+    x[rows, ind] = 0
+    return x

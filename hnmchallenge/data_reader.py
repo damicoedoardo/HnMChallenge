@@ -9,6 +9,7 @@ from operator import index
 from pathlib import Path
 from typing import Tuple
 
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -61,9 +62,27 @@ class DataReader:
             iids_dict = pickle.load(f)
         return uids_dict, iids_dict
 
+    def get_filtered_new_raw_mapping_dict(self) -> Tuple[dict, dict]:
+        uids_p = self.get_mapping_dict_path() / "filtered_new_raw_user_ids_dict.pkl"
+        iids_p = self.get_mapping_dict_path() / "filtered_new_raw_item_ids_dict.pkl"
+        with open(uids_p, "rb") as f:
+            uids_dict = pickle.load(f)
+        with open(iids_p, "rb") as f:
+            iids_dict = pickle.load(f)
+        return uids_dict, iids_dict
+
     def get_raw_new_mapping_dict(self) -> Tuple[dict, dict]:
         uids_p = self.get_mapping_dict_path() / "raw_new_user_ids_dict.pkl"
         iids_p = self.get_mapping_dict_path() / "raw_new_item_ids_dict.pkl"
+        with open(uids_p, "rb") as f:
+            uids_dict = pickle.load(f)
+        with open(iids_p, "rb") as f:
+            iids_dict = pickle.load(f)
+        return uids_dict, iids_dict
+
+    def get_filtered_raw_new_mapping_dict(self) -> Tuple[dict, dict]:
+        uids_p = self.get_mapping_dict_path() / "filtered_raw_new_user_ids_dict.pkl"
+        iids_p = self.get_mapping_dict_path() / "filtered_raw_new_item_ids_dict.pkl"
         with open(uids_p, "rb") as f:
             uids_dict = pickle.load(f)
         with open(iids_p, "rb") as f:
@@ -86,8 +105,21 @@ class DataReader:
         )
         return zero_interaction_users
 
+    def get_filtered_zero_interatction_users(self) -> pd.DataFrame:
+        zero_interaction_users = pd.read_feather(
+            self.get_preprocessed_data_path() / "filtered_zero_int_users.feather"
+        )
+        return zero_interaction_users
+
     def get_full_data(self) -> pd.DataFrame:
         p = self.get_preprocessed_data_path() / "transactions.feather"
+        df = pd.read_feather(p)
+        # convert date to pandas datetime
+        df["t_dat"] = pd.to_datetime(df["t_dat"])
+        return df
+
+    def get_filtered_full_data(self) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "filtered_transactions.feather"
         df = pd.read_feather(p)
         # convert date to pandas datetime
         df["t_dat"] = pd.to_datetime(df["t_dat"])
@@ -107,3 +139,22 @@ class DataReader:
         path = self.get_data_path() / self._TRANSACTIONS
         df = pd.read_csv(path, dtype={"article_id": str})
         return df
+
+    def get_zero_interactions_recs(self) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "zero_interactions_recs.feather"
+        zero_interactions_recs_df = pd.read_feather(p)
+        return zero_interactions_recs_df
+
+    def get_filtered_zero_interactions_recs(self) -> pd.DataFrame:
+        p = (
+            self.get_preprocessed_data_path()
+            / "filtered_zero_interactions_recs.feather"
+        )
+        zero_interactions_recs_df = pd.read_feather(p)
+        return zero_interactions_recs_df
+
+    def get_multiple_buy_item_count(self, count: int) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "multiple_buy.feather"
+        mb = pd.read_feather(p)
+        item_mb = mb[mb["count"] >= count]["article_id"].values
+        return item_mb
