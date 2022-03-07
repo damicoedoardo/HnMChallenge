@@ -10,3 +10,4 @@ hnmchallenge/*/*/__pycache__/
 hnmchallenge/data_analysis/transactions.ipynb
 hnmchallenge/data_analysis/transactions.ipynb
 hnmchallenge/models/ease/__pycache__/ease.cpython-39.pyc
+.env
