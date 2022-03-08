@@ -90,4 +90,14 @@ class FilterdDataset:
             columns=None,
             use_threads=True,
         )
-        return user_diff_score
+        return 
+      
+    def get_filtered_user_multiply_buy(self) -> pd.DataFrame:
+        dr = DataReader()
+        p = dr.get_preprocessed_data_path()
+        feature_data = pd.read_feather(
+            p / "filtered_feature_dataset.feather",
+            columns=None,
+            use_threads=True,
+        )
+        return feature_data
