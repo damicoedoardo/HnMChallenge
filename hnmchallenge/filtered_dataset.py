@@ -92,7 +92,7 @@ class FilterdDataset:
         )
         return 
       
-    def get_filtered_user_multiply_buy(self) -> pd.DataFrame:
+    def get_filtered_feature_dataset(self) -> pd.DataFrame:
         dr = DataReader()
         p = dr.get_preprocessed_data_path()
         feature_data = pd.read_feather(
