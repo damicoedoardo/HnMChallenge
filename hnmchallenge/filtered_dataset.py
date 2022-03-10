@@ -87,10 +87,10 @@ class FilterdDataset:
         p = dr.get_preprocessed_data_path()
         user_diff_score = pd.read_feather(
             p / "filtered_split_user_multiple_buy.feather",
-            columns=None,
-            use_threads=True,
+            # columns=None,
+            # use_threads=True,
         )
-        return 
+        return user_diff_score
       
     def get_filtered_feature_dataset(self) -> pd.DataFrame:
         dr = DataReader()
