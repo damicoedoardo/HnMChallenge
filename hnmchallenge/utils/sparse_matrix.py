@@ -108,11 +108,30 @@ def interactions_to_sparse_matrix(
         #     / (interactions["last_buy"] - interactions["first_buy"])
         # ) ** 50
 
-        min_dat = interactions["t_dat"].min()
-        max_dat = interactions["t_dat"].max()
-        interactions["time_score"] = (
-            (interactions["t_dat"] - min_dat) / (max_dat - min_dat)
-        ) ** 2
+        # min_dat = interactions["t_dat"].min()
+        # max_dat = interactions["t_dat"].max()
+        # interactions["time_score"] = (
+        #     (interactions["t_dat"] - min_dat) / (max_dat - min_dat)
+        # ) ** 50
+
+        interactions["time_score"] = interactions["t_dat"].apply(
+            lambda x: 1 / ((datetime.datetime(2020, 9, 23) - x).days)
+        )
+
+        
+        # accounting for sale factor
+        
+        # interactions["max_price"] = interactions.groupby(DEFAULT_ITEM_COL)[
+        #     "price"
+        # ].transform("max")
+        # interactions["sale_factor"] = (
+        #     1 - (interactions["price"] / interactions["max_price"])
+        # )
+
+        # interactions["time_sale_score"] = (
+        #     interactions["time_score"] * interactions["sale_factor"]
+        # )
+
         data = interactions["time_score"].values
     else:
         data = np.ones(len(row_data))

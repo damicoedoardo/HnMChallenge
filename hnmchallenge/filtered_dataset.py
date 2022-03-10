@@ -91,3 +91,19 @@ class FilterdDataset:
             use_threads=True,
         )
         return user_diff_score
+
+    def get_filtered_item_multiply_buy(self) -> pd.DataFrame:
+        dr = DataReader()
+        p = dr.get_preprocessed_data_path()
+        item_mb = pd.read_feather(
+            p / "filtered_multiple_buy.feather",
+        )
+        return item_mb
+
+    def get_cosine_recs(cutoff: int) -> pd.DataFrame:
+        dr = DataReader()
+        p = dr.get_preprocessed_data_path()
+        cosine_recs = pd.read_feather(
+            p / "filtered_cosine_cutoff100.feather",
+        )
+        return cosine_recs

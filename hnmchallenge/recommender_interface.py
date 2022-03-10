@@ -3,6 +3,7 @@ import math
 from abc import ABC, abstractmethod
 from textwrap import dedent
 from time import time
+from tkinter.messagebox import NO
 from typing import Union
 
 import numpy as np
@@ -48,6 +49,7 @@ class AbstractRecommender(ABC):
     def remove_seen_items(
         scores: pd.DataFrame,
         interactions: pd.DataFrame,
+        white_list_mb_item: np.array = None,
     ) -> pd.DataFrame:
         """Methods to set scores of items used at training time to `-np.inf`
 
@@ -61,6 +63,12 @@ class AbstractRecommender(ABC):
         """
 
         logger.info(set_color(f"Removing seen items", "cyan"))
+
+        if white_list_mb_item is not None:
+            print("Considering white list items...")
+            interactions = interactions[
+                ~(interactions[DEFAULT_ITEM_COL].isin(white_list_mb_item))
+            ]
 
         user_list = interactions[DEFAULT_USER_COL].values
         item_list = interactions[DEFAULT_ITEM_COL].values
@@ -155,6 +163,7 @@ class AbstractRecommender(ABC):
         interactions: pd.DataFrame,
         cutoff: int = 12,
         remove_seen: bool = True,
+        white_list_mb_item: Union[np.array, None] = None,
         batch_size: int = -1,
         num_cpus: int = 5,
     ) -> pd.DataFrame:
@@ -191,11 +200,13 @@ class AbstractRecommender(ABC):
             for u_batch in user_batches
         ]
 
-        def _rec(interactions_df):
+        def _rec(interactions_df, white_list_mb_item=None):
             scores = self.predict(interactions_df)
             # set the score of the items used during the training to -inf
             if remove_seen:
-                scores = AbstractRecommender.remove_seen_items(scores, interactions_df)
+                scores = AbstractRecommender.remove_seen_items(
+                    scores, interactions_df, white_list_mb_item
+                )
             array_scores = scores.to_numpy()
             user_ids = scores.index.values
             # TODO: we can use GPU here (tensorflow ?)
@@ -216,8 +227,15 @@ class AbstractRecommender(ABC):
             # pool = ProcessPool(nodes=num_cpus)
             # results = pool.imap(_rec, train_dfs)
             # recs_dfs_list = list(results)
-
-            recs_dfs_list = p_map(_rec, train_dfs, num_cpus=num_cpus)
+            if white_list_mb_item is not None:
+                reps_white_list_mb_item = np.repeat(
+                    np.array(white_list_mb_item)[np.newaxis, :], len(train_dfs), axis=0
+                )
+                recs_dfs_list = p_map(
+                    _rec, train_dfs, reps_white_list_mb_item, num_cpus=num_cpus
+                )
+            else:
+                recs_dfs_list = p_map(_rec, train_dfs, num_cpus=num_cpus)
 
         # concat all the batch recommendations dfs
         recommendation_df = pd.concat(recs_dfs_list, axis=0)
