@@ -47,6 +47,7 @@ def map_at_k(
     rating_pred,
     col_user=DEFAULT_USER_COL,
     col_item=DEFAULT_ITEM_COL,
+    adjust_user_count: bool = False,
 ):
     """Mean Average Precision at k
 
@@ -87,4 +88,44 @@ def map_at_k(
     df_hit_sorted = df_hit_sorted.groupby(col_user).agg({"rr": "sum"}).reset_index()
 
     df_merge = pd.merge(df_hit_sorted, df_hit_count, on=col_user)
-    return (df_merge["rr"] / df_merge["actual"]).sum() / n_users
+    if adjust_user_count:
+        map_at_k = (df_merge["rr"] / df_merge["actual"]).sum() / 37740
+    else:
+        map_at_k = (df_merge["rr"] / df_merge["actual"]).sum() / n_users
+    return map_at_k
+
+
+def recall_at_k(
+    rating_true,
+    rating_pred,
+    col_user=DEFAULT_USER_COL,
+    col_item=DEFAULT_ITEM_COL,
+):
+    """Recall at K.
+    Args:
+        rating_true (pd.DataFrame): True DataFrame
+        rating_pred (pd.DataFrame): Predicted DataFrame
+        col_user (str): column name for user
+        col_item (str): column name for item
+        col_rating (str): column name for rating
+        col_prediction (str): column name for prediction
+        relevancy_method (str): method for determining relevancy ['top_k', 'by_threshold', None]. None means that the
+            top k items are directly provided, so there is no need to compute the relevancy operation.
+        k (int): number of top k items per user
+        threshold (float): threshold of top items per user (optional)
+    Returns:
+        float: recall at k (min=0, max=1). The maximum value is 1 even when fewer than
+        k items exist for a user in rating_true.
+    """
+
+    df_hit, df_hit_count, n_users = merge_ranking_true_pred(
+        rating_true=rating_true,
+        rating_pred=rating_pred,
+        col_user=col_user,
+        col_item=col_item,
+    )
+
+    if df_hit.shape[0] == 0:
+        return 0.0
+
+    return (df_hit_count["hit"] / df_hit_count["actual"]).sum() / n_users
