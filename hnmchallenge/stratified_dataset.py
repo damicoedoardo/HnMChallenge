@@ -30,3 +30,19 @@ class StratifiedDataset:
             p / f"stratified_holdout_{self.percentages_splits}.feather",
         )
         return holdout_df
+
+    def get_features_holdin_user_item(self) -> pd.DataFrame:
+        dr = DataReader()
+        p = dr.get_preprocessed_data_path()
+        useritem_df = pd.read_feather(
+            p / f"stratified_holdin_useritem_dataset.feather",
+        )
+        return useritem_df
+
+    def get_features_holdin_item(self) -> pd.DataFrame:
+        dr = DataReader()
+        p = dr.get_preprocessed_data_path()
+        item_df = pd.read_feather(
+            p / f"stratified_holdin_item_dataset.feather",
+        )
+        return item_df
