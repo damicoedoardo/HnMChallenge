@@ -30,7 +30,7 @@ class AbstractRecommender(ABC):
     name = "Abstract Recommender"
 
     def __init__(self, dataset: Dataset):
-        self.train_data = dataset.get_train_df()
+        # self.train_data = dataset.get_train_df()
         self.dataset = dataset
         # to be set
         self.item_multiple_buy = None
@@ -268,7 +268,7 @@ class ItemSimilarityRecommender(AbstractRecommender, ABC):
             self.similarity_matrix is not None
         ), "Similarity matrix is not computed, call compute_similarity_matrix()"
         if self.time_weight:
-            print("Predicting using time_weight importance...")
+            logger.info(set_color("Predicting using time_weight importance...", "red"))
         sparse_interaction, user_mapping_dict, _ = interactions_to_sparse_matrix(
             interactions,
             items_num=self.dataset._ARTICLES_NUM,

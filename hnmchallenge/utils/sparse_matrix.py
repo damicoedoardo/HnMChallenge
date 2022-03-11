@@ -45,7 +45,6 @@ def adjacency_from_interactions(
     return adjacency
 
 
-@timing
 def interactions_to_sparse_matrix(
     interactions: pd.DataFrame,
     users_num: Union[int, None] = None,
@@ -78,7 +77,7 @@ def interactions_to_sparse_matrix(
         interactions, user_ids_mapping_dict = remap_column_consecutive(
             interactions, DEFAULT_USER_COL
         )
-        logger.warning(
+        logger.info(
             set_color("users_num is None, remap user ids to consecutive", "red")
         )
         row_num = len(user_ids_mapping_dict.keys())
@@ -87,7 +86,7 @@ def interactions_to_sparse_matrix(
         interactions, item_ids_mapping_dict = remap_column_consecutive(
             interactions, DEFAULT_ITEM_COL
         )
-        logger.warning(
+        logger.info(
             set_color("items_num is None, remap item ids to consecutive", "red")
         )
         col_num = len(item_ids_mapping_dict.keys())
@@ -118,9 +117,8 @@ def interactions_to_sparse_matrix(
             lambda x: 1 / ((datetime.datetime(2020, 9, 23) - x).days)
         )
 
-        
         # accounting for sale factor
-        
+
         # interactions["max_price"] = interactions.groupby(DEFAULT_ITEM_COL)[
         #     "price"
         # ].transform("max")
