@@ -30,3 +30,11 @@ class StratifiedDataset:
             p / f"stratified_holdout_{self.percentages_splits}.feather",
         )
         return holdout_df
+
+    def get_relevance_df(self) -> pd.DataFrame:
+        dr = DataReader()
+        p = dr.get_preprocessed_data_path()
+        holdout_df = pd.read_feather(
+            p / "relevance_df.feather",
+        )
+        return holdout_df
