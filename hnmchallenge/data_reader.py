@@ -158,3 +158,13 @@ class DataReader:
         mb = pd.read_feather(p)
         item_mb = mb[mb["count"] >= count]["article_id"].values
         return item_mb
+
+    def get_filtered_articles(self) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "filtered_articles.feather"
+        article_df = pd.read_feather(p)
+        return article_df
+
+    def get_filtered_customers(self) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "filtered_customers.feather"
+        customer_df = pd.read_feather(p)
+        return customer_df
