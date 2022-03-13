@@ -14,6 +14,7 @@ class ItemPrice(UserItemFeature):
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
+        print(self.kind)
         data_df = (
             self.dataset.get_holdin()
             if self.kind == "train"
