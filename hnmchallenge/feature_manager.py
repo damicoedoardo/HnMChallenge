@@ -15,8 +15,14 @@ logger = logging.getLogger(__name__)
 
 
 class FeatureManager:
-    _USER_FEATURES = []
-    _ITEM_FEATURES = []
+    _USER_FEATURES = [
+        "age",
+        "FN",
+        "active",
+        "club_member_status",
+        "fashion_news_frequency",
+    ]
+    _ITEM_FEATURES = ["colour_group_code", "product_type_no"]
     _USER_ITEM_FEATURES = ["item_price"]
 
     def __init__(
@@ -90,7 +96,7 @@ class Feature(ABC):
         self.save_path.mkdir(parents=True, exist_ok=True)
 
     @abstractmethod
-    def _check_integrity(self) -> None:
+    def _check_integrity(self, featue: pd.DataFrame) -> None:
         """Check integrity of a feature"""
         # TODO check no nan, check all rows mantained
         pass
@@ -111,7 +117,7 @@ class Feature(ABC):
     @timing
     def save_feature(self) -> None:
         feature = self._create_feature()
-        self._check_integrity()
+        self._check_integrity(feature)
         print(f"Saving Feature {self.kind}...")
         feature_name = self.FEATURE_NAME + ".feather"
         feature.reset_index(drop=True).to_feather(self.save_path / feature_name)
@@ -122,9 +128,16 @@ class UserItemFeature(Feature):
     def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
         super().__init__(dataset, kind)
 
-    def _check_integrity(self) -> None:
+    def _check_integrity(self, feature: pd.DataFrame) -> None:
+        assert (
+            DEFAULT_ITEM_COL in feature.columns
+        ), f"{DEFAULT_ITEM_COL} not in feature columns"
+        assert (
+            DEFAULT_USER_COL in feature.columns
+        ), f"{DEFAULT_USER_COL} not in feature columns"
+        assert "t_dat" in feature.columns, f"t_dat not in feature columns"
+
         keys_df = self._get_keys_df()
-        feature = self._create_feature()
 
         # check no missing rows
         assert len(keys_df) == len(
@@ -150,10 +163,58 @@ class UserItemFeature(Feature):
 
 
 class ItemFeature(Feature):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+        super().__init__(dataset, kind)
+
+    def _check_integrity(self, feature: pd.DataFrame) -> None:
+        assert (
+            DEFAULT_ITEM_COL in feature.columns
+        ), f"{DEFAULT_ITEM_COL} not in feature columns"
+        keys_df = self._get_keys_df()
+
+        # check no missing rows
+        assert len(keys_df) == len(
+            feature
+        ), f"Missing rows, given: {len(feature)}\n wanted: {len(keys_df)}\n"
+        # check no missing values
+        assert (
+            not feature.isnull().values.any()
+        ), "NaN values present, please fill them in _create_feature()"
+        assert self.FEATURE_NAME is not None, "feature name has not been set!"
+
+    def _get_keys_df(self) -> pd.DataFrame:
+        item_df = (
+            self.dr.get_filtered_articles()[DEFAULT_ITEM_COL]
+            .to_frame()
+            .drop_duplicates()
+        )
+        return item_df
 
 
 class UserFeature(Feature):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+        super().__init__(dataset, kind)
+
+    def _check_integrity(self, feature: pd.DataFrame) -> None:
+        assert (
+            DEFAULT_USER_COL in feature.columns
+        ), f"{DEFAULT_USER_COL} not in feature columns"
+        keys_df = self._get_keys_df()
+
+        # check no missing rows
+        assert len(keys_df) == len(
+            feature
+        ), f"Missing rows, given: {len(feature)}\n wanted: {len(keys_df)}\n"
+        # check no missing values
+        assert (
+            not feature.isnull().values.any()
+        ), "NaN values present, please fill them in _create_feature()"
+        assert self.FEATURE_NAME is not None, "feature name has not been set!"
+
+    def _get_keys_df(self) -> pd.DataFrame:
+        user_df = (
+            self.dr.get_filtered_customers()[DEFAULT_USER_COL]
+            .to_frame()
+            .drop_duplicates()
+        )
+        return user_df

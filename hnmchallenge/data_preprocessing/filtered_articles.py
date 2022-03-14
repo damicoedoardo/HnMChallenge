@@ -30,4 +30,4 @@ if __name__ == "__main__":
     article = article.drop("article_id", axis=1)
     article = article.rename(columns={"index": "article_id"})
 
-    article.to_feather(dr.get_preprocessed_data_path() / "filtered_artilces.feather")
+    article.to_feather(dr.get_preprocessed_data_path() / "filtered_articles.feather")
