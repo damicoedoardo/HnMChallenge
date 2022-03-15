@@ -3,12 +3,12 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.feature_manager import ItemFeature
+from hnmchallenge.features.feature_interfaces import ItemFeature
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
 class GarmentGroupName(ItemFeature):
-    FEATURE_NAME = "product_group_name"
+    FEATURE_NAME = "garment_group_name"
 
     def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
         # we have the feature only for full

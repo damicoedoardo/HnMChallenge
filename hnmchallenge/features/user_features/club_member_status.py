@@ -3,7 +3,7 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.feature_manager import UserFeature
+from hnmchallenge.features.feature_interfaces import UserFeature
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
 

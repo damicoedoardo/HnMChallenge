@@ -1,12 +1,16 @@
 import logging
 import os
 from abc import ABC, abstractmethod
+from functools import reduce
 
 import pandas as pd
 from pyexpat import features
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.features import user_features
+from hnmchallenge.features.item_features import *
+from hnmchallenge.features.user_features import *
 from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.decorator import timing
 from hnmchallenge.utils.logger import set_color
@@ -16,22 +20,36 @@ logger = logging.getLogger(__name__)
 
 class FeatureManager:
     _USER_FEATURES = [
-        "age",
-        "FN",
-        "active",
-        "club_member_status",
-        "fashion_news_frequency",
+        Active,
+        Age,
+        ClubMemberStatus,
+        FashionNewsFrequency,
+        Fn,
     ]
-    _ITEM_FEATURES = ["colour_group_code", "product_type_no"]
-    _USER_ITEM_FEATURES = ["item_price"]
+    _ITEM_FEATURES = [
+        ColourGroupCode,
+        DepartmentNO,
+        GarmentGroupName,
+        GraphicalAppearanceNO,
+        IndexCode,
+        IndexGroupName,
+        PerceivedColourMasterID,
+        PerceivedColourValueID,
+        ProductGroupName,
+        ProductTypeNO,
+        SectionNO,
+    ]
+    _USER_ITEM_FEATURES = []
 
     def __init__(
         self,
+        dataset: StratifiedDataset,
         kind: str,
         user_features: list[str] = None,
         item_features: list[str] = None,
         user_item_features: list[str] = None,
     ) -> None:
+
         # check correctness features passed
         if user_features is not None:
             for userf in user_features:
@@ -65,161 +83,55 @@ class FeatureManager:
         self.user_features = user_features
         self.item_features = item_features
         self.user_item_features = user_item_features
-
-    def create_features_df(self):
-        # 1) load the relevance df, pass the name of which relevance df has to be used
-        # 2) join the user-item features
-        # 3) join item features
-        # 4) joim user features
-        pass
-
-    def create_libsvm_dataset():
-        # TODO: account for train val test, name of the dataset, kind, save as binary file, create a new folder for libsvm files
-        pass
-
-
-class Feature(ABC):
-    _SAVE_PATH = "features"
-    _KINDS = ["train", "full"]
-    FEATURE_NAME = None
-
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
-        self.dataset = dataset
-        assert kind in self._KINDS, f"kind should be in {self._KINDS}"
         self.kind = kind
         self.dr = DataReader()
+        self.dataset = dataset
 
-        # creating features directory
-        self.save_path = (
-            self.dr.get_preprocessed_data_path() / self._SAVE_PATH / self.kind
-        )
-        self.save_path.mkdir(parents=True, exist_ok=True)
-
-    @abstractmethod
-    def _check_integrity(self, featue: pd.DataFrame) -> None:
-        """Check integrity of a feature"""
-        # TODO check no nan, check all rows mantained
-        pass
-
-    @abstractmethod
-    def _create_feature(self) -> pd.DataFrame:
-        pass
-
-    @abstractmethod
-    def _get_keys_df() -> pd.DataFrame:
-        """Return the skeleton dataframe to build a new feature
-
-        Returns:
-            pd.DataFrane: skeleton dataframe with the keys columns
-        """
-        pass
-
-    @timing
-    def save_feature(self) -> None:
-        feature = self._create_feature()
-        self._check_integrity(feature)
-        print(f"Saving Feature {self.kind}...")
-        feature_name = self.FEATURE_NAME + ".feather"
-        feature.reset_index(drop=True).to_feather(self.save_path / feature_name)
-        print(f"Feature saved in {self.save_path / self.FEATURE_NAME}")
-
-    @timing
-    def load_feature(self) -> pd.DataFrame:
-        feature = pd.read_feather(self.save_path / self.FEATURE_NAME)
-        return feature
-
-
-class UserItemFeature(Feature):
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
-        super().__init__(dataset, kind)
-
-    def _check_integrity(self, feature: pd.DataFrame) -> None:
-        assert (
-            DEFAULT_ITEM_COL in feature.columns
-        ), f"{DEFAULT_ITEM_COL} not in feature columns"
-        assert (
-            DEFAULT_USER_COL in feature.columns
-        ), f"{DEFAULT_USER_COL} not in feature columns"
-        assert "t_dat" in feature.columns, f"t_dat not in feature columns"
-
-        keys_df = self._get_keys_df()
-
-        # check no missing rows
-        assert len(keys_df) == len(
-            feature
-        ), f"Missing rows, given: {len(feature)}\n wanted: {len(keys_df)}\n"
-        # check no missing values
-        assert (
-            not feature.isnull().values.any()
-        ), "NaN values present, please fill them in _create_feature()"
-        assert self.FEATURE_NAME is not None, "feature name has not been set!"
-
-    def _get_keys_df(self) -> pd.DataFrame:
-        data_df = None
+    def create_features_df(self, name: str) -> pd.DataFrame:
+        # if kind is "train" means we need the relevance df,
+        # if kind is "full" we need recommendations df
+        # load base df
+        kind_name = self.kind + "_" + name
         if self.kind == "train":
-            data_df = self.dataset.get_holdin()
+            base_df_path = (
+                self.dr.get_preprocessed_data_path() / "relevance_dfs" / kind_name
+            )
+            print("Creating features df for training...")
         else:
-            data_df = self.dr.get_filtered_full_data()
+            base_df_path = self.dr.get_preprocessed_data_path() / kind_name
+            print("Creating features df for final predictions...")
+        base_df = pd.read_feather(base_df_path)
 
-        data_df = data_df[
-            [DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat"]
-        ].drop_duplicates()
-        return data_df
-
-
-class ItemFeature(Feature):
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
-        super().__init__(dataset, kind)
-
-    def _check_integrity(self, feature: pd.DataFrame) -> None:
-        assert (
-            DEFAULT_ITEM_COL in feature.columns
-        ), f"{DEFAULT_ITEM_COL} not in feature columns"
-        keys_df = self._get_keys_df()
-
-        # check no missing rows
-        assert len(keys_df) == len(
-            feature
-        ), f"Missing rows, given: {len(feature)}\n wanted: {len(keys_df)}\n"
-        # check no missing values
-        assert (
-            not feature.isnull().values.any()
-        ), "NaN values present, please fill them in _create_feature()"
-        assert self.FEATURE_NAME is not None, "feature name has not been set!"
-
-    def _get_keys_df(self) -> pd.DataFrame:
-        item_df = (
-            self.dr.get_filtered_articles()[DEFAULT_ITEM_COL]
-            .to_frame()
-            .drop_duplicates()
+        # load item features
+        item_features_list = []
+        print("Loading item features...")
+        for item_f_class in self._ITEM_FEATURES:
+            item_f = item_f_class(self.dataset, self.kind)
+            f = item_f.load_feature()
+            item_features_list.append(f)
+        print("join item features...")
+        # joining item features
+        item_features_df = reduce(
+            lambda x, y: pd.merge(x, y, on=DEFAULT_ITEM_COL, how="outer"),
+            item_features_list,
         )
-        return item_df
 
-
-class UserFeature(Feature):
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
-        super().__init__(dataset, kind)
-
-    def _check_integrity(self, feature: pd.DataFrame) -> None:
-        assert (
-            DEFAULT_USER_COL in feature.columns
-        ), f"{DEFAULT_USER_COL} not in feature columns"
-        keys_df = self._get_keys_df()
-
-        # check no missing rows
-        assert len(keys_df) == len(
-            feature
-        ), f"Missing rows, given: {len(feature)}\n wanted: {len(keys_df)}\n"
-        # check no missing values
-        assert (
-            not feature.isnull().values.any()
-        ), "NaN values present, please fill them in _create_feature()"
-        assert self.FEATURE_NAME is not None, "feature name has not been set!"
-
-    def _get_keys_df(self) -> pd.DataFrame:
-        user_df = (
-            self.dr.get_filtered_customers()[DEFAULT_USER_COL]
-            .to_frame()
-            .drop_duplicates()
+        # load user features
+        user_features_list = []
+        print("Loading user features...")
+        for user_f_class in self._USER_FEATURES:
+            user_f = user_f_class(self.dataset, self.kind)
+            f = user_f.load_feature()
+            user_features_list.append(f)
+        print("join user features...")
+        user_features_df = reduce(
+            lambda x, y: pd.merge(x, y, on=DEFAULT_USER_COL, how="outer"),
+            user_features_list,
         )
-        return user_df
+
+        # join item and user features on base df
+        base_df = pd.merge(base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left")
+        base_df = pd.merge(base_df, user_features_df, on=DEFAULT_USER_COL, how="left")
+
+        print(f"Final number of features loaded: {len(base_df.columns) - 3}")
+        return base_df

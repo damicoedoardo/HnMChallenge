@@ -3,12 +3,12 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.feature_manager import UserFeature
+from hnmchallenge.features.feature_interfaces import UserFeature
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
-class FN(UserFeature):
-    FEATURE_NAME = "FN"
+class Fn(UserFeature):
+    FEATURE_NAME = "Fn"
 
     def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
         # we have the feature only for full
@@ -22,5 +22,5 @@ class FN(UserFeature):
 
 if __name__ == "__main__":
     dataset = StratifiedDataset()
-    feature = FN(dataset, kind="full")
+    feature = Fn(dataset, kind="full")
     feature.save_feature()
