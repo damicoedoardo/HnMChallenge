@@ -11,6 +11,8 @@ class GraphicalAppearanceNO(ItemFeature):
     FEATURE_NAME = "graphical_appearance_no"
 
     def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+        # we have the feature only for full
+        kind = "full"
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:

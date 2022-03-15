@@ -123,6 +123,11 @@ class Feature(ABC):
         feature.reset_index(drop=True).to_feather(self.save_path / feature_name)
         print(f"Feature saved in {self.save_path / self.FEATURE_NAME}")
 
+    @timing
+    def load_feature(self) -> pd.DataFrame:
+        feature = pd.read_feather(self.save_path / self.FEATURE_NAME)
+        return feature
+
 
 class UserItemFeature(Feature):
     def __init__(self, dataset: StratifiedDataset, kind: str) -> None:

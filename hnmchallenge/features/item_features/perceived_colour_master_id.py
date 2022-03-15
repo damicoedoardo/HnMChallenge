@@ -11,6 +11,8 @@ class PerceivedColourMasterID(ItemFeature):
     FEATURE_NAME = "perceived_colour_master_id"
 
     def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+        # we have the feature only for full
+        kind = "full"
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
