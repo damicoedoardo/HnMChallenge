@@ -54,9 +54,9 @@ class SubmissionHandler:
         assert len(recs_dfs) > 0, "recs_df is empty"
         for df in recs_dfs:
             assert DEFAULT_USER_COL in df.columns, f"Missing col: {DEFAULT_USER_COL}"
-            assert (
-                DEFAULT_PREDICTION_COL in df.columns
-            ), f"Missing col: {DEFAULT_PREDICTION_COL}"
+            # assert (
+            #     DEFAULT_PREDICTION_COL in df.columns
+            # ), f"Missing col: {DEFAULT_PREDICTION_COL}"
 
         user_map_dict, item_map_dict = self.dr.get_filtered_new_raw_mapping_dict()
         # concatemate together the predictions for the different user clusters

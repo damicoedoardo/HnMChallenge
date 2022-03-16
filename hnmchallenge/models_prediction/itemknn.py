@@ -12,7 +12,7 @@ from hnmchallenge.models.top_pop import TopPop
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
 KIND = "full"
-CUTOFF = 100
+CUTOFF = 40
 TIME_WEIGHT = True
 assert KIND in ["train", "full"], "kind should be train or full"
 

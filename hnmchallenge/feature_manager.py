@@ -2,8 +2,10 @@ import logging
 import os
 from abc import ABC, abstractmethod
 from functools import reduce
+from lib2to3.pytree import Base
 
 import pandas as pd
+from dotenv import main
 from pyexpat import features
 
 from hnmchallenge.constant import *
@@ -102,6 +104,9 @@ class FeatureManager:
             print("Creating features df for final predictions...")
         base_df = pd.read_feather(base_df_path)
 
+        if self.kind == "full":
+            base_df = base_df.rename({"recs": DEFAULT_ITEM_COL}, axis=1)
+
         # load item features
         item_features_list = []
         print("Loading item features...")
@@ -129,9 +134,31 @@ class FeatureManager:
             user_features_list,
         )
 
+        print("Merging with base df, can take time...")
         # join item and user features on base df
         base_df = pd.merge(base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left")
         base_df = pd.merge(base_df, user_features_df, on=DEFAULT_USER_COL, how="left")
 
         print(f"Final number of features loaded: {len(base_df.columns) - 3}")
         return base_df
+
+
+if __name__ == "__main__":
+    MODEL_NAME = "cosine_recs_40_tw_True.feather"
+    KIND = "full"
+    DATASET_NAME = "dataset_v1.feather"
+
+    dr = DataReader()
+    dataset = StratifiedDataset()
+
+    if KIND == "train":
+        base_save_path = dr.get_preprocessed_data_path() / "xgb_datasets"
+    else:
+        base_save_path = dr.get_preprocessed_data_path() / "xgb_predictions_datasets"
+    base_save_path.mkdir(parents=True, exist_ok=True)
+
+    fm = FeatureManager(dataset, KIND)
+    features_df = fm.create_features_df(MODEL_NAME).reset_index(drop=True)
+    print(f"Saving features dataframe...\n kind: {KIND}")
+    features_df.to_feather(base_save_path / DATASET_NAME)
+    print("Done !")

@@ -15,7 +15,8 @@ from hnmchallenge.models_prediction.itemknn import KIND
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
 KIND = "train"
-RECS_NAME = f"{KIND}_cosine_recs_100_tw_True.feather"
+CUTOFF = 40
+RECS_NAME = f"{KIND}_cosine_recs_{CUTOFF}_tw_True.feather"
 
 if __name__ == "__main__":
     dataset = StratifiedDataset()
