@@ -3,7 +3,7 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.feature_manager import UserItemFeature
+from hnmchallenge.features.feature_interfaces import UserItemFeature
 import datetime
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
@@ -20,15 +20,15 @@ class TimeScore(UserItemFeature):
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )
-        data_df = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat", "price"]].drop_duplicates()
+        data_df = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat", "price"]]
         data_df["last_buy"] = data_df.groupby(DEFAULT_USER_COL)["t_dat"].transform(max)
         data_df["first_buy"] = data_df.groupby(DEFAULT_USER_COL)["t_dat"].transform(min)
         data_df["time_score"] = ((data_df["t_dat"] - data_df["first_buy"])/ (data_df["last_buy"] - data_df["first_buy"])) 
         data_df["time_score"] = data_df["time_score"].fillna(0)
         data_df.drop(["last_buy", "first_buy"], axis=1)
 
-        feature = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat", "time_score"]]
-        feature = feature[~(feature[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat"]].duplicated())].drop_duplicates()
+        feature = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "time_score"]]
+        feature = feature[~(feature[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].duplicated())].drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL],keep='last')
         feature = feature.rename({"time_score": self.FEATURE_NAME}, axis=1)
         return feature
 

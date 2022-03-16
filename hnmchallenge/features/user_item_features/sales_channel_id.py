@@ -3,7 +3,7 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.feature_manager import UserItemFeature
+from hnmchallenge.features.feature_interfaces import UserItemFeature
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
@@ -21,11 +21,11 @@ class SalesChannel(UserItemFeature):
         )
         feature = (
             data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL,"t_dat", "sales_channel_id"]]
-            .drop_duplicates()
+            .drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL],keep='last')
             
         )
-        feature = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat", "sales_channel_id"]]
-        feature = feature[~(feature[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat"]].duplicated())].drop_duplicates()
+        feature = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "sales_channel_id"]]
+        feature = feature[~(feature[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].duplicated())].drop_duplicates()
         feature = feature.rename({"sales_channel_id": self.FEATURE_NAME}, axis=1)
         return feature
 
