@@ -79,10 +79,6 @@ class UserItemFeature(Feature):
         assert len(keys_df) == len(
             feature
         ), f"Missing rows, given: {len(feature)}\n wanted: {len(keys_df)}\n"
-        # check no missing values
-        assert (
-            not feature.isnull().values.any()
-        ), "NaN values present, please fill them in _create_feature()"
         assert self.FEATURE_NAME is not None, "feature name has not been set!"
 
     def _get_keys_df(self) -> pd.DataFrame:
@@ -110,10 +106,6 @@ class ItemFeature(Feature):
         assert len(keys_df) == len(
             feature
         ), f"Missing rows, given: {len(feature)}\n wanted: {len(keys_df)}\n"
-        # check no missing values
-        assert (
-            not feature.isnull().values.any()
-        ), "NaN values present, please fill them in _create_feature()"
         assert self.FEATURE_NAME is not None, "feature name has not been set!"
 
     def _get_keys_df(self) -> pd.DataFrame:
@@ -139,10 +131,6 @@ class UserFeature(Feature):
         assert len(keys_df) == len(
             feature
         ), f"Missing rows, given: {len(feature)}\n wanted: {len(keys_df)}\n"
-        # check no missing values
-        assert (
-            not feature.isnull().values.any()
-        ), "NaN values present, please fill them in _create_feature()"
         assert self.FEATURE_NAME is not None, "feature name has not been set!"
 
     def _get_keys_df(self) -> pd.DataFrame:

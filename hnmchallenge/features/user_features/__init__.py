@@ -5,3 +5,4 @@ from hnmchallenge.features.user_features.club_member_status import \
 from hnmchallenge.features.user_features.fashion_news_frequency import \
     FashionNewsFrequency
 from hnmchallenge.features.user_features.fn import Fn
+from hnmchallenge.features.user_features.user_tendency import UserTendency
