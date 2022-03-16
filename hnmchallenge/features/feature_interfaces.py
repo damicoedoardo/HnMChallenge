@@ -72,7 +72,6 @@ class UserItemFeature(Feature):
         assert (
             DEFAULT_USER_COL in feature.columns
         ), f"{DEFAULT_USER_COL} not in feature columns"
-        assert "t_dat" in feature.columns, f"t_dat not in feature columns"
 
         keys_df = self._get_keys_df()
 
@@ -93,9 +92,7 @@ class UserItemFeature(Feature):
         else:
             data_df = self.dr.get_filtered_full_data()
 
-        data_df = data_df[
-            [DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat"]
-        ].drop_duplicates()
+        data_df = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].drop_duplicates()
         return data_df
 
 
