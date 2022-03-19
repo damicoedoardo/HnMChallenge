@@ -15,15 +15,22 @@ class TimesItemBought(UserItemFeature):
 
     def _create_feature(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_holdin()
+            self.dataset.get_last_month_holdin()
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )
-        feature = data_df.groupby([DEFAULT_USER_COL, DEFAULT_ITEM_COL])["price"].count().rename("number_bought").reset_index()
-        feature = feature[~(feature[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].duplicated())].drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL],keep='last')
+        feature = (
+            data_df.groupby([DEFAULT_USER_COL, DEFAULT_ITEM_COL])["price"]
+            .count()
+            .rename("number_bought")
+            .reset_index()
+        )
+        feature = feature[
+            ~(feature[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].duplicated())
+        ].drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL], keep="last")
         feature = feature.rename({"number_bought": self.FEATURE_NAME}, axis=1)
+        print(feature)
         return feature
-
 
 
 if __name__ == "__main__":

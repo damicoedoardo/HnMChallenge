@@ -19,16 +19,15 @@ class SalesChannel(UserItemFeature):
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )
-        feature = (
-            data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL,"t_dat", "sales_channel_id"]]
-            .drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL],keep='last')
-            
-        )
+        feature = data_df[
+            [DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat", "sales_channel_id"]
+        ].drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL], keep="last")
         feature = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "sales_channel_id"]]
-        feature = feature[~(feature[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].duplicated())].drop_duplicates()
-        feature = feature.rename({"sales_channel_id": self.FEATURE_NAME}, axis=1)
+        feature = feature[
+            ~(feature[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].duplicated())
+        ].drop_duplicates()
+        print(feature)
         return feature
-
 
 
 if __name__ == "__main__":

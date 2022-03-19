@@ -13,10 +13,12 @@ from hnmchallenge.models.sgmc.sgmc import SGMC
 from hnmchallenge.models.top_pop import TopPop
 from hnmchallenge.models_prediction.itemknn import KIND
 from hnmchallenge.stratified_dataset import StratifiedDataset
+from hnmchallenge.utils.logger import set_color
 
 KIND = "train"
-CUTOFF = 40
-RECS_NAME = f"{KIND}_cosine_recs_{CUTOFF}_tw_True.feather"
+CUTOFF = 100
+
+RECS_NAME = f"{KIND}_itemknn_{CUTOFF}_tw_True.feather"
 
 if __name__ == "__main__":
     dataset = StratifiedDataset()
@@ -26,7 +28,7 @@ if __name__ == "__main__":
     recs = pd.read_feather(dr.get_preprocessed_data_path() / RECS_NAME)
 
     # retrieve the holdout
-    holdout = dataset.get_holdout()
+    holdout = dataset.get_last_month_holdout()
     # retrieve items per user in holdout
     item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(list)
     item_per_user_df = item_per_user.to_frame()
@@ -48,21 +50,20 @@ if __name__ == "__main__":
     # since we would not have the relavance for the items
     merged.loc[merged["article_id"].notnull(), "article_id"] = 1
     merged["hit_sum"] = merged.groupby(DEFAULT_USER_COL)["article_id"].transform("sum")
-    merged = merged[merged["hit_sum"] > 0]
+
+    merged_filtered = merged[merged["hit_sum"] > 0]
 
     # we can drop the hit sum column
-    merged = merged.drop("hit_sum", axis=1)
+    merged_filtered = merged_filtered.drop("hit_sum", axis=1)
 
     # fill with 0 the nan values, the nan are the one for which we do not do an hit
-    merged["article_id"] = merged["article_id"].fillna(0)
+    merged_filtered["article_id"] = merged_filtered["article_id"].fillna(0)
 
     # rename the columns
-    merged = merged.rename(
+    merged_filtered = merged_filtered.rename(
         {"recs": DEFAULT_ITEM_COL, "article_id": "relevance"}, axis=1
     ).reset_index(drop=True)
 
-    print(f"Remaining Users (at least one hit): {merged[DEFAULT_USER_COL].nunique()}")
-
     BASE_SAVE_PATH = dr.get_preprocessed_data_path() / "relevance_dfs"
     BASE_SAVE_PATH.mkdir(parents=True, exist_ok=True)
-    merged.to_feather(BASE_SAVE_PATH / RECS_NAME)
+    merged_filtered.to_feather(BASE_SAVE_PATH / RECS_NAME)

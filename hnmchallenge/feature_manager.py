@@ -1,20 +1,14 @@
 import logging
-import os
-from abc import ABC, abstractmethod
 from functools import reduce
-from lib2to3.pytree import Base
 
 import pandas as pd
-from dotenv import main
-from pyexpat import features
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.features import user_features
 from hnmchallenge.features.item_features import *
 from hnmchallenge.features.user_features import *
+from hnmchallenge.features.user_item_features import *
 from hnmchallenge.stratified_dataset import StratifiedDataset
-from hnmchallenge.utils.decorator import timing
 from hnmchallenge.utils.logger import set_color
 
 logger = logging.getLogger(__name__)
@@ -24,24 +18,35 @@ class FeatureManager:
     _USER_FEATURES = [
         Active,
         Age,
-        ClubMemberStatus,
-        FashionNewsFrequency,
-        Fn,
+        # ClubMemberStatus,
+        # FashionNewsFrequency,
+        # Fn,
+        UserTendency,
     ]
     _ITEM_FEATURES = [
         ColourGroupCode,
         DepartmentNO,
-        GarmentGroupName,
-        GraphicalAppearanceNO,
-        IndexCode,
-        IndexGroupName,
+        # GarmentGroupName,
+        # GraphicalAppearanceNO,
+        # IndexCode,
+        # IndexGroupName,
+        ItemCount,
+        ItemCountLastMonth,
+        NumberBought,
         PerceivedColourMasterID,
         PerceivedColourValueID,
-        ProductGroupName,
+        # ProductGroupName,
         ProductTypeNO,
         SectionNO,
     ]
-    _USER_ITEM_FEATURES = []
+    _USER_ITEM_FEATURES = [
+        # ItemPrice,
+        # SalesChannel,
+        TimeScore,
+        TimeWeight,
+        TimesItemBought,
+        # UserItemSalesFactor,
+    ]
 
     def __init__(
         self,
@@ -134,8 +139,30 @@ class FeatureManager:
             user_features_list,
         )
 
+        if len(self._USER_ITEM_FEATURES) > 0:
+            # load user-item features (context)
+            user_item_features_list = []
+            print("Loading user_item features...")
+            for user_item_f_class in self._USER_ITEM_FEATURES:
+                user_item_f = user_item_f_class(self.dataset, self.kind)
+                f = user_item_f.load_feature()
+                user_item_features_list.append(f)
+            print("join user item features...")
+            user_item_features_df = reduce(
+                lambda x, y: pd.merge(
+                    x, y, on=[DEFAULT_USER_COL, DEFAULT_ITEM_COL], how="outer"
+                ),
+                user_item_features_list,
+            )
+            # join item and user features on base df
+            base_df = pd.merge(
+                base_df,
+                user_item_features_df,
+                on=[DEFAULT_USER_COL, DEFAULT_ITEM_COL],
+                how="left",
+            )
+
         print("Merging with base df, can take time...")
-        # join item and user features on base df
         base_df = pd.merge(base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left")
         base_df = pd.merge(base_df, user_features_df, on=DEFAULT_USER_COL, how="left")
 
@@ -144,9 +171,10 @@ class FeatureManager:
 
 
 if __name__ == "__main__":
-    MODEL_NAME = "cosine_recs_40_tw_True.feather"
+    CUTOFF = 100
+    MODEL_NAME = f"itemknn_{CUTOFF}_tw_True.feather"
     KIND = "full"
-    DATASET_NAME = "dataset_v1.feather"
+    DATASET_NAME = "dataset_v5.feather"
 
     dr = DataReader()
     dataset = StratifiedDataset()

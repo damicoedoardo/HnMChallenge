@@ -21,13 +21,13 @@ class ItemPrice(UserItemFeature):
             else self.dr.get_filtered_full_data()
         )
         feature = (
-            data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat"]]
-            .drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL],keep='last')
+            data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat", "price"]]
+            .drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL], keep="last")
             .drop("t_dat", axis=1)
         )
         feature = feature.rename({"price": self.FEATURE_NAME}, axis=1)
+        print(feature)
         return feature
-
 
 
 if __name__ == "__main__":

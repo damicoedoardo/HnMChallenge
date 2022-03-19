@@ -22,9 +22,9 @@ from hnmchallenge.stratified_dataset import StratifiedDataset
 TRAIN_PERC = 0.8
 VAL_PERC = 0.1
 TEST_PERC = 0.1
-DATASET = "dataset_v1.feather"
+DATASET = "dataset_v5.feather"
 
-MODEL_NAME = "xgb_v1.json"
+MODEL_NAME = "xgb_v5.json"
 
 if __name__ == "__main__":
     dataset = StratifiedDataset()
@@ -54,7 +54,6 @@ if __name__ == "__main__":
     test_df = features_df[features_df[DEFAULT_USER_COL].isin(test_users)]
 
     #####
-
     X_train = train_df.loc[
         :, ~train_df.columns.isin([DEFAULT_USER_COL, DEFAULT_ITEM_COL, "relevance"])
     ]
@@ -78,12 +77,13 @@ if __name__ == "__main__":
         booster="gbtree",
         objective="rank:map",
         random_state=RANDOM_SEED,
-        learning_rate=0.1,
-        colsample_bytree=0.9,
-        eta=0.05,
-        max_depth=8,
+        learning_rate=0.2,
+        colsample_bytree=0.6,
+        eta=0.1,
+        max_depth=5,
         n_estimators=500,
-        subsample=1,
+        subsample=0.8,
+        # sampling_method="gradient_based"
         # n_gpus=-1
         # gpu_id=1,
     )

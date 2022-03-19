@@ -31,26 +31,18 @@ class StratifiedDataset:
         )
         return holdout_df
 
-    def get_relevance_df(self) -> pd.DataFrame:
+    def get_last_month_holdin(self) -> pd.DataFrame:
+        dr = DataReader()
+        p = dr.get_preprocessed_data_path()
+        holdin_df = pd.read_feather(
+            p / f"last_month_holdin.feather",
+        )
+        return holdin_df
+
+    def get_last_month_holdout(self) -> pd.DataFrame:
         dr = DataReader()
         p = dr.get_preprocessed_data_path()
         holdout_df = pd.read_feather(
-            p / "relevance_df.feather",
+            p / f"last_month_holdout.feather",
         )
         return holdout_df
-
-    def get_features_holdin_user_item(self) -> pd.DataFrame:
-        dr = DataReader()
-        p = dr.get_preprocessed_data_path()
-        useritem_df = pd.read_feather(
-            p / f"stratified_holdin_useritem_dataset.feather",
-        )
-        return useritem_df
-
-    def get_features_holdin_item(self) -> pd.DataFrame:
-        dr = DataReader()
-        p = dr.get_preprocessed_data_path()
-        item_df = pd.read_feather(
-            p / f"stratified_holdin_item_dataset.feather",
-        )
-        return item_df

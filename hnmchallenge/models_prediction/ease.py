@@ -7,18 +7,19 @@ from hnmchallenge.data_reader import DataReader
 from hnmchallenge.dataset import Dataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.filtered_dataset import FilterdDataset
-from hnmchallenge.models.itemknn.itemknn import ItemKNN
+from hnmchallenge.models.ease.ease import EASE
 from hnmchallenge.models.top_pop import TopPop
 from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
 # MODEL PARAMETERS
 TIME_WEIGHT = True
+L2 = 1e-3
 
 KIND = "train"
-CUTOFF = 250
+CUTOFF = 40
 assert KIND in ["train", "full"], "kind should be train or full"
-RECS_NAME = f"itemknn_{CUTOFF}_tw_{TIME_WEIGHT}.feather"
+RECS_NAME = f"ease_{CUTOFF}_tw_{TIME_WEIGHT}.feather"
 
 # SAVE THE PREDICTION OR EVAL THE MODEL
 SAVE_PREDICTIONS = False
@@ -34,26 +35,23 @@ if __name__ == "__main__":
     dataset = StratifiedDataset()
     dr = DataReader()
 
-    recom = ItemKNN(dataset, time_weight=TIME_WEIGHT, topk=1000)
+    recom = EASE(dataset, time_weight=True, l2=L2)
 
-    holdin = dataset.get_last_month_holdin()
+    holdin = dataset.get_holdin()
     fd = dr.get_filtered_full_data()
 
     # set the correct data to use
     data_df = None
     if KIND == "train":
         data_df = holdin
-        data_sim = holdin[holdin["t_dat"] > "2020-08-31"]
-        data_sim = holdin
     else:
         data_df = fd
-        data_sim = fd[fd["t_dat"] > "2020-08-31"]
 
     print(set_color("Computing similarity...", "green"))
     recom.compute_similarity_matrix(data_df)
     recs = recom.recommend_multicore(
         interactions=data_df,
-        batch_size=40_000,
+        batch_size=60_000,
         num_cpus=72,
         remove_seen=False,
         white_list_mb_item=None,
@@ -82,7 +80,7 @@ if __name__ == "__main__":
         ##################################################
 
         # retrieve the holdout
-        holdout = dataset.get_last_month_holdout()
+        holdout = dataset.get_holdout()
         # retrieve items per user in holdout
         item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(list)
         item_per_user_df = item_per_user.to_frame()

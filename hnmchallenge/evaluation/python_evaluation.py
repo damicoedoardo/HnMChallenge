@@ -47,7 +47,6 @@ def map_at_k(
     rating_pred,
     col_user=DEFAULT_USER_COL,
     col_item=DEFAULT_ITEM_COL,
-    adjust_user_count: bool = False,
 ):
     """Mean Average Precision at k
 
@@ -88,10 +87,7 @@ def map_at_k(
     df_hit_sorted = df_hit_sorted.groupby(col_user).agg({"rr": "sum"}).reset_index()
 
     df_merge = pd.merge(df_hit_sorted, df_hit_count, on=col_user)
-    if adjust_user_count:
-        map_at_k = (df_merge["rr"] / df_merge["actual"]).sum() / 37740
-    else:
-        map_at_k = (df_merge["rr"] / df_merge["actual"]).sum() / n_users
+    map_at_k = (df_merge["rr"] / df_merge["actual"]).sum() / n_users
     return map_at_k
 
 
