@@ -19,11 +19,18 @@ class Price(ItemFeature):
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )
-        data_df=data_df[[DEFAULT_ITEM_COL,"price"]]
-        data_df=data_df.drop_duplicates([DEFAULT_ITEM_COL], keep="last").sort_values(DEFAULT_ITEM_COL)
-        data_df=data_df.reset_index()
-        feature = data_df[[ DEFAULT_ITEM_COL, "price"]]
+        data_df = data_df[[DEFAULT_ITEM_COL, "price"]]
+        data_df = data_df.drop_duplicates([DEFAULT_ITEM_COL], keep="last").sort_values(
+            DEFAULT_ITEM_COL
+        )
+        data_df = data_df.reset_index()
+        feature = data_df[[DEFAULT_ITEM_COL, "price"]]
         feature = feature.rename({"price": self.FEATURE_NAME}, axis=1)
+
+        # Some item have been bought only in the last week
+        keys_df = self._get_keys_df()
+        feature = pd.merge(keys_df, feature, on=DEFAULT_ITEM_COL, how="left")
+
         print(feature)
         return feature
 
@@ -31,5 +38,5 @@ class Price(ItemFeature):
 if __name__ == "__main__":
     dataset = StratifiedDataset()
     for kind in ["train", "full"]:
-        feature =Price(dataset, kind)
+        feature = Price(dataset, kind)
         feature.save_feature()

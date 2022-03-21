@@ -22,9 +22,9 @@ from hnmchallenge.stratified_dataset import StratifiedDataset
 TRAIN_PERC = 0.8
 VAL_PERC = 0.1
 TEST_PERC = 0.1
-DATASET = "dataset_v5.feather"
+DATASET = "dataset_v8.feather"
 
-MODEL_NAME = "xgb_v5.json"
+MODEL_NAME = "xgb_v8.json"
 
 if __name__ == "__main__":
     dataset = StratifiedDataset()
@@ -37,6 +37,7 @@ if __name__ == "__main__":
     features_df = pd.read_feather(dataset_path)
 
     unique_users = features_df[DEFAULT_USER_COL].unique()
+    print(f"Unique users:{len(unique_users)}")
     train_len = math.ceil(len(unique_users) * TRAIN_PERC)
     val_len = math.ceil(len(unique_users) * VAL_PERC)
     test_len = math.ceil(len(unique_users) * TEST_PERC)
@@ -78,7 +79,9 @@ if __name__ == "__main__":
         objective="rank:map",
         random_state=RANDOM_SEED,
         learning_rate=0.2,
-        colsample_bytree=0.6,
+        colsample_bytree=0.8,
+        reg_lambda=0.0,
+        reg_alpha=0.0,
         eta=0.1,
         max_depth=5,
         n_estimators=500,

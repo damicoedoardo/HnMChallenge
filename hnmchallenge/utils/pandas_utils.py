@@ -20,7 +20,7 @@ def remap_column_consecutive(df, column_name):
 
     copy_df = df.copy()
     unique_data = copy_df[column_name].unique()
-    logger.info(set_color(f"unique {column_name}: {len(unique_data)}", "yellow"))
+    logger.debug(set_color(f"unique {column_name}: {len(unique_data)}", "yellow"))
     data_idxs = np.arange(len(unique_data), dtype=np.int)
     data_idxs_map = dict(zip(unique_data, data_idxs))
     copy_df[column_name] = copy_df[column_name].map(data_idxs_map.get)

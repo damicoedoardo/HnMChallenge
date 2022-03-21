@@ -21,6 +21,7 @@ class FeatureManager:
         # ClubMemberStatus,
         # FashionNewsFrequency,
         # Fn,
+        AvgPrice,
         UserTendency,
     ]
     _ITEM_FEATURES = [
@@ -38,6 +39,8 @@ class FeatureManager:
         # ProductGroupName,
         ProductTypeNO,
         SectionNO,
+        Price,
+        SalesFactor,
     ]
     _USER_ITEM_FEATURES = [
         # ItemPrice,
@@ -171,10 +174,10 @@ class FeatureManager:
 
 
 if __name__ == "__main__":
-    CUTOFF = 100
+    CUTOFF = 250
     MODEL_NAME = f"itemknn_{CUTOFF}_tw_True.feather"
     KIND = "full"
-    DATASET_NAME = "dataset_v5.feather"
+    DATASET_NAME = "dataset_v8.feather"
 
     dr = DataReader()
     dataset = StratifiedDataset()

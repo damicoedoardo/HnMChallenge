@@ -14,10 +14,10 @@ from hnmchallenge.utils.logger import set_color
 
 # MODEL PARAMETERS
 TIME_WEIGHT = True
-L2 = 1e-3
+L2 = 10
 
 KIND = "train"
-CUTOFF = 40
+CUTOFF = 100
 assert KIND in ["train", "full"], "kind should be train or full"
 RECS_NAME = f"ease_{CUTOFF}_tw_{TIME_WEIGHT}.feather"
 
@@ -37,18 +37,21 @@ if __name__ == "__main__":
 
     recom = EASE(dataset, time_weight=True, l2=L2)
 
-    holdin = dataset.get_holdin()
+    holdin = dataset.get_last_month_holdin()
     fd = dr.get_filtered_full_data()
 
     # set the correct data to use
     data_df = None
     if KIND == "train":
         data_df = holdin
+        data_sim = holdin[holdin["t_dat"] > "2020-08-31"]
+        data_sim = holdin
     else:
         data_df = fd
+        data_sim = fd[fd["t_dat"] > "2020-08-31"]
 
     print(set_color("Computing similarity...", "green"))
-    recom.compute_similarity_matrix(data_df)
+    recom.compute_similarity_matrix(data_sim)
     recs = recom.recommend_multicore(
         interactions=data_df,
         batch_size=60_000,
@@ -80,7 +83,7 @@ if __name__ == "__main__":
         ##################################################
 
         # retrieve the holdout
-        holdout = dataset.get_holdout()
+        holdout = dataset.get_last_month_holdout()
         # retrieve items per user in holdout
         item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(list)
         item_per_user_df = item_per_user.to_frame()

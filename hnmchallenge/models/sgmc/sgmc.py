@@ -3,6 +3,7 @@ import pandas as pd
 import scipy.sparse as sps
 from hnmchallenge.dataset import Dataset
 from hnmchallenge.recommender_interface import ItemSimilarityRecommender
+from hnmchallenge.utils.sparse_matrix import interactions_to_sparse_matrix
 from sparsesvd import sparsesvd
 
 
@@ -14,8 +15,10 @@ class SGMC(ItemSimilarityRecommender):
         self.k = k
 
     def compute_similarity_matrix(self, interaction_df: pd.DataFrame) -> None:
-        sparse_interaction = self.dataset.get_user_item_interaction_matrix(
-            interaction_df
+        sparse_interaction, user_mapping_dict, _ = interactions_to_sparse_matrix(
+            interaction_df,
+            items_num=self.dataset._ARTICLES_NUM,
+            users_num=None,
         )
 
         rowsum = np.array(sparse_interaction.sum(axis=1))

@@ -62,7 +62,7 @@ class AbstractRecommender(ABC):
             pd.DataFrame: dataframe of scores for each user indexed by user id
         """
 
-        logger.info(set_color(f"Removing seen items", "cyan"))
+        logger.debug(set_color(f"Removing seen items", "cyan"))
 
         if white_list_mb_item is not None:
             print("Considering white list items...")
@@ -110,15 +110,15 @@ class AbstractRecommender(ABC):
             pd.DataFrame: DataFrame with predictions for users
         """
         # if interactions is None we are predicting for the wh  ole users in the train dataset
-        logger.info(set_color(f"Recommending items MONOCORE", "cyan"))
+        logger.debug(set_color(f"Recommending items MONOCORE", "cyan"))
 
         unique_user_ids = interactions[DEFAULT_USER_COL].unique()
-        logger.info(set_color(f"Predicting for: {len(unique_user_ids)} users", "cyan"))
+        logger.debug(set_color(f"Predicting for: {len(unique_user_ids)} users", "cyan"))
         # if  batch_size == -1 we are not batching the recommendation process
         num_batches = (
             1 if batch_size == -1 else math.ceil(len(unique_user_ids) / batch_size)
         )
-        logger.info(set_color(f"num batches: {num_batches}", "cyan"))
+        logger.debug(set_color(f"num batches: {num_batches}", "cyan"))
         user_batches = np.array_split(unique_user_ids, num_batches)
 
         # MONO-CORE VERSION
@@ -127,9 +127,9 @@ class AbstractRecommender(ABC):
             interactions_slice = interactions[
                 interactions[DEFAULT_USER_COL].isin(user_batch)
             ]
-            logger.info(set_color(f"getting predictions...", "cyan"))
+            logger.debug(set_color(f"getting predictions...", "cyan"))
             scores = self.predict(interactions_slice)
-            logger.info(set_color(f"done...", "cyan"))
+            logger.debug(set_color(f"done...", "cyan"))
             # set the score of the items used during the training to -inf
             if remove_seen:
                 scores = AbstractRecommender.remove_seen_items(
@@ -185,7 +185,7 @@ class AbstractRecommender(ABC):
             pd.DataFrame: DataFrame with predictions for users
         """
         # if interactions is None we are predicting for the wh  ole users in the train dataset
-        logger.info(set_color(f"Recommending items MULTICORE", "cyan"))
+        logger.debug(set_color(f"Recommending items MULTICORE", "cyan"))
 
         unique_user_ids = interactions[DEFAULT_USER_COL].unique()
         # if  batch_size == -1 we are not batching the recommendation process
@@ -268,7 +268,7 @@ class ItemSimilarityRecommender(AbstractRecommender, ABC):
             self.similarity_matrix is not None
         ), "Similarity matrix is not computed, call compute_similarity_matrix()"
         if self.time_weight:
-            logger.info(set_color("Predicting using time_weight importance...", "red"))
+            logger.debug(set_color("Predicting using time_weight importance...", "red"))
         sparse_interaction, user_mapping_dict, _ = interactions_to_sparse_matrix(
             interactions,
             items_num=self.dataset._ARTICLES_NUM,
@@ -277,37 +277,10 @@ class ItemSimilarityRecommender(AbstractRecommender, ABC):
         )
         # compute scores as the dot product between user interactions and the similarity matrix
         if not sps.issparse(self.similarity_matrix):
-            logger.info(set_color(f"DENSE Item Similarity MUL...", "cyan"))
+            logger.debug(set_color(f"DENSE Item Similarity MUL...", "cyan"))
             scores = sparse_interaction @ self.similarity_matrix
-
-            # gpu
-            # dense_interactions = sparse_interaction.toarray()
-
-            # # construc torch tensors
-            # sim_tensor = torch.from_numpy(self.similarity_matrix)
-            # interactions_tensor = torch.from_numpy(dense_interactions)
-
-            # sim_tensor_list = sim_tensor.split(10_000)
-            # interactions_tensor_list = interactions_tensor.split(10_000, dim=1)
-
-            # res = []
-            # torch.cuda.empty_cache()
-            # for sim_tensor, interactions_tensor in tqdm(
-            #     zip(sim_tensor_list, interactions_tensor_list)
-            # ):
-            #     print("a")
-            #     part_res = torch.matmul(
-            #         interactions_tensor.to("cuda"), sim_tensor.to("cuda")
-            #     )
-            #     res.append(part_res.cpu().numpy())
-            #     torch.cuda.empty_cache()
-
-            # scores_torch = torch.concat(res)
-
-            # # bring scores to cpu and convert to numpy
-            # scores = scores_torch.cpu().numpy()
         else:
-            logger.info(set_color(f"SPARSE Item Similarity MUL...", "cyan"))
+            logger.debug(set_color(f"SPARSE Item Similarity MUL...", "cyan"))
             scores = sparse_interaction @ self.similarity_matrix
             scores = scores.toarray()
 

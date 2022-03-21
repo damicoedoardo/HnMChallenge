@@ -7,18 +7,20 @@ from hnmchallenge.data_reader import DataReader
 from hnmchallenge.dataset import Dataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.filtered_dataset import FilterdDataset
-from hnmchallenge.models.itemknn.itemknn import ItemKNN
+from hnmchallenge.models.ease.ease import EASE
+from hnmchallenge.models.sgmc.sgmc import SGMC
 from hnmchallenge.models.top_pop import TopPop
 from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
 # MODEL PARAMETERS
 TIME_WEIGHT = True
+K = 128
 
 KIND = "train"
-CUTOFF = 250
+CUTOFF = 100
 assert KIND in ["train", "full"], "kind should be train or full"
-RECS_NAME = f"itemknn_{CUTOFF}_tw_{TIME_WEIGHT}.feather"
+RECS_NAME = f"ease_{CUTOFF}_tw_{TIME_WEIGHT}.feather"
 
 # SAVE THE PREDICTION OR EVAL THE MODEL
 SAVE_PREDICTIONS = False
@@ -34,7 +36,7 @@ if __name__ == "__main__":
     dataset = StratifiedDataset()
     dr = DataReader()
 
-    recom = ItemKNN(dataset, time_weight=TIME_WEIGHT, topk=1000)
+    recom = SGMC(dataset, time_weight=True, k=K)
 
     holdin = dataset.get_last_month_holdin()
     fd = dr.get_filtered_full_data()
@@ -50,10 +52,10 @@ if __name__ == "__main__":
         data_sim = fd[fd["t_dat"] > "2020-08-31"]
 
     print(set_color("Computing similarity...", "green"))
-    recom.compute_similarity_matrix(data_df)
+    recom.compute_similarity_matrix(data_sim)
     recs = recom.recommend_multicore(
         interactions=data_df,
-        batch_size=40_000,
+        batch_size=60_000,
         num_cpus=72,
         remove_seen=False,
         white_list_mb_item=None,

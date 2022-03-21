@@ -77,7 +77,7 @@ def interactions_to_sparse_matrix(
         interactions, user_ids_mapping_dict = remap_column_consecutive(
             interactions, DEFAULT_USER_COL
         )
-        logger.info(
+        logger.debug(
             set_color("users_num is None, remap user ids to consecutive", "red")
         )
         row_num = len(user_ids_mapping_dict.keys())
@@ -86,7 +86,7 @@ def interactions_to_sparse_matrix(
         interactions, item_ids_mapping_dict = remap_column_consecutive(
             interactions, DEFAULT_ITEM_COL
         )
-        logger.info(
+        logger.debug(
             set_color("items_num is None, remap item ids to consecutive", "red")
         )
         col_num = len(item_ids_mapping_dict.keys())
@@ -95,7 +95,7 @@ def interactions_to_sparse_matrix(
     col_data = interactions[DEFAULT_ITEM_COL].values
 
     if time_weight:
-        logger.info(set_color("Applying time weight on user-item interactions", "red"))
+        logger.debug(set_color("Applying time weight on user-item interactions", "red"))
         # interactions["last_buy"] = interactions.groupby(DEFAULT_USER_COL)[
         #     "t_dat"
         # ].transform(max)
@@ -155,7 +155,7 @@ def get_top_k(
     """
     # TODO: Maybe do that in multicore
 
-    logger.info(set_color(f"Sort_top_k:{sort_top_k}", "cyan"))
+    logger.debug(set_color(f"Sort_top_k:{sort_top_k}", "cyan"))
     # ensure we're working with a dense ndarray
     if isinstance(scores, sps.spmatrix):
         logger.warning(set_color("Scores are in a sparse format, densify them", "red"))

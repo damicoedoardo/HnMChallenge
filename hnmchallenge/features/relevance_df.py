@@ -10,13 +10,11 @@ from hnmchallenge.filtered_dataset import FilterdDataset
 from hnmchallenge.models.ease.ease import EASE
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 from hnmchallenge.models.sgmc.sgmc import SGMC
-from hnmchallenge.models.top_pop import TopPop
-from hnmchallenge.models_prediction.itemknn import KIND
 from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
 KIND = "train"
-CUTOFF = 100
+CUTOFF = 250
 
 RECS_NAME = f"{KIND}_itemknn_{CUTOFF}_tw_True.feather"
 
