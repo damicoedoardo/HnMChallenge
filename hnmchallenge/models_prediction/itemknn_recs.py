@@ -3,12 +3,12 @@ import logging
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
-from hnmchallenge.models_prediction.recs_ensemble_interface import RecsEnsembleInterface
+from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
 
-class ItemKNNEnsemble(RecsEnsembleInterface):
+class ItemKNNRecs(RecsInterface):
     def __init__(
         self,
         kind: str,
@@ -30,6 +30,7 @@ class ItemKNNEnsemble(RecsEnsembleInterface):
             else self.dr.get_filtered_full_data()
         )
         # data that you use to compute similarity
+        # Using the full data available perform better
         data_sim = data_df[data_df["t_dat"] > "2020-08-31"]
 
         # instantiate the recommender algorithm
@@ -59,14 +60,12 @@ class ItemKNNEnsemble(RecsEnsembleInterface):
 
 
 if __name__ == "__main__":
-    # logging.basicConfig(level=logging.INFO)
-
-    KIND = "full"
+    KIND = "train"
     TW = True
     REMOVE_SEEN = False
     dataset = StratifiedDataset()
 
-    rec_ens = ItemKNNEnsemble(
+    rec_ens = ItemKNNRecs(
         kind=KIND, time_weight=TW, remove_seen=REMOVE_SEEN, dataset=dataset
     )
     # rec_ens.eval_recommendations(cutoff=100)

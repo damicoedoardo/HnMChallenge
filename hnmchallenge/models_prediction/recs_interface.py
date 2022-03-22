@@ -11,7 +11,7 @@ from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
 
-class RecsEnsembleInterface(ABC):
+class RecsInterface(ABC):
     """Interface to create ensemble recs from different models"""
 
     # Name of the model to be considered in the ensemble
@@ -32,7 +32,6 @@ class RecsEnsembleInterface(ABC):
     def _check_recommendations_integrity(self, recs: pd.DataFrame) -> None:
         """Check the integrity of the reocmmendations passed"""
         columns = recs.columns
-        assert len(columns) == 4, "Too many columns passed on recs df"
         assert DEFAULT_USER_COL in columns, f"Missing {DEFAULT_USER_COL} on recs df"
         assert any(
             ["recs" in col for col in columns]
@@ -50,16 +49,53 @@ class RecsEnsembleInterface(ABC):
         pass
 
     def save_recommendations(self, cutoff: int = 100) -> None:
-        """Retrieve recommendations and save them"""
+        """Retrieve recommendations and save them
+        is self.kind == "train" the `relevance` column is added
+        """
         print(
             set_color(
                 f"Kind: {self.kind}, Cutoff: {cutoff}, retrieving and saving recs...",
                 color="cyan",
             )
         )
-
         recs = self.get_recommendations(cutoff=cutoff)
         self._check_recommendations_integrity(recs)
+
+        if self.kind == "train":
+            print("Creating Relevance column...")
+            # loading holdout groundtruth
+            holdout_groundtruth = self.dataset.get_holdout_groundtruth()
+
+            # merge recs and item groundtruth
+            merged = pd.merge(
+                recs,
+                holdout_groundtruth,
+                left_on=[DEFAULT_USER_COL, f"{self.RECS_NAME}_recs"],
+                right_on=[DEFAULT_USER_COL, "article_id"],
+                how="left",
+            )
+
+            # we have to remove the user for which we do not do at least one hit,
+            # since we would not have the relavance for the items
+            merged.loc[merged["article_id"].notnull(), "article_id"] = 1
+            merged["hit_sum"] = merged.groupby(DEFAULT_USER_COL)[
+                "article_id"
+            ].transform("sum")
+
+            merged_filtered = merged[merged["hit_sum"] > 0]
+
+            # we can drop the hit sum column
+            merged_filtered = merged_filtered.drop("hit_sum", axis=1)
+
+            # fill with 0 the nan values, the nan are the one for which we do not do an hit
+            merged_filtered["article_id"] = merged_filtered["article_id"].fillna(0)
+
+            # rename the columns
+            merged_filtered = merged_filtered.rename(
+                {"article_id": "relevance"}, axis=1
+            ).reset_index(drop=True)
+            recs = merged_filtered
+            print("Done!")
 
         # save the retrieved recommendations
         save_name = f"{self.kind}_cutf_{cutoff}_{self.RECS_NAME}.feather"
@@ -100,19 +136,14 @@ class RecsEnsembleInterface(ABC):
         recs = self.get_recommendations(cutoff=cutoff)
         self._check_recommendations_integrity(recs)
 
-        # retrieve holdout data
+        # load groundtruth and holdout data
+        holdout_groundtruth = self.dataset.get_holdout_groundtruth()
         holdout = self.dataset.get_last_month_holdout()
-        # retrieve items per user in holdout
-        item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(list)
-        item_per_user_df = item_per_user.to_frame()
-        # items groundtruth
-        items_groundtruth = (
-            item_per_user_df.reset_index().explode(DEFAULT_ITEM_COL).drop_duplicates()
-        )
+
         # merge recs and item groundtruth
         merged = pd.merge(
             recs,
-            items_groundtruth,
+            holdout_groundtruth,
             left_on=[DEFAULT_USER_COL, f"{self.RECS_NAME}_recs"],
             right_on=[DEFAULT_USER_COL, "article_id"],
             how="left",

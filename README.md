@@ -1,5 +1,5 @@
 # **HnM Challenge 2022 - Fashion Recommendations** (Kaggle)
-**Challenge Link:** [HnM Challenge on Kaggle](https://www.kaggle.com/c/h-and-m-personalized-fashion-recommendations/overview)
+**Challenge Link:** [HnM Challenge Kaggle](https://www.kaggle.com/c/h-and-m-personalized-fashion-recommendations/overview)
 \
 **Author:** Edoardo D'Amico, edoardo.damico@insight-centre.org \
 **Final Position:**  \
