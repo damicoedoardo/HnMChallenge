@@ -1,6 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -18,11 +19,14 @@ class RecsInterface(ABC):
     RECS_NAME = None
     _SAVE_PATH = "recommendations_dfs"
 
-    def __init__(self, kind: str, dataset: StratifiedDataset) -> None:
+    def __init__(
+        self, kind: str, dataset: StratifiedDataset, cutoff: int = 100
+    ) -> None:
         assert kind in ["train", "full"], "kind should be train or full"
         self.kind = kind
         self.dataset = dataset
         self.dr = DataReader()
+        self.cutoff = cutoff
         # creating recs directory
         self.save_path = (
             self.dr.get_preprocessed_data_path() / self._SAVE_PATH / self.kind
@@ -44,21 +48,21 @@ class RecsInterface(ABC):
         ), f"Missing score column on recs df"
 
     @abstractmethod
-    def get_recommendations(self, cutoff: int = 100) -> pd.DataFrame:
+    def get_recommendations(self) -> pd.DataFrame:
         """Generate recommendation with a given cutoff"""
         pass
 
-    def save_recommendations(self, cutoff: int = 100) -> None:
+    def save_recommendations(self) -> None:
         """Retrieve recommendations and save them
         is self.kind == "train" the `relevance` column is added
         """
         print(
             set_color(
-                f"Kind: {self.kind}, Cutoff: {cutoff}, retrieving and saving recs...",
+                f"Kind: {self.kind}, Cutoff: {self.cutoff}, retrieving and saving recs...",
                 color="cyan",
             )
         )
-        recs = self.get_recommendations(cutoff=cutoff)
+        recs = self.get_recommendations()
         self._check_recommendations_integrity(recs)
 
         if self.kind == "train":
@@ -98,18 +102,18 @@ class RecsInterface(ABC):
             print("Done!")
 
         # save the retrieved recommendations
-        save_name = f"{self.kind}_cutf_{cutoff}_{self.RECS_NAME}.feather"
+        save_name = f"{self.kind}_cutf_{self.cutoff}_{self.RECS_NAME}.feather"
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)
 
-    def load_recommendations(self, cutoff: int = 100) -> pd.DataFrame:
+    def load_recommendations(self) -> pd.DataFrame:
         """Load recommendations"""
-        print(set_color(f"Cutoff: {cutoff}, loading recs...", color="cyan"))
-        load_name = f"{self.kind}_cutf_{cutoff}_{self.RECS_NAME}"
+        print(set_color(f"Cutoff: {self.cutoff}, loading recs...", color="cyan"))
+        load_name = f"{self.kind}_cutf_{self.cutoff}_{self.RECS_NAME}"
         load_path = self.save_path / load_name
         recs = pd.read_feather(load_path)
         return recs
 
-    def eval_recommendations(self, cutoff: int = 100, write_log: bool = True) -> None:
+    def eval_recommendations(self, write_log: bool = True) -> None:
         """Evaluate recommendations on holdout set"""
         assert (
             self.kind == "train"
@@ -118,30 +122,27 @@ class RecsInterface(ABC):
         now = datetime.now()
         # dd/mm/YY H:M:S
         dt_string = now.strftime("%d_%m_%Y__%H_%M_%S")
-        log_filename = f"hnmchallenge/models_prediction/logs/{dt_string}.log"
-
-        # pass the correct handlers depending on if you want to write a log file or not
-        if write_log:
-            handlers = (
-                [
-                    logging.StreamHandler(),
-                    logging.FileHandler(log_filename, mode="w+"),
-                ],
-            )
-        else:
-            handlers = (
-                [
-                    logging.StreamHandler(),
-                ],
-            )
+        log_filename = f"hnmchallenge/models_prediction/evaluation_logs/{dt_string}.log"
 
         log_format = "%(levelname)s %(asctime)s - %(message)s"
-        logging.basicConfig(format=log_format, level=logging.INFO, handlers=handlers)
+        # pass the correct handlers depending on if you want to write a log file or not
+        if write_log:
+            handlers = [
+                logging.StreamHandler(),
+                logging.FileHandler(log_filename, mode="w+"),
+            ]
+
+        else:
+            handlers = [
+                logging.StreamHandler(),
+            ]
+
+        logging.basicConfig(level=logging.INFO, handlers=handlers, format=log_format)
         logger = logging.getLogger(__name__)
-        logger.info(f"Evaluating: {self.RECS_NAME}, cutoff:{cutoff} \n")
+        logger.info(f"Evaluating: {self.RECS_NAME}, cutoff:{self.cutoff} \n")
 
         # retrieve recs
-        recs = self.get_recommendations(cutoff=cutoff)
+        recs = self.get_recommendations()
         self._check_recommendations_integrity(recs)
 
         # load groundtruth and holdout data
@@ -197,10 +198,10 @@ class RecsInterface(ABC):
             f"Remaining Users (at least one hit): {merged_filtered[DEFAULT_USER_COL].nunique()}"
         )
         logger.info("\nMetrics on ALL users")
-        logger.info(f"MAP@{cutoff}: {map_at_k(ground_truth, pred)}")
-        logger.info(f"RECALL@{cutoff}: {recall_at_k(ground_truth, pred)}")
+        logger.info(f"MAP@{self.cutoff}: {map_at_k(ground_truth, pred)}")
+        logger.info(f"RECALL@{self.cutoff}: {recall_at_k(ground_truth, pred)}")
         logger.info("\nMetrics on ONE-HIT users")
-        logger.info(f"MAP@{cutoff}: {map_at_k(ground_truth, pred_filtered)}")
+        logger.info(f"MAP@{self.cutoff}: {map_at_k(ground_truth, pred_filtered)}")
         logger.info(
-            f"RECALL@{cutoff}: {recall_at_k(ground_truth, pred_filtered)}",
+            f"RECALL@{self.cutoff}: {recall_at_k(ground_truth, pred_filtered)}",
         )
