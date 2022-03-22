@@ -109,7 +109,7 @@ class RecsInterface(ABC):
         recs = pd.read_feather(load_path)
         return recs
 
-    def eval_recommendations(self, cutoff: int = 100) -> None:
+    def eval_recommendations(self, cutoff: int = 100, write_log: bool = True) -> None:
         """Evaluate recommendations on holdout set"""
         assert (
             self.kind == "train"
@@ -120,15 +120,23 @@ class RecsInterface(ABC):
         dt_string = now.strftime("%d_%m_%Y__%H_%M_%S")
         log_filename = f"hnmchallenge/models_prediction/logs/{dt_string}.log"
 
+        # pass the correct handlers depending on if you want to write a log file or not
+        if write_log:
+            handlers = (
+                [
+                    logging.StreamHandler(),
+                    logging.FileHandler(log_filename, mode="w+"),
+                ],
+            )
+        else:
+            handlers = (
+                [
+                    logging.StreamHandler(),
+                ],
+            )
+
         log_format = "%(levelname)s %(asctime)s - %(message)s"
-        logging.basicConfig(
-            format=log_format,
-            level=logging.INFO,
-            handlers=[
-                logging.StreamHandler(),
-                logging.FileHandler(log_filename, mode="w+"),
-            ],
-        )
+        logging.basicConfig(format=log_format, level=logging.INFO, handlers=handlers)
         logger = logging.getLogger(__name__)
         logger.info(f"Evaluating: {self.RECS_NAME}, cutoff:{cutoff} \n")
 

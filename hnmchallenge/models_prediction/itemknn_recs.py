@@ -68,5 +68,5 @@ if __name__ == "__main__":
     rec_ens = ItemKNNRecs(
         kind=KIND, time_weight=TW, remove_seen=REMOVE_SEEN, dataset=dataset
     )
-    # rec_ens.eval_recommendations(cutoff=100)
-    rec_ens.save_recommendations()
+    rec_ens.eval_recommendations(cutoff=100)
+    # rec_ens.save_recommendations()

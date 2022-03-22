@@ -20,4 +20,3 @@ class EnsembleRecs(RecsInterface):
 
     def _create_ensemble_name(self):
         models_names = [model.RECS_NAME for model in self.models_list]
-        ""
