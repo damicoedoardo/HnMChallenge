@@ -105,11 +105,16 @@ class RecsInterface(ABC):
         save_name = f"{self.kind}_cutf_{self.cutoff}_{self.RECS_NAME}.feather"
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)
 
-    def load_recommendations(self) -> pd.DataFrame:
+    @staticmethod
+    def load_recommendations(name: str, kind: str) -> pd.DataFrame:
         """Load recommendations"""
-        print(set_color(f"Cutoff: {self.cutoff}, loading recs...", color="cyan"))
-        load_name = f"{self.kind}_cutf_{self.cutoff}_{self.RECS_NAME}"
-        load_path = self.save_path / load_name
+        assert kind in ["train", "full"], "`kind` should be in train or full"
+        print(set_color(f"loading recs model:\n {name}", color="cyan"))
+        _SAVE_PATH = "recommendations_dfs"
+        dr = DataReader()
+        save_path = dr.get_preprocessed_data_path() / _SAVE_PATH / kind
+        load_name = f"{name}.feather"
+        load_path = save_path / load_name
         recs = pd.read_feather(load_path)
         return recs
 

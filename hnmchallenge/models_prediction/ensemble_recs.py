@@ -6,6 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.data_reader import DataReader
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.models_prediction.itemknn_recs import ItemKNNRecs
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
@@ -27,6 +28,12 @@ class EnsembleRecs(RecsInterface):
         all(
             [issubclass(m.__class__, RecsInterface) for m in models_list]
         ), "Not all the models passed are extending `RecsInterface`"
+
+        # we have to check that the kind of the ensamble correspond with the kind of each model passed
+        assert all(
+            [model.kind == kind for model in models_list]
+        ), f"Ensemble kind:{kind}, not all the model passed has the same kind of the ensamble!"
+
         self.models_list = models_list
         self.RECS_NAME = self._create_ensemble_name()
         self.avg_recs_per_user = None
@@ -81,12 +88,21 @@ class EnsembleRecs(RecsInterface):
 
         # add ensemble_rank column for evaluation
         # the prediction will be sorted using the order of the model given as input 1st in list more important
-        models_names = [model.RECS_NAME + "_score" for model in self.models_list]
-        ensemble_recs = merged_recs_df.sort_values(
-            [DEFAULT_USER_COL, *models_names], ascending=False
-        )
+        ### Can be done but it is very slow, not really needed we do not care about ranking for the recommender systems
+        ### we care about Recall so we can drop this part for efficiency
+        # models_names = [model.RECS_NAME + "_score" for model in self.models_list]
+        # print(set_color("Sorting scores, can take a while...", "yellow"))
+        # ensemble_recs = merged_recs_df.sort_values(
+        #     [DEFAULT_USER_COL, *models_names], ascending=False
+        # )
+        # print(set_color("Done!", "yellow"))
+
+        # can be substituted with code above
+        ensemble_recs = merged_recs_df.sort_values(DEFAULT_USER_COL)
+
         recs_per_user = ensemble_recs.groupby(DEFAULT_USER_COL).size().values
         ensemble_rank = np.concatenate(list(map(lambda x: np.arange(x), recs_per_user)))
+        print(ensemble_rank)
         # adding final ensemble rank calling it `rank` for evaluation library
         ensemble_recs["rank"] = ensemble_rank
 
@@ -96,7 +112,7 @@ class EnsembleRecs(RecsInterface):
         # write the log file and so on
         print(
             set_color(
-                f"Kind: {self.kind}, Cutoff: {self.cutoff}, retrieving and saving recs...",
+                f"Kind: {self.kind}\nretrieving and saving recs...",
                 color="cyan",
             )
         )
@@ -142,16 +158,6 @@ class EnsembleRecs(RecsInterface):
         # save the retrieved recommendations
         save_name = f"{dataset_name}.feather"
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)
-
-    def load_recommendations(self, dataset_name: str) -> pd.DataFrame:
-        """Load recommendations"""
-        print(
-            set_color(f"loading recs ensemble model:\n {self.RECS_NAME}", color="cyan")
-        )
-        load_name = f"{dataset_name}"
-        load_path = self.save_path / load_name
-        recs = pd.read_feather(load_path)
-        return recs
 
     def eval_recommendations(self, dataset_name: str, write_log: bool = True) -> None:
         """Evaluate recommendations on holdout set"""
@@ -256,6 +262,6 @@ if __name__ == "__main__":
         kind="train", cutoff=100, time_weight=True, remove_seen=True, dataset=dataset
     )
     ensemble = EnsembleRecs(
-        models_list=[rec_ens_1, rec_ens_2, rec_ens_3], kind="train", dataset=dataset
+        models_list=[rec_ens_1, rec_ens_2], kind="train", dataset=dataset
     )
-    ensemble.eval_recommendations(dataset_name="dataset_v1")
+    ensemble.save_recommendations(dataset_name="dataset_v0")

@@ -38,13 +38,14 @@ class ItemKNNRecs(RecsInterface):
         # instantiate the recommender algorithm
         recom = ItemKNN(self.dataset, time_weight=self.time_weight, topk=1000)
 
-        ###################
-        ppp = data_df[data_df[DEFAULT_USER_COL].isin(np.arange(100))]
+        ######
+        # this has to be changed only for debugging purposes
+        # ppp = data_df[data_df[DEFAULT_USER_COL].isin(np.arange(100))]
 
         print(set_color("Computing similarity...", "green"))
         recom.compute_similarity_matrix(data_df)
         recs = recom.recommend_multicore(
-            interactions=ppp,
+            interactions=data_df,
             batch_size=40_000,
             num_cpus=72,
             remove_seen=self.remove_seen,
