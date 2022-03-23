@@ -2,6 +2,7 @@
 **Challenge Link:** [HnM Challenge Kaggle](https://www.kaggle.com/c/h-and-m-personalized-fashion-recommendations/overview)
 \
 **Author:** Edoardo D'Amico, edoardo.damico@insight-centre.org \
+**Contributor:** Aayush Singharoy, aayush.singharoy@insight-centre.org \
 **Final Position:**  \
 
 ## Methodology
@@ -15,6 +16,9 @@ To install the project dependencies, on the project root, launch the command:
 ```shell
 poetry install
 ```
+
+### Data Preprocessing
+Explain data preprocessing, splitting, etc...
 
 ### Create Recommendations
 Explain how to retrieve recommendations

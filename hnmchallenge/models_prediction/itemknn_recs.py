@@ -1,5 +1,6 @@
 import logging
 
+import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
@@ -15,15 +16,16 @@ class ItemKNNRecs(RecsInterface):
         dataset: StratifiedDataset,
         time_weight: bool = True,
         remove_seen: bool = False,
+        cutoff: int = 100,
     ) -> None:
-        super().__init__(kind, dataset)
+        super().__init__(kind, dataset, cutoff)
         self.time_weight = time_weight
         self.remove_seen = remove_seen
 
         # set recommender name
         self.RECS_NAME = f"ItemKNN_tw_{time_weight}_rs_{remove_seen}"
 
-    def get_recommendations(self, cutoff: int = 100) -> pd.DataFrame:
+    def get_recommendations(self) -> pd.DataFrame:
         data_df = (
             self.dataset.get_last_month_holdin()
             if self.kind == "train"
@@ -36,6 +38,10 @@ class ItemKNNRecs(RecsInterface):
         # instantiate the recommender algorithm
         recom = ItemKNN(self.dataset, time_weight=self.time_weight, topk=1000)
 
+        ######
+        # this has to be changed only for debugging purposes
+        # ppp = data_df[data_df[DEFAULT_USER_COL].isin(np.arange(100))]
+
         print(set_color("Computing similarity...", "green"))
         recom.compute_similarity_matrix(data_df)
         recs = recom.recommend_multicore(
@@ -44,7 +50,7 @@ class ItemKNNRecs(RecsInterface):
             num_cpus=72,
             remove_seen=self.remove_seen,
             white_list_mb_item=None,
-            cutoff=cutoff,
+            cutoff=self.cutoff,
         )
 
         # recs_list = recs.groupby(DEFAULT_USER_COL)["article_id"].apply(list).to_frame()
@@ -66,7 +72,7 @@ if __name__ == "__main__":
     dataset = StratifiedDataset()
 
     rec_ens = ItemKNNRecs(
-        kind=KIND, time_weight=TW, remove_seen=REMOVE_SEEN, dataset=dataset
+        kind=KIND, cutoff=100, time_weight=TW, remove_seen=REMOVE_SEEN, dataset=dataset
     )
-    rec_ens.eval_recommendations(cutoff=100)
+    rec_ens.eval_recommendations(write_log=False)
     # rec_ens.save_recommendations()

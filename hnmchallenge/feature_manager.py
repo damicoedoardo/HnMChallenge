@@ -1,5 +1,7 @@
 import logging
+from ensurepip import version
 from functools import reduce
+from pathlib import Path
 
 import pandas as pd
 
@@ -8,6 +10,7 @@ from hnmchallenge.data_reader import DataReader
 from hnmchallenge.features.item_features import *
 from hnmchallenge.features.user_features import *
 from hnmchallenge.features.user_item_features import *
+from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
@@ -97,50 +100,65 @@ class FeatureManager:
         self.dr = DataReader()
         self.dataset = dataset
 
-    def create_features_df(self, name: str) -> pd.DataFrame:
-        # if kind is "train" means we need the relevance df,
-        # if kind is "full" we need recommendations df
+    def create_features_df(self, name: str, dataset_version: int) -> None:
         # load base df
-        kind_name = self.kind + "_" + name
-        if self.kind == "train":
-            base_df_path = (
-                self.dr.get_preprocessed_data_path() / "relevance_dfs" / kind_name
+        base_df = RecsInterface.load_recommendations(name, self.kind)
+
+        # rename the recs column accordingly
+        # if it is an `ensemble model` we have "recs" column
+        # if it is a `single model` we have "recom_name_recs" column
+        cols = base_df.columns
+        col_to_rename = [col for col in cols if "recs" in col]
+        assert len(col_to_rename) == 1, "More recs column, one is needed!"
+        col_to_rename = col_to_rename[0]
+        base_df = base_df.rename({col_to_rename: DEFAULT_ITEM_COL}, axis=1)
+
+        if len(self._ITEM_FEATURES) > 0:
+            # load item features
+            item_features_list = []
+            print("Loading item features...")
+            for item_f_class in self._ITEM_FEATURES:
+                item_f = item_f_class(self.dataset, self.kind)
+                f = item_f.load_feature()
+                item_features_list.append(f)
+            print("join item features...")
+            # joining item features
+            item_features_df = reduce(
+                lambda x, y: pd.merge(x, y, on=DEFAULT_ITEM_COL, how="outer"),
+                item_features_list,
             )
-            print("Creating features df for training...")
-        else:
-            base_df_path = self.dr.get_preprocessed_data_path() / kind_name
-            print("Creating features df for final predictions...")
-        base_df = pd.read_feather(base_df_path)
+            # join item features on base df
+            print(
+                set_color(
+                    "Merging item features with base df, can take time...", "yellow"
+                )
+            )
+            base_df = pd.merge(
+                base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left"
+            )
 
-        if self.kind == "full":
-            base_df = base_df.rename({"recs": DEFAULT_ITEM_COL}, axis=1)
-
-        # load item features
-        item_features_list = []
-        print("Loading item features...")
-        for item_f_class in self._ITEM_FEATURES:
-            item_f = item_f_class(self.dataset, self.kind)
-            f = item_f.load_feature()
-            item_features_list.append(f)
-        print("join item features...")
-        # joining item features
-        item_features_df = reduce(
-            lambda x, y: pd.merge(x, y, on=DEFAULT_ITEM_COL, how="outer"),
-            item_features_list,
-        )
-
-        # load user features
-        user_features_list = []
-        print("Loading user features...")
-        for user_f_class in self._USER_FEATURES:
-            user_f = user_f_class(self.dataset, self.kind)
-            f = user_f.load_feature()
-            user_features_list.append(f)
-        print("join user features...")
-        user_features_df = reduce(
-            lambda x, y: pd.merge(x, y, on=DEFAULT_USER_COL, how="outer"),
-            user_features_list,
-        )
+        if len(self._USER_FEATURES) > 0:
+            # load user features
+            user_features_list = []
+            print("Loading user features...")
+            for user_f_class in self._USER_FEATURES:
+                user_f = user_f_class(self.dataset, self.kind)
+                f = user_f.load_feature()
+                user_features_list.append(f)
+            print("join user features...")
+            user_features_df = reduce(
+                lambda x, y: pd.merge(x, y, on=DEFAULT_USER_COL, how="outer"),
+                user_features_list,
+            )
+            # join user features on base df
+            print(
+                set_color(
+                    "Merging user features with base df, can take time...", "yellow"
+                )
+            )
+            base_df = pd.merge(
+                base_df, user_features_df, on=DEFAULT_USER_COL, how="left"
+            )
 
         if len(self._USER_ITEM_FEATURES) > 0:
             # load user-item features (context)
@@ -158,6 +176,11 @@ class FeatureManager:
                 user_item_features_list,
             )
             # join item and user features on base df
+            print(
+                set_color(
+                    "Merging context features with base df, can take time...", "yellow"
+                )
+            )
             base_df = pd.merge(
                 base_df,
                 user_item_features_df,
@@ -165,31 +188,58 @@ class FeatureManager:
                 how="left",
             )
 
-        print("Merging with base df, can take time...")
-        base_df = pd.merge(base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left")
-        base_df = pd.merge(base_df, user_features_df, on=DEFAULT_USER_COL, how="left")
+        # save the the feature dataset
+        dir_path = Path(f"hnmchallenge/models_prediction/dataset_logs/{name}")
+        dir_path.mkdir(parents=True, exist_ok=True)
 
-        print(f"Final number of features loaded: {len(base_df.columns) - 3}")
-        return base_df
+        log_filename = dir_path / f"{name}_{dataset_version}.log"
+        log_format = "%(levelname)s %(asctime)s - %(message)s"
+        # pass the correct handlers depending on if you want to write a log file or not
+        handlers = [
+            logging.StreamHandler(),
+            logging.FileHandler(log_filename, mode="w+"),
+        ]
+        logging.basicConfig(level=logging.INFO, handlers=handlers, format=log_format)
+        logger = logging.getLogger(__name__)
+
+        # calculate the correct number of features of the dataset
+        number_of_features = (
+            len(base_df.columns) - 3
+            if self.kind == "train"
+            else len(base_df.columns) - 2
+        )
+
+        if self.kind == "train":
+            # log features used in the dataset only when creating the train version of the dataset
+            logger.info(f"Creating Dataset: {name}_{dataset_version}")
+            logger.info(f"Number of features: {number_of_features}")
+
+            logger.info("\n\nUSER FEATURES:\n")
+            for u_f in self._USER_FEATURES:
+                logger.info(f"{u_f.FEATURE_NAME}")
+
+            logger.info("\n\nITEM FEATURES:\n")
+            for i_f in self._ITEM_FEATURES:
+                logger.info(f"{i_f.FEATURE_NAME}")
+
+            logger.info("\n\nCONTEXT FEATURES:\n")
+            for u_i_f in self._USER_ITEM_FEATURES:
+                logger.info(f"{u_i_f.FEATURE_NAME}")
+
+        # save features df
+        dir_path = dr.get_preprocessed_data_path() / Path(f"dataset_dfs/{self.kind}")
+        dir_path.mkdir(parents=True, exist_ok=True)
+        save_name = f"{name}_{dataset_version}.feather"
+        base_df.reset_index(drop=True).to_feather(dir_path / save_name)
+        print(f"Dataset saved succesfully in : {dir_path / save_name}")
 
 
 if __name__ == "__main__":
-    CUTOFF = 250
-    MODEL_NAME = f"itemknn_{CUTOFF}_tw_True.feather"
-    KIND = "full"
-    DATASET_NAME = "dataset_v8.feather"
+    KIND = "train"
+    DATASET_NAME = "dataset_v0"
+    VERSION = 0
 
     dr = DataReader()
     dataset = StratifiedDataset()
-
-    if KIND == "train":
-        base_save_path = dr.get_preprocessed_data_path() / "xgb_datasets"
-    else:
-        base_save_path = dr.get_preprocessed_data_path() / "xgb_predictions_datasets"
-    base_save_path.mkdir(parents=True, exist_ok=True)
-
     fm = FeatureManager(dataset, KIND)
-    features_df = fm.create_features_df(MODEL_NAME).reset_index(drop=True)
-    print(f"Saving features dataframe...\n kind: {KIND}")
-    features_df.to_feather(base_save_path / DATASET_NAME)
-    print("Done !")
+    fm.create_features_df(DATASET_NAME, VERSION)
