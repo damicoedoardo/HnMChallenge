@@ -235,8 +235,8 @@ class FeatureManager:
 
 
 if __name__ == "__main__":
-    KIND = "train"
-    DATASET_NAME = "dataset_v0"
+    KIND = "full"
+    DATASET_NAME = "dataset_v1"
     VERSION = 0
 
     dr = DataReader()

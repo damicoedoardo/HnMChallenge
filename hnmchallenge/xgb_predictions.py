@@ -20,7 +20,6 @@ from hnmchallenge.models.top_pop import TopPop
 from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.submission_handler import SubmissionHandler
 
-
 MODEL_NAME = "xgb_v4.json"
 SUBMISSION_NAME = "XGB_v4"
 
@@ -36,8 +35,8 @@ def filtered_indices(data):
     i = 0
     filter_indices = []
     for cut in cutoff:
-        filter_indices.extend(range(i, i + 12))
-        i = cut
+        filter_indices.extend(range(i, i + 11))
+        i = i + cut
 
     return filter_indices
 

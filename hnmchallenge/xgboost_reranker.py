@@ -22,9 +22,9 @@ from hnmchallenge.stratified_dataset import StratifiedDataset
 TRAIN_PERC = 0.8
 VAL_PERC = 0.1
 TEST_PERC = 0.1
-DATASET = "dataset_v8.feather"
 
-MODEL_NAME = "xgb_v8.json"
+DATASET = "dataset_v1_0.feather"
+MODEL_NAME = f"xgb_{DATASET}.json"
 
 if __name__ == "__main__":
     dataset = StratifiedDataset()
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     model_save_path = dr.get_preprocessed_data_path() / "xgb_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
 
-    base_load_path = dr.get_preprocessed_data_path() / "xgb_datasets"
+    base_load_path = dr.get_preprocessed_data_path() / "dataset_dfs/train"
     dataset_path = base_load_path / DATASET
     features_df = pd.read_feather(dataset_path)
 
@@ -78,14 +78,14 @@ if __name__ == "__main__":
         booster="gbtree",
         objective="rank:map",
         random_state=RANDOM_SEED,
-        learning_rate=0.2,
+        learning_rate=0.1,
         colsample_bytree=0.8,
-        reg_lambda=0.0,
-        reg_alpha=0.0,
-        eta=0.1,
+        reg_lambda=0.1,
+        reg_alpha=0.1,
+        eta=0.3,
         max_depth=5,
         n_estimators=500,
-        subsample=0.8,
+        subsample=0.7,
         # sampling_method="gradient_based"
         # n_gpus=-1
         # gpu_id=1,

@@ -25,6 +25,7 @@ def merge_ranking_true_pred(
     rating_true_common = rating_true[rating_true[col_user].isin(common_users)]
     rating_pred_common = rating_pred[rating_pred[col_user].isin(common_users)]
     n_users = len(common_users)
+    print(n_users)
 
     df_hit = pd.merge(rating_pred_common, rating_true_common, on=[col_user, col_item])[
         [col_user, col_item, "rank"]
