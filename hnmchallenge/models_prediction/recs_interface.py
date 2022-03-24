@@ -103,7 +103,7 @@ class RecsInterface(ABC):
             print("Done!")
 
         # save the retrieved recommendations
-        save_name = f"{self.kind}_cutf_{self.cutoff}_{self.RECS_NAME}.feather"
+        save_name = f"cutf_{self.cutoff}_{self.RECS_NAME}.feather"
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)
 
     @staticmethod
