@@ -17,6 +17,7 @@ from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.models_prediction.time_pop import TimePop
 from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
+from matplotlib.pyplot import axis
 
 
 class EnsembleRecs(RecsInterface):
@@ -163,6 +164,11 @@ class EnsembleRecs(RecsInterface):
             recs = merged_filtered
             print("Done!")
 
+        col_to_drop = [col for col in recs.columns if "rank" in col]
+        print(col_to_drop)
+        recs = recs.drop(col_to_drop, axis=1)
+        print(recs.columns)
+
         # save the retrieved recommendations
         save_name = f"{dataset_name}.feather"
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)
@@ -278,5 +284,5 @@ if __name__ == "__main__":
     ensemble = EnsembleRecs(
         models_list=[rec_ens_1, rec_ens_2], kind=KIND, dataset=dataset
     )
-    # ensemble.save_recommendations(dataset_name="dataset_v9")
-    ensemble.eval_recommendations(dataset_name="dataset_v10")
+    ensemble.save_recommendations(dataset_name="dataset_v10")
+    # ensemble.eval_recommendations(dataset_name="dataset_v10")
