@@ -1,24 +1,29 @@
 import logging
 
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+import seaborn as sns
 from hnmchallenge.constant import *
-from hnmchallenge.models.itemknn.itemknn import ItemKNN
+from hnmchallenge.data_reader import DataReader
+from hnmchallenge.dataset import Dataset
+from hnmchallenge.evaluation.python_evaluation import map_at_k
+from hnmchallenge.filtered_dataset import FilterdDataset
+from hnmchallenge.models.top_pop import TopPop
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.stratified_dataset import StratifiedDataset
-from hnmchallenge.utils.logger import set_color
 
 
-class Pop(RecsInterface):
+class BoughtItemsRecs(RecsInterface):
     def __init__(
         self,
         kind: str,
         dataset: StratifiedDataset,
-        cutoff: int = 100,
+        cutoff: int = 0,
     ) -> None:
         super().__init__(kind, dataset, cutoff)
 
-        # set recommender name
-        self.RECS_NAME = f"Pop_cutoff_{cutoff}"
+        self.RECS_NAME = f"BoughtItemsRecs"
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
@@ -33,41 +38,36 @@ class Pop(RecsInterface):
         # drop multiple buys
         # data_df = data_df.drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL])
 
-        count_mb = last_month_data.groupby(DEFAULT_ITEM_COL).count()
-        feature = count_mb.reset_index()[[DEFAULT_ITEM_COL, "t_dat"]].rename(
-            columns={"t_dat": "popularity"}
+        df = data_df
+        df["last_buy"] = df.groupby(DEFAULT_USER_COL)["t_dat"].transform(max)
+        df["first_buy"] = df.groupby(DEFAULT_USER_COL)["t_dat"].transform(min)
+        df["time_score"] = (df["t_dat"] - df["first_buy"]) / (
+            df["last_buy"] - df["first_buy"]
         )
-        feature["popularity_score"] = (
-            feature["popularity"] - feature["popularity"].min()
-        ) / (feature["popularity"].max() - feature["popularity"].min())
-        feature["rank"] = (
-            feature["popularity_score"]
+        df = df.fillna(1)
+        df["rank_time"] = (
+            df.groupby(DEFAULT_USER_COL)["time_score"]
             .rank(ascending=False, method="first")
             .astype(int)
         )
-        feature_k = feature[feature["rank"] <= self.cutoff]
-        feature_k["temp"] = 1
-
-        user = data_df
-        user = user.drop_duplicates([DEFAULT_USER_COL])
-        user["temp"] = 1
-        user = user[[DEFAULT_USER_COL, "temp"]]
-        final1 = pd.merge(user, feature_k, on="temp")
-        final1 = final1.drop("temp", axis=1)
-        final1 = final1.drop(
+        df = df.drop(
             [
-                "popularity",
+                "t_dat",
+                "price",
+                "sales_channel_id",
+                "last_buy",
+                "first_buy",
             ],
             axis=1,
         )
 
-        recs = final1
+        recs = df
 
         recs = recs.rename(
             {
                 "article_id": f"{self.RECS_NAME}_recs",
-                "popularity_score": f"{self.RECS_NAME}_score",
-                "rank": f"{self.RECS_NAME}_rank",
+                "time_score": f"{self.RECS_NAME}_score",
+                "rank_time": f"{self.RECS_NAME}_rank",
             },
             axis=1,
         )
@@ -82,6 +82,6 @@ if __name__ == "__main__":
 
     dataset = StratifiedDataset()
 
-    rec = Pop(kind=KIND, dataset=dataset, cutoff=CUTOFF)
+    rec = BoughtItemsRecs(kind=KIND, dataset=dataset, cutoff=0)
     rec.eval_recommendations(write_log=False)
     # rec.save_recommendations()

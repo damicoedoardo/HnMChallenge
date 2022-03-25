@@ -21,7 +21,7 @@ class RecsInterface(ABC):
     _SAVE_PATH = "recommendations_dfs"
 
     def __init__(
-        self, kind: str, dataset: StratifiedDataset, cutoff: int = 100
+        self, kind: str, dataset: StratifiedDataset, cutoff: Union[int, list]
     ) -> None:
         assert kind in ["train", "full"], "kind should be train or full"
         self.kind = kind

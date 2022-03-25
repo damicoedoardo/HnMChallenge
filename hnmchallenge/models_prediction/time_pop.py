@@ -32,7 +32,7 @@ class TimePop(RecsInterface):
         )
         # data that you use to compute similarity
         # Using the full data available perform better
-        last_month_data = data_df[data_df["t_dat"] > "2020-08-31"]
+        last_month_data = data_df[data_df["t_dat"] > "2020-08-31"].copy()
 
         # drop multiple buys
         # data_df = data_df.drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL])
@@ -45,7 +45,9 @@ class TimePop(RecsInterface):
             feature["popularity"] - feature["popularity"].min()
         ) / (feature["popularity"].max() - feature["popularity"].min())
         feature["rank"] = (
-            feature["popularity_score"].rank(ascending=False, method="min").astype(int)
+            feature["popularity_score"]
+            .rank(ascending=False, method="first")
+            .astype(int)
         )
         feature_k = feature[feature["rank"] <= self.cutoff]
         feature_k["temp"] = 1
@@ -130,7 +132,7 @@ class TimePop(RecsInterface):
 
 if __name__ == "__main__":
     KIND = "train"
-    ALPHA = 0.9
+    ALPHA = 0.0
     EPS = 1e-6
     CUTOFF = 100
 

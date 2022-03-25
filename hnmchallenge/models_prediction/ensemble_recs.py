@@ -9,8 +9,10 @@ import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
+from hnmchallenge.models_prediction.bought_items_recs import BoughtItemsRecs
 from hnmchallenge.models_prediction.ease_recs import EaseRecs
 from hnmchallenge.models_prediction.itemknn_recs import ItemKNNRecs
+from hnmchallenge.models_prediction.popularity_recs import PopularityRecs
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.models_prediction.time_pop import TimePop
 from hnmchallenge.stratified_dataset import StratifiedDataset
@@ -23,7 +25,6 @@ class EnsembleRecs(RecsInterface):
     def __init__(
         self, models_list: list, kind: str, dataset: StratifiedDataset
     ) -> None:
-        super().__init__(kind=kind, dataset=dataset)
         # Check that all the models passed are extending Recs Interface
         assert (
             len(models_list) > 1
@@ -31,6 +32,9 @@ class EnsembleRecs(RecsInterface):
         all(
             [issubclass(m.__class__, RecsInterface) for m in models_list]
         ), "Not all the models passed are extending `RecsInterface`"
+
+        cutoffs_list = [m.cutoff for m in models_list]
+        super().__init__(kind=kind, dataset=dataset, cutoff=cutoffs_list)
 
         # we have to check that the kind of the ensamble correspond with the kind of each model passed
         assert all(
@@ -105,7 +109,6 @@ class EnsembleRecs(RecsInterface):
 
         recs_per_user = ensemble_recs.groupby(DEFAULT_USER_COL).size().values
         ensemble_rank = np.concatenate(list(map(lambda x: np.arange(x), recs_per_user)))
-        print(ensemble_rank)
         # adding final ensemble rank calling it `rank` for evaluation library
         ensemble_recs["rank"] = ensemble_rank
 
@@ -254,21 +257,17 @@ class EnsembleRecs(RecsInterface):
 
 if __name__ == "__main__":
     KIND = "train"
-    CUTOFF = 100
 
     dataset = StratifiedDataset()
 
     rec_ens_1 = ItemKNNRecs(
-        kind=KIND, cutoff=CUTOFF, time_weight=True, remove_seen=False, dataset=dataset
+        kind=KIND, cutoff=100, time_weight=True, remove_seen=False, dataset=dataset
     )
-    # rec_ens_2 = ItemKNNRecs(
-    #     kind=KIND, cutoff=CUTOFF, time_weight=False, remove_seen=True, dataset=dataset
-    # )
-
-    rec_ens_2 = TimePop(kind=KIND, cutoff=30, dataset=dataset)
+    rec_ens_2 = PopularityRecs(kind=KIND, cutoff=20, dataset=dataset)
+    # rec_ens_3 = BoughtItemsRecs(kind=KIND, dataset=dataset)
 
     ensemble = EnsembleRecs(
         models_list=[rec_ens_1, rec_ens_2], kind=KIND, dataset=dataset
     )
-    # ensemble.save_recommendations(dataset_name="dataset_v5")
-    ensemble.eval_recommendations(dataset_name="dataset_v6")
+    ensemble.save_recommendations(dataset_name="dataset_v9")
+    # ensemble.eval_recommendations(dataset_name="dataset_v8")

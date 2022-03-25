@@ -19,7 +19,7 @@ class ItemCountLastMonth(ItemFeature):
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )
-        data_df = data_df[data_df["t_dat"] >= "2020-09-01"]
+        data_df = data_df[data_df["t_dat"] >= "2020-09-1"]
         duplicated_rows = data_df[
             data_df.duplicated(subset=[DEFAULT_USER_COL, DEFAULT_ITEM_COL])
         ]

@@ -7,8 +7,8 @@ from hnmchallenge.features.feature_interfaces import ItemFeature
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
-class SectionNO(ItemFeature):
-    FEATURE_NAME = "section_no"
+class IndexGroupNO(ItemFeature):
+    FEATURE_NAME = "index_group_number"
 
     def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
         # we have the feature only for full
@@ -16,12 +16,14 @@ class SectionNO(ItemFeature):
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
-        feature = self.dr.get_filtered_articles()[[DEFAULT_ITEM_COL, "section_no"]]
+        item_df = self.dr.get_filtered_articles()
+        feature = item_df[[DEFAULT_ITEM_COL, "index_group_no"]]
         print(feature)
         return feature
 
 
 if __name__ == "__main__":
-    dataset = StratifiedDataset()
-    feature = SectionNO(dataset, kind="full")
-    feature.save_feature()
+    for kind in ["train", "full"]:
+        dataset = StratifiedDataset()
+        feature = IndexGroupNO(dataset, kind=kind)
+        feature.save_feature()

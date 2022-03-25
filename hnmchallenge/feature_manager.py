@@ -23,23 +23,26 @@ class FeatureManager:
         Age,
         ClubMemberStatus,
         FashionNewsFrequency,
-        Fn,
+        # Fn,
         AvgPrice,
         UserTendency,
+        UserTendencyLM,
     ]
     _ITEM_FEATURES = [
         ColourGroupCode,
         DepartmentNO,
-        GarmentGroupName,
-        GraphicalAppearanceNO,
-        IndexCode,
-        IndexGroupName,
+        # GarmentGroupName,
+        # GraphicalAppearanceNO,
+        GarmentGroupNO,
+        # IndexCode,
+        # IndexGroupName,
+        IndexGroupNO,
         ItemCount,
         ItemCountLastMonth,
         NumberBought,
         PerceivedColourMasterID,
         PerceivedColourValueID,
-        ProductGroupName,
+        # ProductGroupName,
         ProductTypeNO,
         SectionNO,
         Price,
@@ -234,8 +237,8 @@ class FeatureManager:
 
 
 if __name__ == "__main__":
-    KIND = "train"
-    DATASET_NAME = "cutf_100_TimePop_alpha_0.9"
+    KIND = "full"
+    DATASET_NAME = "dataset_v9"
     VERSION = 0
 
     dr = DataReader()

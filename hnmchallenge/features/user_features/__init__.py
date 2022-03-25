@@ -7,3 +7,4 @@ from hnmchallenge.features.user_features.fashion_news_frequency import (
 from hnmchallenge.features.user_features.fn import Fn
 from hnmchallenge.features.user_features.user_avg_price import AvgPrice
 from hnmchallenge.features.user_features.user_tendency import UserTendency
+from hnmchallenge.features.user_features.user_tendency_lm import UserTendencyLM

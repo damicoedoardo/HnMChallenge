@@ -8,8 +8,8 @@ from hnmchallenge.features.feature_interfaces import UserFeature
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
-class UserTendency(UserFeature):
-    FEATURE_NAME = "user_tendency"
+class UserTendencyLM(UserFeature):
+    FEATURE_NAME = "user_tendency_lm"
 
     def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
         super().__init__(dataset, kind)
@@ -20,6 +20,9 @@ class UserTendency(UserFeature):
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )
+
+        # filter on the last month_data
+        data_df = data_df[data_df["t_dat"] > "2020-08-31"]
 
         item_per_user1 = data_df.groupby("customer_id")["article_id"].apply(list)
         unique_item_per_user1 = item_per_user1.apply(np.unique)
@@ -39,6 +42,7 @@ class UserTendency(UserFeature):
         feature = user_diff.reset_index()
         user_df = self._get_keys_df()
         feature = pd.merge(user_df, feature, on="customer_id", how="left")
+        feature = feature.rename({"user_tendency": self.FEATURE_NAME}, axis=1)
         print(feature)
         return feature
 
@@ -46,5 +50,5 @@ class UserTendency(UserFeature):
 if __name__ == "__main__":
     dataset = StratifiedDataset()
     for kind in ["full", "train"]:
-        feature = UserTendency(dataset, kind)
+        feature = UserTendencyLM(dataset, kind)
         feature.save_feature()

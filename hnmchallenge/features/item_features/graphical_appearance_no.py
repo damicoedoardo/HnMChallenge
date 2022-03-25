@@ -17,16 +17,18 @@ class GraphicalAppearanceNO(ItemFeature):
 
     def _create_feature(self) -> pd.DataFrame:
         item_df = self.dr.get_filtered_articles()
-        gan = pd.get_dummies(item_df["graphical_appearance_no"])
-        item = item_df[DEFAULT_ITEM_COL].to_frame()
-        feature = item.join(gan)
-        feature.columns = feature.columns.map(str)
+        feature = item_df[[DEFAULT_ITEM_COL, "graphical_appearance_no"]]
+        # gan = pd.get_dummies(item_df["graphical_appearance_no"])
+        # item = item_df[DEFAULT_ITEM_COL].to_frame()
+        # feature = item.join(gan)
+        # feature.columns = feature.columns.map(str)
 
         print(feature)
         return feature
 
 
 if __name__ == "__main__":
-    dataset = StratifiedDataset()
-    feature = GraphicalAppearanceNO(dataset, kind="full")
-    feature.save_feature()
+    for kind in ["train", "full"]:
+        dataset = StratifiedDataset()
+        feature = GraphicalAppearanceNO(dataset, kind=kind)
+        feature.save_feature()

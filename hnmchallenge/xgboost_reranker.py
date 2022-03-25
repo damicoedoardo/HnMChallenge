@@ -28,7 +28,7 @@ TEST_PERC = 0.1
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
 VERSION = 0
-DATASET = f"cutf_100_TimePop_alpha_0.9_{VERSION}.feather"
+DATASET = f"dataset_v9_{VERSION}.feather"
 MODEL_NAME = f"xgb_{DATASET}.json"
 
 
@@ -85,13 +85,13 @@ if __name__ == "__main__":
         objective="rank:map",
         random_state=RANDOM_SEED,
         learning_rate=0.2,
-        colsample_bytree=0.8,
+        colsample_bytree=0.6,
         reg_lambda=0.0,
         reg_alpha=0.0,
         eta=0.1,
-        max_depth=10,
+        max_depth=5,
         n_estimators=500,
-        subsample=0.5,
+        subsample=0.8,
         # sampling_method="gradient_based"
         # n_gpus=-1
         # gpu_id=1,
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         eval_qid=[qid_val],
         eval_metric=["map@12"],
         verbose=True,
-        early_stopping_rounds=15,
+        early_stopping_rounds=30,
     )
 
     model_name = model_save_path / MODEL_NAME
