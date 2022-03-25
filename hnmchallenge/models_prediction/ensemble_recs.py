@@ -108,7 +108,9 @@ class EnsembleRecs(RecsInterface):
         ensemble_recs = merged_recs_df.sort_values(DEFAULT_USER_COL)
 
         recs_per_user = ensemble_recs.groupby(DEFAULT_USER_COL).size().values
-        ensemble_rank = np.concatenate(list(map(lambda x: np.arange(x), recs_per_user)))
+        ensemble_rank = np.concatenate(
+            list(map(lambda x: np.arange(1, x + 1), recs_per_user))
+        )
         # adding final ensemble rank calling it `rank` for evaluation library
         ensemble_recs["rank"] = ensemble_rank
 
@@ -263,11 +265,18 @@ if __name__ == "__main__":
     rec_ens_1 = ItemKNNRecs(
         kind=KIND, cutoff=100, time_weight=True, remove_seen=False, dataset=dataset
     )
+    # rec_ens_1 = ItemKNNRecs(
+    #     kind=KIND, cutoff=100, time_weight=False, remove_seen=False, dataset=dataset
+    # )
+    # rec_ens_2 = EaseRecs(
+    #     kind=KIND, cutoff=100, dataset=dataset, l2=0.1, remove_seen=True, time_weight=False
+    # )
     rec_ens_2 = PopularityRecs(kind=KIND, cutoff=20, dataset=dataset)
+
     # rec_ens_3 = BoughtItemsRecs(kind=KIND, dataset=dataset)
 
     ensemble = EnsembleRecs(
         models_list=[rec_ens_1, rec_ens_2], kind=KIND, dataset=dataset
     )
-    ensemble.save_recommendations(dataset_name="dataset_v9")
-    # ensemble.eval_recommendations(dataset_name="dataset_v8")
+    # ensemble.save_recommendations(dataset_name="dataset_v9")
+    ensemble.eval_recommendations(dataset_name="dataset_v10")
