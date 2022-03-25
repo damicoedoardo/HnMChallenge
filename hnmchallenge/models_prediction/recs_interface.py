@@ -1,6 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
+from pathlib import Path
 from typing import Union
 
 import numpy as np
@@ -102,7 +103,7 @@ class RecsInterface(ABC):
             print("Done!")
 
         # save the retrieved recommendations
-        save_name = f"{self.kind}_cutf_{self.cutoff}_{self.RECS_NAME}.feather"
+        save_name = f"cutf_{self.cutoff}_{self.RECS_NAME}.feather"
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)
 
     @staticmethod
@@ -127,7 +128,11 @@ class RecsInterface(ABC):
         now = datetime.now()
         # dd/mm/YY H:M:S
         dt_string = now.strftime("%d_%m_%Y__%H_%M_%S")
-        log_filename = f"hnmchallenge/models_prediction/evaluation_logs/{dt_string}.log"
+        log_name = self.RECS_NAME + "__" + dt_string
+
+        dir_path = Path("hnmchallenge/models_prediction/evaluation_logs")
+        log_filename = dir_path / f"{log_name}.log"
+        print(log_filename)
 
         log_format = "%(levelname)s %(asctime)s - %(message)s"
         # pass the correct handlers depending on if you want to write a log file or not

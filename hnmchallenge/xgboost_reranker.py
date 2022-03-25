@@ -22,9 +22,15 @@ from hnmchallenge.stratified_dataset import StratifiedDataset
 TRAIN_PERC = 0.8
 VAL_PERC = 0.1
 TEST_PERC = 0.1
-DATASET = "dataset_v8.feather"
 
-MODEL_NAME = "xgb_v8.json"
+# VERSION = 0
+# DATASET = f"dataset_v5_{VERSION}.feather"
+# MODEL_NAME = f"xgb_{DATASET}.json"
+
+VERSION = 0
+DATASET = f"cutf_100_TimePop_alpha_0.9_{VERSION}.feather"
+MODEL_NAME = f"xgb_{DATASET}.json"
+
 
 if __name__ == "__main__":
     dataset = StratifiedDataset()
@@ -32,7 +38,7 @@ if __name__ == "__main__":
     model_save_path = dr.get_preprocessed_data_path() / "xgb_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
 
-    base_load_path = dr.get_preprocessed_data_path() / "xgb_datasets"
+    base_load_path = dr.get_preprocessed_data_path() / "dataset_dfs/train"
     dataset_path = base_load_path / DATASET
     features_df = pd.read_feather(dataset_path)
 
@@ -83,9 +89,9 @@ if __name__ == "__main__":
         reg_lambda=0.0,
         reg_alpha=0.0,
         eta=0.1,
-        max_depth=5,
+        max_depth=10,
         n_estimators=500,
-        subsample=0.8,
+        subsample=0.5,
         # sampling_method="gradient_based"
         # n_gpus=-1
         # gpu_id=1,

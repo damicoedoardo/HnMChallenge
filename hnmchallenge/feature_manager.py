@@ -21,32 +21,31 @@ class FeatureManager:
     _USER_FEATURES = [
         Active,
         Age,
-        # ClubMemberStatus,
-        # FashionNewsFrequency,
-        # Fn,
+        ClubMemberStatus,
+        FashionNewsFrequency,
+        Fn,
         AvgPrice,
         UserTendency,
     ]
     _ITEM_FEATURES = [
         ColourGroupCode,
         DepartmentNO,
-        # GarmentGroupName,
-        # GraphicalAppearanceNO,
-        # IndexCode,
-        # IndexGroupName,
+        GarmentGroupName,
+        GraphicalAppearanceNO,
+        IndexCode,
+        IndexGroupName,
         ItemCount,
         ItemCountLastMonth,
         NumberBought,
         PerceivedColourMasterID,
         PerceivedColourValueID,
-        # ProductGroupName,
+        ProductGroupName,
         ProductTypeNO,
         SectionNO,
         Price,
         SalesFactor,
     ]
     _USER_ITEM_FEATURES = [
-        # ItemPrice,
         # SalesChannel,
         TimeScore,
         TimeWeight,
@@ -236,7 +235,7 @@ class FeatureManager:
 
 if __name__ == "__main__":
     KIND = "train"
-    DATASET_NAME = "dataset_v0"
+    DATASET_NAME = "cutf_100_TimePop_alpha_0.9"
     VERSION = 0
 
     dr = DataReader()

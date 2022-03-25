@@ -2,14 +2,17 @@ import logging
 from datetime import datetime
 from functools import reduce
 from pathlib import Path
+from pickle import FALSE
 
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
+from hnmchallenge.models_prediction.ease_recs import EaseRecs
 from hnmchallenge.models_prediction.itemknn_recs import ItemKNNRecs
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
+from hnmchallenge.models_prediction.time_pop import TimePop
 from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
@@ -250,18 +253,22 @@ class EnsembleRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    dataset = StratifiedDataset()
-    rec_ens_1 = ItemKNNRecs(
-        kind="train", cutoff=100, time_weight=True, remove_seen=False, dataset=dataset
-    )
+    KIND = "train"
+    CUTOFF = 100
 
-    rec_ens_2 = ItemKNNRecs(
-        kind="train", cutoff=100, time_weight=False, remove_seen=False, dataset=dataset
+    dataset = StratifiedDataset()
+
+    rec_ens_1 = ItemKNNRecs(
+        kind=KIND, cutoff=CUTOFF, time_weight=True, remove_seen=False, dataset=dataset
     )
-    rec_ens_3 = ItemKNNRecs(
-        kind="train", cutoff=100, time_weight=True, remove_seen=True, dataset=dataset
-    )
+    # rec_ens_2 = ItemKNNRecs(
+    #     kind=KIND, cutoff=CUTOFF, time_weight=False, remove_seen=True, dataset=dataset
+    # )
+
+    rec_ens_2 = TimePop(kind=KIND, cutoff=30, dataset=dataset)
+
     ensemble = EnsembleRecs(
-        models_list=[rec_ens_1, rec_ens_2], kind="train", dataset=dataset
+        models_list=[rec_ens_1, rec_ens_2], kind=KIND, dataset=dataset
     )
-    ensemble.save_recommendations(dataset_name="dataset_v0")
+    # ensemble.save_recommendations(dataset_name="dataset_v5")
+    ensemble.eval_recommendations(dataset_name="dataset_v6")
