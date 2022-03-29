@@ -135,7 +135,7 @@ class UserFeature(Feature):
 
     def _get_keys_df(self) -> pd.DataFrame:
         user_df = (
-            self.dr.get_filtered_customers()[DEFAULT_USER_COL]
+            self.dr.get_filtered_all_customers()[DEFAULT_USER_COL]
             .to_frame()
             .drop_duplicates()
         )

@@ -16,7 +16,7 @@ class Active(UserFeature):
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
-        feature = self.dr.get_filtered_customers()[[DEFAULT_USER_COL, "Active"]]
+        feature = self.dr.get_filtered_all_customers()[[DEFAULT_USER_COL, "Active"]]
         feature = feature.rename({"Active": "active"}, axis=1)
         return feature
 

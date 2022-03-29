@@ -16,7 +16,7 @@ class FashionNewsFrequency(UserFeature):
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
-        user_df = self.dr.get_filtered_customers()
+        user_df = self.dr.get_filtered_all_customers()
         fnf = pd.get_dummies(user_df["fashion_news_frequency"])
         user = user_df[DEFAULT_USER_COL].to_frame()
         feature = user.join(fnf)

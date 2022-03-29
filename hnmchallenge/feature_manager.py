@@ -238,7 +238,7 @@ class FeatureManager:
 
 if __name__ == "__main__":
     KIND = "full"
-    DATASET_NAME = "full_cutf_100_ItemKNN_tw_True_rs_False"
+    DATASET_NAME = "dataset_v16"
     VERSION = 0
 
     dr = DataReader()

@@ -29,7 +29,7 @@ class EaseRecs(RecsInterface):
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_month_holdin()
+            self.dataset.get_last_day_holdin()
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )

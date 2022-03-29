@@ -168,3 +168,15 @@ class DataReader:
         p = self.get_preprocessed_data_path() / "filtered_customers.feather"
         customer_df = pd.read_feather(p)
         return customer_df
+
+    ###
+
+    def get_filtered_all_customers_ids_df(self) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "filtered_all_users.feather"
+        customer_df = pd.read_feather(p)
+        return customer_df
+
+    def get_filtered_all_customers(self) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "filtered_all_customers.feather"
+        customer_df = pd.read_feather(p)
+        return customer_df

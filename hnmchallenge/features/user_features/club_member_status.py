@@ -16,7 +16,7 @@ class ClubMemberStatus(UserFeature):
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
-        user_df = self.dr.get_filtered_customers()
+        user_df = self.dr.get_filtered_all_customers()
 
         cms = user_df[[DEFAULT_USER_COL, "club_member_status"]].copy()
         cms["club_member_status_num"] = 1
@@ -27,7 +27,6 @@ class ClubMemberStatus(UserFeature):
 
 
 if __name__ == "__main__":
-    for kind in ["train", "full"]:
-        dataset = StratifiedDataset()
-        feature = ClubMemberStatus(dataset, kind=kind)
-        feature.save_feature()
+    dataset = StratifiedDataset()
+    feature = ClubMemberStatus(dataset, kind="full")
+    feature.save_feature()

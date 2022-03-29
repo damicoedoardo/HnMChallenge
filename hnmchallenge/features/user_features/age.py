@@ -16,7 +16,7 @@ class Age(UserFeature):
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
-        feature = self.dr.get_filtered_customers()[[DEFAULT_USER_COL, "age"]]
+        feature = self.dr.get_filtered_all_customers()[[DEFAULT_USER_COL, "age"]]
         return feature
 
 
