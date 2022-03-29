@@ -125,6 +125,11 @@ class EnsembleRecs(RecsInterface):
                 color="cyan",
             )
         )
+        save_name = f"{dataset_name}.feather"
+        assert not Path(
+            self.save_path / save_name
+        ).exists(), f"dataset: {save_name}, exsist, change name."
+
         recs = self.get_recommendations()
         self._check_recommendations_integrity(recs)
 
@@ -164,13 +169,13 @@ class EnsembleRecs(RecsInterface):
             recs = merged_filtered
             print("Done!")
 
-        col_to_drop = [col for col in recs.columns if "rank" in col]
-        print(col_to_drop)
-        recs = recs.drop(col_to_drop, axis=1)
-        print(recs.columns)
+        # col_to_drop = [col for col in recs.columns if "rank" in col]
+        # print(col_to_drop)
+        # recs = recs.drop(col_to_drop, axis=1)
+        # print(recs.columns)
+        recs = recs.drop("rank", axis=1)
 
         # save the retrieved recommendations
-        save_name = f"{dataset_name}.feather"
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)
 
     def eval_recommendations(self, dataset_name: str, write_log: bool = True) -> None:
@@ -269,7 +274,7 @@ if __name__ == "__main__":
     dataset = StratifiedDataset()
 
     rec_ens_1 = ItemKNNRecs(
-        kind=KIND, cutoff=100, time_weight=True, remove_seen=False, dataset=dataset
+        kind=KIND, cutoff=100, time_weight=True, remove_seen=True, dataset=dataset
     )
     # rec_ens_1 = ItemKNNRecs(
     #     kind=KIND, cutoff=100, time_weight=False, remove_seen=False, dataset=dataset
@@ -277,12 +282,21 @@ if __name__ == "__main__":
     # rec_ens_2 = EaseRecs(
     #     kind=KIND, cutoff=100, dataset=dataset, l2=0.1, remove_seen=True, time_weight=False
     # )
-    rec_ens_2 = PopularityRecs(kind=KIND, cutoff=20, dataset=dataset)
-
-    # rec_ens_3 = BoughtItemsRecs(kind=KIND, dataset=dataset)
+    rec_ens_2 = PopularityRecs(kind=KIND, cutoff=30, dataset=dataset)
+    rec_ens_3 = BoughtItemsRecs(kind=KIND, dataset=dataset)
+    rec_ens_4 = EaseRecs(
+        kind=KIND,
+        cutoff=100,
+        dataset=dataset,
+        l2=0.01,
+        remove_seen=True,
+        time_weight=True,
+    )
 
     ensemble = EnsembleRecs(
-        models_list=[rec_ens_1, rec_ens_2], kind=KIND, dataset=dataset
+        models_list=[rec_ens_1, rec_ens_2, rec_ens_3, rec_ens_4],
+        kind=KIND,
+        dataset=dataset,
     )
-    ensemble.save_recommendations(dataset_name="dataset_v10")
+    ensemble.save_recommendations(dataset_name="dataset_v11")
     # ensemble.eval_recommendations(dataset_name="dataset_v10")
