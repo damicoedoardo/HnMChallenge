@@ -217,7 +217,7 @@ class EnsembleRecs(RecsInterface):
 
         # load groundtruth and holdout data
         holdout_groundtruth = self.dataset.get_holdout_groundtruth()
-        holdout = self.dataset.get_last_month_holdout()
+        holdout = self.dataset.get_last_day_holdout()
 
         # merge recs and item groundtruth
         merged = pd.merge(
@@ -282,21 +282,14 @@ if __name__ == "__main__":
     # rec_ens_2 = EaseRecs(
     #     kind=KIND, cutoff=100, dataset=dataset, l2=0.1, remove_seen=True, time_weight=False
     # )
-    rec_ens_2 = PopularityRecs(kind=KIND, cutoff=30, dataset=dataset)
-    rec_ens_3 = BoughtItemsRecs(kind=KIND, dataset=dataset)
-    rec_ens_4 = EaseRecs(
-        kind=KIND,
-        cutoff=100,
-        dataset=dataset,
-        l2=0.01,
-        remove_seen=True,
-        time_weight=True,
-    )
+    # rec_ens_2 = PopularityRecs(kind=KIND, cutoff=20, dataset=dataset)
+
+    rec_ens_2 = BoughtItemsRecs(kind=KIND, dataset=dataset)
 
     ensemble = EnsembleRecs(
-        models_list=[rec_ens_1, rec_ens_2, rec_ens_3, rec_ens_4],
+        models_list=[rec_ens_1, rec_ens_2],
         kind=KIND,
         dataset=dataset,
     )
-    ensemble.save_recommendations(dataset_name="dataset_v11")
-    # ensemble.eval_recommendations(dataset_name="dataset_v10")
+    ensemble.save_recommendations(dataset_name="dataset_v13")
+    # ensemble.eval_recommendations(dataset_name="dataset_v13")

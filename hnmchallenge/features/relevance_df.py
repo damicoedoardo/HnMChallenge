@@ -26,7 +26,7 @@ if __name__ == "__main__":
     recs = pd.read_feather(dr.get_preprocessed_data_path() / RECS_NAME)
 
     # retrieve the holdout
-    holdout = dataset.get_last_month_holdout()
+    holdout = dataset.get_last_day_holdout()
     # retrieve items per user in holdout
     item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(list)
     item_per_user_df = item_per_user.to_frame()

@@ -27,7 +27,7 @@ class ItemKNNRecs(RecsInterface):
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_month_holdin()
+            self.dataset.get_last_day_holdin()
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )
@@ -66,13 +66,13 @@ class ItemKNNRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    KIND = "train"
+    KIND = "full"
     TW = True
     REMOVE_SEEN = False
     dataset = StratifiedDataset()
 
     rec_ens = ItemKNNRecs(
-        kind=KIND, cutoff=113, time_weight=TW, remove_seen=REMOVE_SEEN, dataset=dataset
+        kind=KIND, cutoff=100, time_weight=TW, remove_seen=REMOVE_SEEN, dataset=dataset
     )
-    rec_ens.eval_recommendations()
-    # rec_ens.save_recommendations()
+    # rec_ens.eval_recommendations()
+    rec_ens.save_recommendations()
