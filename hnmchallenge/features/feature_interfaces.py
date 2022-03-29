@@ -84,7 +84,7 @@ class UserItemFeature(Feature):
     def _get_keys_df(self) -> pd.DataFrame:
         data_df = None
         if self.kind == "train":
-            data_df = self.dataset.get_last_month_holdin()
+            data_df = self.dataset.get_last_day_holdin()
         else:
             data_df = self.dr.get_filtered_full_data()
 

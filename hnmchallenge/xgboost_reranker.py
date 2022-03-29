@@ -28,7 +28,7 @@ TEST_PERC = 0.1
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
 VERSION = 0
-DATASET = f"dataset_v9_{VERSION}.feather"
+DATASET = f"train_cutf_100_ItemKNN_tw_True_rs_False_{VERSION}.feather"
 MODEL_NAME = f"xgb_{DATASET}.json"
 
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         eval_qid=[qid_val],
         eval_metric=["map@12"],
         verbose=True,
-        early_stopping_rounds=30,
+        early_stopping_rounds=10,
     )
 
     model_name = model_save_path / MODEL_NAME

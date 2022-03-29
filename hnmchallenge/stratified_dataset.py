@@ -48,6 +48,22 @@ class StratifiedDataset:
         )
         return holdout_df
 
+    def get_last_day_holdin(self) -> pd.DataFrame:
+        dr = DataReader()
+        p = dr.get_preprocessed_data_path()
+        holdin_df = pd.read_feather(
+            p / f"last_day_holdin.feather",
+        )
+        return holdin_df
+
+    def get_last_day_holdout(self) -> pd.DataFrame:
+        dr = DataReader()
+        p = dr.get_preprocessed_data_path()
+        holdout_df = pd.read_feather(
+            p / f"last_day_holdout.feather",
+        )
+        return holdout_df
+
     def save_holdout_groundtruth(self) -> None:
         """Save the dataframe containing the groundtruth for every user in the holdout set (last week)"""
         dr = DataReader()
@@ -55,7 +71,7 @@ class StratifiedDataset:
 
         # Add relevance column on dataframe
         # retrieve the holdout
-        holdout = self.get_last_month_holdout()
+        holdout = self.get_last_day_holdout()
         # retrieve items per user in holdout
         item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(list)
         item_per_user_df = item_per_user.to_frame()
