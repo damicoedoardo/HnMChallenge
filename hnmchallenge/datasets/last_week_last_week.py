@@ -5,18 +5,18 @@ from hnmchallenge.constant import *
 from hnmchallenge.dataset_interface import DatasetInterface
 
 
-class LMLWDataset(DatasetInterface):
+class LWLWDataset(DatasetInterface):
 
-    DATASET_NAME = "LMLW_dataset"
-    _ARTICLES_NUM = 26_252
-    _CUSTOMERS_NUM = 1_167_050
+    DATASET_NAME = "LWLW_dataset"
+    _ARTICLES_NUM = 18_684
+    _CUSTOMERS_NUM = 1_105_000
 
     def __init__(self) -> None:
         super().__init__()
 
     def create_dataset_description(self) -> str:
         description = """ 
-        Items: t_dat > 01/09/2020 \n
+        Items: t_dat > 15/09/2020 \n
         holdout: last_week
         """
         return description
@@ -25,8 +25,8 @@ class LMLWDataset(DatasetInterface):
         tr = self.dr.get_transactions()
 
         # filter on the items present in the last month
-        item_last_month = tr[tr["t_dat"] >= "2020-09-01"][DEFAULT_ITEM_COL].unique()
-        tr = tr[tr[DEFAULT_ITEM_COL].isin(item_last_month)]
+        item_last_week = tr[tr["t_dat"] >= "2020-09-15"][DEFAULT_ITEM_COL].unique()
+        tr = tr[tr[DEFAULT_ITEM_COL].isin(item_last_week)]
 
         print(f"Unique users: {tr[DEFAULT_USER_COL].nunique()}")
         print(f"Unique items: {tr[DEFAULT_ITEM_COL].nunique()}")
@@ -113,10 +113,7 @@ class LMLWDataset(DatasetInterface):
         # save mapping dictionaries
         dict_dp = self._MAPPING_DICT_PATH
 
-        assert (
-            len(new_raw_user_ids_dict.keys()) == 1_371_980
-        ), "Wrong number of users! check dictionaries"
-
+        print(len(new_raw_user_ids_dict.keys()))
         # users
         with open(dict_dp / "raw_new_user_ids_dict.pkl", "wb+") as f:
             pickle.dump(raw_new_user_ids_dict, f)
@@ -143,6 +140,6 @@ class LMLWDataset(DatasetInterface):
 
 
 if __name__ == "__main__":
-    dataset = LMLWDataset()
+    dataset = LWLWDataset()
     dataset.remap_user_item_ids()
     dataset.create_holdin_holdout()

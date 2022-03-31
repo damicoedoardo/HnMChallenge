@@ -9,7 +9,6 @@ import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
-from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
 
@@ -20,18 +19,14 @@ class RecsInterface(ABC):
     RECS_NAME = None
     _SAVE_PATH = "recommendations_dfs"
 
-    def __init__(
-        self, kind: str, dataset: StratifiedDataset, cutoff: Union[int, list]
-    ) -> None:
+    def __init__(self, kind: str, dataset, cutoff: Union[int, list]) -> None:
         assert kind in ["train", "full"], "kind should be train or full"
         self.kind = kind
         self.dataset = dataset
         self.dr = DataReader()
         self.cutoff = cutoff
         # creating recs directory
-        self.save_path = (
-            self.dr.get_preprocessed_data_path() / self._SAVE_PATH / self.kind
-        )
+        self.save_path = self.dataset._DATASET_PATH / self._SAVE_PATH / self.kind
         self.save_path.mkdir(parents=True, exist_ok=True)
 
     def _check_recommendations_integrity(self, recs: pd.DataFrame) -> None:
@@ -53,6 +48,42 @@ class RecsInterface(ABC):
         """Generate recommendation with a given cutoff"""
         pass
 
+    def _add_pop_missing_users(self, recs_df, num_items=100) -> pd.DataFrame:
+        assert (
+            self.kind == "full"
+        ), "this function has be called only for the full recommendations!"
+        u_md, _ = self.dataset.get_new_raw_mapping_dict()
+        all_users = set(np.array(list(u_md.keys())))
+        recs_users = set(recs_df[DEFAULT_USER_COL].unique())
+        missing_users = all_users.difference(recs_users)
+        missing_users_df = pd.DataFrame(list(missing_users), columns=[DEFAULT_USER_COL])
+
+        # compute popularity
+        fd = self.dataset.get_full_data()
+        count_mb = fd.groupby(DEFAULT_ITEM_COL).count()
+        feature = count_mb.reset_index()[[DEFAULT_ITEM_COL, "t_dat"]].rename(
+            columns={"t_dat": "popularity"}
+        )
+        feature["popularity_score"] = (
+            feature["popularity"] - feature["popularity"].min()
+        ) / (feature["popularity"].max() - feature["popularity"].min())
+        feature["rank"] = (
+            feature["popularity_score"].rank(ascending=False, method="min").astype(int)
+        )
+        missing_users_df["temp"] = 1
+        feature = feature[feature["rank"] <= num_items]
+        feature = feature.sort_values("rank")
+        feature["temp"] = 1
+        final_df = pd.merge(missing_users_df, feature, on="temp")
+        missing_recs = final_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]]
+
+        col_name = [c for c in recs_df.columns if "recs" in c][0]
+        missing_recs = missing_recs.rename({DEFAULT_ITEM_COL: col_name}, axis=1)
+
+        # concat with the other recommendations
+        final_recs = pd.concat([recs_df, missing_recs], axis=0)
+        return final_recs
+
     def save_recommendations(self) -> None:
         """Retrieve recommendations and save them
         is self.kind == "train" the `relevance` column is added
@@ -69,7 +100,20 @@ class RecsInterface(ABC):
         if self.kind == "train":
             print("Creating Relevance column...")
             # loading holdout groundtruth
-            holdout_groundtruth = self.dataset.get_holdout_groundtruth()
+
+            # retrieve the holdout
+            holdout = self.dataset.get_holdout()
+            # retrieve items per user in holdout
+            item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(
+                list
+            )
+            item_per_user_df = item_per_user.to_frame()
+            # items groundtruth
+            holdout_groundtruth = (
+                item_per_user_df.reset_index()
+                .explode(DEFAULT_ITEM_COL)
+                .drop_duplicates()
+            )
 
             # merge recs and item groundtruth
             merged = pd.merge(
@@ -102,18 +146,21 @@ class RecsInterface(ABC):
             recs = merged_filtered
             print("Done!")
 
+        if self.kind == "full":
+            print("Adding pop predictions on missing users")
+            recs = self._add_pop_missing_users(recs)
+
         # save the retrieved recommendations
         save_name = f"cutf_{self.cutoff}_{self.RECS_NAME}.feather"
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)
 
     @staticmethod
-    def load_recommendations(name: str, kind: str) -> pd.DataFrame:
+    def load_recommendations(dataset, name: str, kind: str) -> pd.DataFrame:
         """Load recommendations"""
         assert kind in ["train", "full"], "`kind` should be in train or full"
         print(set_color(f"loading recs model:\n {name}", color="cyan"))
-        _SAVE_PATH = "recommendations_dfs"
-        dr = DataReader()
-        save_path = dr.get_preprocessed_data_path() / _SAVE_PATH / kind
+
+        save_path = dataset._DATASET_PATH / "recommendations_dfs" / kind
         load_name = f"{name}.feather"
         load_path = save_path / load_name
         recs = pd.read_feather(load_path)
@@ -149,14 +196,24 @@ class RecsInterface(ABC):
 
         logging.basicConfig(level=logging.INFO, handlers=handlers, format=log_format)
         logger = logging.getLogger(__name__)
+        logger.info(
+            f"Dataset: {self.dataset.DATASET_NAME},\n description:{print(self.dataset)} \n"
+        )
         logger.info(f"Evaluating: {self.RECS_NAME}, cutoff:{self.cutoff} \n")
 
         # retrieve recs
         recs = self.get_recommendations()
         self._check_recommendations_integrity(recs)
 
-        # load groundtruth and holdout data
-        holdout_groundtruth = self.dataset.get_holdout_groundtruth()
+        # retrieve the holdout
+        holdout = self.dataset.get_holdout()
+        # retrieve items per user in holdout
+        item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(list)
+        item_per_user_df = item_per_user.to_frame()
+        # items groundtruth
+        holdout_groundtruth = (
+            item_per_user_df.reset_index().explode(DEFAULT_ITEM_COL).drop_duplicates()
+        )
 
         # merge recs and item groundtruth
         merged = pd.merge(

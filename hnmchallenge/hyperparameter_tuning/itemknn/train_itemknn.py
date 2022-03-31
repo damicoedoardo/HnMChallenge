@@ -1,7 +1,7 @@
 import argparse
 
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
-from hnmchallenge.stratified_dataset import StratifiedDataset
+
 
 if __name__ == "__main__":
     # initialise the dataset

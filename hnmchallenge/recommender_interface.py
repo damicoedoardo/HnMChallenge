@@ -16,7 +16,6 @@ from tqdm import tqdm
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.dataset import Dataset
 from hnmchallenge.utils.decorator import timing
 from hnmchallenge.utils.logger import set_color
 from hnmchallenge.utils.sparse_matrix import get_top_k, interactions_to_sparse_matrix
@@ -29,7 +28,7 @@ class AbstractRecommender(ABC):
 
     name = "Abstract Recommender"
 
-    def __init__(self, dataset: Dataset):
+    def __init__(self, dataset):
         # self.train_data = dataset.get_train_df()
         self.dataset = dataset
         # to be set

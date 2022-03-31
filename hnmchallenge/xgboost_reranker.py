@@ -9,36 +9,32 @@ from xgboost import plot_importance
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.dataset import Dataset
+from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
+from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
-from hnmchallenge.filtered_dataset import FilterdDataset
-from hnmchallenge.models.ease.ease import EASE
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
-from hnmchallenge.models.sgmc.sgmc import SGMC
-from hnmchallenge.models.top_pop import TopPop
-from hnmchallenge.stratified_dataset import StratifiedDataset
 
 TRAIN_PERC = 0.8
 VAL_PERC = 0.1
 TEST_PERC = 0.1
 
-VERSION = 0
-DATASET = f"dataset_v00_{VERSION}.feather"
-MODEL_NAME = f"xgb_{DATASET}.json"
-
 # VERSION = 0
-# DATASET = f"cutf_100_ItemKNN_tw_True_rs_False_{VERSION}.feather"
+# DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
+
+VERSION = 0
+DATASET = f"cutf_100_ItemKNN_tw_True_rs_False_{VERSION}.feather"
+MODEL_NAME = f"xgb_{DATASET}.json"
 
 
 if __name__ == "__main__":
-    dataset = StratifiedDataset()
+    dataset = LMLWDataset()
     dr = DataReader()
-    model_save_path = dr.get_preprocessed_data_path() / "xgb_models"
+    model_save_path = dataset._DATASET_PATH / "xgb_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
 
-    base_load_path = dr.get_preprocessed_data_path() / "dataset_dfs/train"
+    base_load_path = dataset._DATASET_PATH / "dataset_dfs/train"
     dataset_path = base_load_path / DATASET
     features_df = pd.read_feather(dataset_path)
 
@@ -84,12 +80,12 @@ if __name__ == "__main__":
         booster="gbtree",
         objective="rank:map",
         random_state=RANDOM_SEED,
-        learning_rate=0.05,
-        colsample_bytree=0.6,
+        learning_rate=0.2,
+        colsample_bytree=0.4,
         reg_lambda=0.05,
         reg_alpha=0.05,
         eta=0.1,
-        max_depth=7,
+        max_depth=5,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"

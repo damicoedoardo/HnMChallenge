@@ -3,10 +3,10 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.dataset import Dataset
+from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
+from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
-from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
 
@@ -30,31 +30,27 @@ class ItemKNNRecs(RecsInterface):
         data_df = (
             self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_full_data()
+            else self.dataset.get_full_data()
         )
         # data that you use to compute similarity
+
         # Using the full data available perform better
         data_sim = data_df[data_df["t_dat"] > "2020-08-31"]
 
         # instantiate the recommender algorithm
         recom = ItemKNN(self.dataset, time_weight=self.time_weight, topk=1000)
 
-        ######
-        # this has to be changed only for debugging purposes
-        # ppp = data_df[data_df[DEFAULT_USER_COL].isin(np.arange(100))]
-
         print(set_color("Computing similarity...", "green"))
         recom.compute_similarity_matrix(data_df)
         recs = recom.recommend_multicore(
             interactions=data_df,
-            batch_size=10_000,
-            num_cpus=24,
+            batch_size=40_000,
+            num_cpus=72,
             remove_seen=self.remove_seen,
             white_list_mb_item=None,
             cutoff=self.cutoff,
         )
 
-        # recs_list = recs.groupby(DEFAULT_USER_COL)["article_id"].apply(list).to_frame()
         recs = recs.rename(
             {
                 "article_id": f"{self.RECS_NAME}_recs",
@@ -67,10 +63,9 @@ class ItemKNNRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    # KIND = "full"
     TW = True
     REMOVE_SEEN = False
-    dataset = Dataset()
+    dataset = LMLWDataset()
 
     for kind in ["train", "full"]:
         rec_ens = ItemKNNRecs(
@@ -80,5 +75,5 @@ if __name__ == "__main__":
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
         )
-        rec_ens.eval_recommendations()
-        # rec_ens.save_recommendations()
+        # rec_ens.eval_recommendations()
+        rec_ens.save_recommendations()

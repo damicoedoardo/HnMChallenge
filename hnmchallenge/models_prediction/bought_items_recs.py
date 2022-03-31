@@ -6,19 +6,18 @@ import pandas as pd
 import seaborn as sns
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.dataset import Dataset
+
 from hnmchallenge.evaluation.python_evaluation import map_at_k
-from hnmchallenge.filtered_dataset import FilterdDataset
+
 from hnmchallenge.models.top_pop import TopPop
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
-from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
 class BoughtItemsRecs(RecsInterface):
     def __init__(
         self,
         kind: str,
-        dataset: StratifiedDataset,
+        dataset,
         cutoff: int = 0,
     ) -> None:
         super().__init__(kind, dataset, cutoff)

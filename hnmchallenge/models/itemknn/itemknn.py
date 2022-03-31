@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import scipy.sparse as sps
-from hnmchallenge.dataset import Dataset
 from hnmchallenge.recommender_interface import ItemSimilarityRecommender
 from hnmchallenge.utils.sparse_matrix import (
     interactions_to_sparse_matrix,
@@ -14,7 +13,7 @@ from sparsesvd import sparsesvd
 class ItemKNN(ItemSimilarityRecommender):
     name = "ItemKNN"
 
-    def __init__(self, dataset: Dataset, topk: int, time_weight: bool = False):
+    def __init__(self, dataset, topk: int, time_weight: bool = False):
         super().__init__(dataset=dataset, time_weight=time_weight)
         self.topk = topk
 

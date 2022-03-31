@@ -1,10 +1,9 @@
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
-from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
-def evaluate_recommender(recs: pd.DataFrame, dataset: StratifiedDataset):
+def evaluate_recommender(recs: pd.DataFrame, dataset):
     """Evaluate the recommendations over the groundtruth"""
 
     # load groundtruth and holdout data

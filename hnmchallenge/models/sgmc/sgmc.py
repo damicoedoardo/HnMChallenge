@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import scipy.sparse as sps
-from hnmchallenge.dataset import Dataset
+
 from hnmchallenge.recommender_interface import ItemSimilarityRecommender
 from hnmchallenge.utils.sparse_matrix import interactions_to_sparse_matrix
 from sparsesvd import sparsesvd

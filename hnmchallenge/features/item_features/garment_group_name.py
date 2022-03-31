@@ -3,9 +3,8 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.dataset import Dataset
+
 from hnmchallenge.features.feature_interfaces import ItemFeature
-from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
 class GarmentGroupName(ItemFeature):
@@ -17,15 +16,9 @@ class GarmentGroupName(ItemFeature):
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
-        item_df = self.dr.get_full_articles()
+        item_df = self.dataset.get_articles_df()
         pgn = pd.get_dummies(item_df["garment_group_name"])
         item = item_df[DEFAULT_ITEM_COL].to_frame()
         feature = item.join(pgn)
         print(feature)
         return feature
-
-
-if __name__ == "__main__":
-    dataset = Dataset()
-    feature = GarmentGroupName(dataset, kind="full")
-    feature.save_feature()

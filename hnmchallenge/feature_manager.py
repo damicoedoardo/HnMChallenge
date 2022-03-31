@@ -1,5 +1,4 @@
 import logging
-from ensurepip import version
 from functools import reduce
 from pathlib import Path
 
@@ -7,11 +6,12 @@ import pandas as pd
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
+from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.features.item_features import *
 from hnmchallenge.features.user_features import *
 from hnmchallenge.features.user_item_features import *
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
-from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class FeatureManager:
 
     def __init__(
         self,
-        dataset: StratifiedDataset,
+        dataset,
         kind: str,
         user_features: list[str] = None,
         item_features: list[str] = None,
@@ -104,7 +104,7 @@ class FeatureManager:
 
     def create_features_df(self, name: str, dataset_version: int) -> None:
         # load base df
-        base_df = RecsInterface.load_recommendations(name, self.kind)
+        base_df = RecsInterface.load_recommendations(self.dataset, name, self.kind)
 
         # rename the recs column accordingly
         # if it is an `ensemble model` we have "recs" column
@@ -229,7 +229,7 @@ class FeatureManager:
                 logger.info(f"{u_i_f.FEATURE_NAME}")
 
         # save features df
-        dir_path = dr.get_preprocessed_data_path() / Path(f"dataset_dfs/{self.kind}")
+        dir_path = self.dataset._DATASET_PATH / Path(f"dataset_dfs/{self.kind}")
         dir_path.mkdir(parents=True, exist_ok=True)
         save_name = f"{name}_{dataset_version}.feather"
         base_df.reset_index(drop=True).to_feather(dir_path / save_name)
@@ -238,11 +238,11 @@ class FeatureManager:
 
 if __name__ == "__main__":
     # KIND = "train"
-    DATASET_NAME = "dataset_v00"
+    DATASET_NAME = "cutf_100_ItemKNN_tw_True_rs_False"
     VERSION = 0
 
     for kind in ["train", "full"]:
         dr = DataReader()
-        dataset = StratifiedDataset()
+        dataset = LMLWDataset()
         fm = FeatureManager(dataset, kind)
         fm.create_features_df(DATASET_NAME, VERSION)

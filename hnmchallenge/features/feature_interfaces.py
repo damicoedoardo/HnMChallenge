@@ -5,7 +5,6 @@ from abc import ABC, abstractmethod
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.decorator import timing
 from hnmchallenge.utils.logger import set_color
 
@@ -22,9 +21,7 @@ class Feature(ABC):
         self.dr = DataReader()
 
         # creating features directory
-        self.save_path = (
-            self.dr.get_preprocessed_data_path() / self._SAVE_PATH / self.kind
-        )
+        self.save_path = self.dataset._DATASET_PATH / self._SAVE_PATH / self.kind
         self.save_path.mkdir(parents=True, exist_ok=True)
 
     @abstractmethod
@@ -86,7 +83,7 @@ class UserItemFeature(Feature):
         if self.kind == "train":
             data_df = self.dataset.get_holdin()
         else:
-            data_df = self.dr.get_full_data()
+            data_df = self.dataset.get_full_data()
 
         data_df = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].drop_duplicates()
         return data_df
@@ -109,7 +106,7 @@ class ItemFeature(Feature):
         assert self.FEATURE_NAME is not None, "feature name has not been set!"
 
     def _get_keys_df(self) -> pd.DataFrame:
-        item_df = self.dr.get_full_articles()[DEFAULT_ITEM_COL].to_frame()
+        item_df = self.dataset.get_articles_df()[DEFAULT_ITEM_COL].to_frame()
         return item_df
 
 
@@ -130,5 +127,5 @@ class UserFeature(Feature):
         assert self.FEATURE_NAME is not None, "feature name has not been set!"
 
     def _get_keys_df(self) -> pd.DataFrame:
-        user_df = self.dr.get_full_customers()[DEFAULT_USER_COL].to_frame()
+        user_df = self.dataset.get_customers_df()[DEFAULT_USER_COL].to_frame()
         return user_df

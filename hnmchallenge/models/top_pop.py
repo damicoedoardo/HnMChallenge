@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.dataset import Dataset
+
 from hnmchallenge.recommender_interface import AbstractRecommender
 
 

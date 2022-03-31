@@ -5,7 +5,7 @@ import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.models.ease.ease import EASE
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
-from hnmchallenge.stratified_dataset import StratifiedDataset
+
 from hnmchallenge.utils.logger import set_color
 
 
@@ -14,7 +14,7 @@ class EaseRecs(RecsInterface):
         self,
         l2: float,
         kind: str,
-        dataset: StratifiedDataset,
+        dataset,
         time_weight: bool = True,
         remove_seen: bool = False,
         cutoff: int = 100,

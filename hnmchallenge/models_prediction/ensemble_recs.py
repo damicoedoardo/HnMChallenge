@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.models_prediction.bought_items_recs import BoughtItemsRecs
 from hnmchallenge.models_prediction.ease_recs import EaseRecs
@@ -15,7 +16,6 @@ from hnmchallenge.models_prediction.itemknn_recs import ItemKNNRecs
 from hnmchallenge.models_prediction.popularity_recs import PopularityRecs
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.models_prediction.time_pop import TimePop
-from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.utils.logger import set_color
 from matplotlib.pyplot import axis
 
@@ -23,9 +23,7 @@ from matplotlib.pyplot import axis
 class EnsembleRecs(RecsInterface):
     RECS_NAME = None
 
-    def __init__(
-        self, models_list: list, kind: str, dataset: StratifiedDataset
-    ) -> None:
+    def __init__(self, models_list: list, kind: str, dataset) -> None:
         # Check that all the models passed are extending Recs Interface
         assert (
             len(models_list) > 1
@@ -135,8 +133,19 @@ class EnsembleRecs(RecsInterface):
 
         if self.kind == "train":
             print("Creating Relevance column...")
-            # loading holdout groundtruth
-            holdout_groundtruth = self.dataset.get_holdout_groundtruth()
+            # retrieve the holdout
+            holdout = self.dataset.get_holdout()
+            # retrieve items per user in holdout
+            item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(
+                list
+            )
+            item_per_user_df = item_per_user.to_frame()
+            # items groundtruth
+            holdout_groundtruth = (
+                item_per_user_df.reset_index()
+                .explode(DEFAULT_ITEM_COL)
+                .drop_duplicates()
+            )
 
             # merge recs and item groundtruth
             merged = pd.merge(
@@ -168,6 +177,9 @@ class EnsembleRecs(RecsInterface):
             ).reset_index(drop=True)
             recs = merged_filtered
             print("Done!")
+
+        if self.kind == "full":
+            recs = self._add_pop_missing_users(recs)
 
         # col_to_drop = [col for col in recs.columns if "rank" in col]
         # print(col_to_drop)
@@ -271,7 +283,7 @@ class EnsembleRecs(RecsInterface):
 if __name__ == "__main__":
     # KIND = "full"
     for kind in ["train", "full"]:
-        dataset = StratifiedDataset()
+        dataset = LMLWDataset()
 
         rec_ens_1 = ItemKNNRecs(
             kind=kind, cutoff=80, time_weight=True, remove_seen=False, dataset=dataset
