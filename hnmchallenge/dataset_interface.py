@@ -18,10 +18,18 @@ class DatasetInterface(ABC):
     _SUBMISSION_FOLDER = Path(__file__).parent.parent / "submission"
 
     DATASET_NAME = None
-    _DATASET_PATH = None
     _DATASET_DESCRIPTION = None
+
+    _DATASET_PATH = None
     _MAPPING_DICT_PATH = Path(_DATASET_PATH / "mapping_dict")
 
+    _ARTICLE_PATH = None
+    _CUSTOMER_PATH = None
+    _HOLDIN_PATH = None
+    _HOLDOUT_PATH = None
+    _FULL_DATA_PATH = None
+
+    # this should be hardcoded
     _ARTICLES_NUM = None
     _CUSTOMERS_NUM = None
 
@@ -43,6 +51,32 @@ class DatasetInterface(ABC):
     def get_dataset_path(self) -> Path:
         return self._DATASET_PATH
 
+    @abstractmethod
+    def remap_user_item_ids() -> None:
+        """
+        Remap user item ids
+        - store full_data
+        - create and save mapping dict for user and item ids
+        """
+        pass
+
+    @abstractmethod
+    def create_user_item_dfs() -> None:
+        """
+        Create and store the customer and article df
+        - Map user and item ids from the customer and articles dfs
+        - Update the mapping dicts with the missing users and items in the user and item df
+
+        maybe I can do that all together inside remap user item ids...
+        """
+        pass
+
+    @abstractmethod
+    def create_holdin_holdout() -> None:
+        """Create holdin and holdout and save them"""
+        pass
+
+    @abstractmethod
     def create_dataset_description(self) -> str:
         """Create the dataset description"""
         pass
