@@ -1,4 +1,5 @@
 import os
+import pickle
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Tuple
@@ -18,19 +19,33 @@ class DatasetInterface(ABC):
 
     DATASET_NAME = None
     _DATASET_PATH = None
+    _DATASET_DESCRIPTION = None
+    _MAPPING_DICT_PATH = Path(_DATASET_PATH / "mapping_dict")
 
     _ARTICLES_NUM = None
     _CUSTOMERS_NUM = None
 
     def __init__(self) -> None:
+        assert self.DATASET_NAME is not None, "Dataset name has not been set"
+
+        # create and store the dataset description
+        self._DATASET_DESCRIPTION = self.create_dataset_description()
         # create the dataset path
         self._DATASET_PATH = self._DATA_PATH / "datasets" / self.DATASET_NAME
         # create the dataset folder
         self._DATASET_PATH.mkdir(parents=True, exist_ok=True)
         self.dr = DataReader()
 
+    def __str__(self):
+        """Rerturn the description of the dataset"""
+        return self._DATASET_DESCRIPTION
+
     def get_dataset_path(self) -> Path:
         return self._DATASET_PATH
+
+    def create_dataset_description(self) -> str:
+        """Create the dataset description"""
+        pass
 
     @abstractmethod
     def get_holdin(self) -> pd.DataFrame:
@@ -57,15 +72,25 @@ class DatasetInterface(ABC):
         """Return the article df with item feature"""
         pass
 
-    @abstractmethod
-    def get_raw_new_mapping_dict(self) -> Tuple(dict, dict):
+    def get_raw_new_mapping_dict(self) -> Tuple[dict, dict]:
         """Return the RAW -> NEW mapping dict"""
-        pass
+        uids_p = self._MAPPING_DICT_PATH / "raw_new_user_ids_dict.pkl"
+        iids_p = self._MAPPING_DICT_PATH / "raw_new_item_ids_dict.pkl"
+        with open(uids_p, "rb") as f:
+            uids_dict = pickle.load(f)
+        with open(iids_p, "rb") as f:
+            iids_dict = pickle.load(f)
+        return uids_dict, iids_dict
 
-    @abstractmethod
-    def get_new_raw_mapping_dict(self) -> Tuple(dict, dict):
+    def get_new_raw_mapping_dict(self) -> Tuple[dict, dict]:
         """Return the NEW -> RAW mapping dict"""
-        pass
+        uids_p = self._MAPPING_DICT_PATH / "filtered_new_raw_user_ids_dict.pkl"
+        iids_p = self._MAPPING_DICT_PATH / "filtered_new_raw_item_ids_dict.pkl"
+        with open(uids_p, "rb") as f:
+            uids_dict = pickle.load(f)
+        with open(iids_p, "rb") as f:
+            iids_dict = pickle.load(f)
+        return uids_dict, iids_dict
 
     @abstractmethod
     def create_submission(self, recs_df: pd.DataFrame, sub_name: str) -> None:
@@ -73,4 +98,5 @@ class DatasetInterface(ABC):
         Create submission given the recommendation for the users
         Check which users are missing and load for those the popularity recommendations
         """
+        # TODO can be a non abstract method done directly on the dataset interface
         pass
