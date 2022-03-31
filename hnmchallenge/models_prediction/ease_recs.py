@@ -70,7 +70,7 @@ class EaseRecs(RecsInterface):
 if __name__ == "__main__":
     KIND = "train"
     TW = True
-    REMOVE_SEEN = False
+    REMOVE_SEEN = True
     L2 = 1e-3
     dataset = StratifiedDataset()
 

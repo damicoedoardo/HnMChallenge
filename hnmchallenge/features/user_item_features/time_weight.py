@@ -4,6 +4,7 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
+from hnmchallenge.dataset import Dataset
 from hnmchallenge.features.feature_interfaces import UserItemFeature
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
@@ -11,14 +12,14 @@ from hnmchallenge.stratified_dataset import StratifiedDataset
 class TimeWeight(UserItemFeature):
     FEATURE_NAME = "tdiff"
 
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+    def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_day_holdin()
+            self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_filtered_full_data()
+            else self.dr.get_full_data()
         )
         data_df = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat", "price"]]
         data_df["tdiff"] = data_df["t_dat"].apply(
@@ -35,7 +36,7 @@ class TimeWeight(UserItemFeature):
 
 
 if __name__ == "__main__":
-    dataset = StratifiedDataset()
+    dataset = Dataset()
     for kind in ["train", "full"]:
         feature = TimeWeight(dataset, kind)
         feature.save_feature()

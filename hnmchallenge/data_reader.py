@@ -180,3 +180,14 @@ class DataReader:
         p = self.get_preprocessed_data_path() / "filtered_all_customers.feather"
         customer_df = pd.read_feather(p)
         return customer_df
+
+    # for the full user and item no filtering
+    def get_full_customers(self) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "full_customers.feather"
+        customer_df = pd.read_feather(p)
+        return customer_df
+
+    def get_full_articles(self) -> pd.DataFrame:
+        p = self.get_preprocessed_data_path() / "full_articles.feather"
+        customer_df = pd.read_feather(p)
+        return customer_df

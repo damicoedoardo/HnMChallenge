@@ -3,6 +3,7 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
+from hnmchallenge.dataset import Dataset
 from hnmchallenge.features.feature_interfaces import ItemFeature
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
@@ -10,14 +11,14 @@ from hnmchallenge.stratified_dataset import StratifiedDataset
 class Price(ItemFeature):
     FEATURE_NAME = "price"
 
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+    def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_day_holdin()
+            self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_filtered_full_data()
+            else self.dr.get_full_data()
         )
         data_df = data_df[[DEFAULT_ITEM_COL, "price"]]
         data_df = data_df.drop_duplicates([DEFAULT_ITEM_COL], keep="last").sort_values(
@@ -36,7 +37,7 @@ class Price(ItemFeature):
 
 
 if __name__ == "__main__":
-    dataset = StratifiedDataset()
+    dataset = Dataset()
     for kind in ["train", "full"]:
         feature = Price(dataset, kind)
         feature.save_feature()

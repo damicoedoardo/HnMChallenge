@@ -269,32 +269,32 @@ class EnsembleRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    KIND = "full"
+    # KIND = "full"
+    for kind in ["train", "full"]:
+        dataset = StratifiedDataset()
 
-    dataset = StratifiedDataset()
+        rec_ens_1 = ItemKNNRecs(
+            kind=kind, cutoff=80, time_weight=True, remove_seen=False, dataset=dataset
+        )
+        # rec_ens_1 = ItemKNNRecs(
+        #     kind=KIND, cutoff=100, time_weight=False, remove_seen=False, dataset=dataset
+        # )
+        rec_ens_2 = EaseRecs(
+            kind=kind,
+            cutoff=80,
+            dataset=dataset,
+            l2=1e-3,
+            remove_seen=False,
+            time_weight=True,
+        )
+        # rec_ens_2 = PopularityRecs(kind=KIND, cutoff=50, dataset=dataset)
 
-    rec_ens_1 = ItemKNNRecs(
-        kind=KIND, cutoff=100, time_weight=True, remove_seen=False, dataset=dataset
-    )
-    # rec_ens_1 = ItemKNNRecs(
-    #     kind=KIND, cutoff=100, time_weight=False, remove_seen=False, dataset=dataset
-    # )
-    # rec_ens_2 = EaseRecs(
-    #     kind=KIND,
-    #     cutoff=60,
-    #     dataset=dataset,
-    #     l2=0.01,
-    #     remove_seen=False,
-    #     time_weight=True,
-    # )
-    rec_ens_2 = PopularityRecs(kind=KIND, cutoff=50, dataset=dataset)
+        rec_ens_3 = BoughtItemsRecs(kind=kind, dataset=dataset)
 
-    # rec_ens_3 = BoughtItemsRecs(kind=KIND, dataset=dataset)
-
-    ensemble = EnsembleRecs(
-        models_list=[rec_ens_1, rec_ens_2],
-        kind=KIND,
-        dataset=dataset,
-    )
-    ensemble.save_recommendations(dataset_name="dataset_v16")
-    # ensemble.eval_recommendations(dataset_name="dataset_v13")
+        ensemble = EnsembleRecs(
+            models_list=[rec_ens_1, rec_ens_2, rec_ens_3],
+            kind=kind,
+            dataset=dataset,
+        )
+        ensemble.save_recommendations(dataset_name="dataset_v00")
+        # ensemble.eval_recommendations(dataset_name="dataset_v13")

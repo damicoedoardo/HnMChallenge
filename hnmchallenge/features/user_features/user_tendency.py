@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
+from hnmchallenge.dataset import Dataset
 from hnmchallenge.features.feature_interfaces import UserFeature
 from hnmchallenge.stratified_dataset import StratifiedDataset
 
@@ -11,14 +12,14 @@ from hnmchallenge.stratified_dataset import StratifiedDataset
 class UserTendency(UserFeature):
     FEATURE_NAME = "user_tendency"
 
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+    def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_day_holdin()
+            self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_filtered_full_data()
+            else self.dr.get_full_data()
         )
 
         item_per_user1 = data_df.groupby("customer_id")["article_id"].apply(list)
@@ -44,7 +45,7 @@ class UserTendency(UserFeature):
 
 
 if __name__ == "__main__":
-    dataset = StratifiedDataset()
+    dataset = Dataset()
     for kind in ["full", "train"]:
         feature = UserTendency(dataset, kind)
         feature.save_feature()
