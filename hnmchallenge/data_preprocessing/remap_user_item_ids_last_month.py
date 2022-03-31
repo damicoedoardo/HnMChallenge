@@ -33,9 +33,10 @@ def transaction_to_consecutive_ids() -> None:
         ~target_user["customer_id"].isin(unique_user_ids)
     ].reset_index(drop=True)
     print(f"len user no interactions: {len(zero_int_users_df)}")
-    zero_int_users_df.to_feather(
-        dr.get_preprocessed_data_path() / "filtered_zero_int_users.feather"
-    )
+
+    # zero_int_users_df.to_feather(
+    #     dr.get_preprocessed_data_path() / "filtered_zero_int_users.feather"
+    # )
 
     print(f"Unique users: {len(unique_user_ids)}")
     mapped_ids = np.arange(len(unique_user_ids))
@@ -52,22 +53,22 @@ def transaction_to_consecutive_ids() -> None:
     new_raw_item_ids_dict = {v: k for k, v in raw_new_item_ids_dict.items()}
     filtered_tr["article_id"] = filtered_tr["article_id"].map(raw_new_item_ids_dict.get)
 
-    df_name = "filtered_transactions.feather"
-    # save preprocessed df
-    filtered_tr = filtered_tr.reset_index(drop=True)
-    filtered_tr.to_feather(dr.get_preprocessed_data_path() / df_name)
-    # save mapping dictionaries
-    dict_dp = dr.get_mapping_dict_path()
-    # users
-    with open(dict_dp / "filtered_raw_new_user_ids_dict.pkl", "wb+") as f:
-        pickle.dump(raw_new_user_ids_dict, f)
-    with open(dict_dp / "filtered_new_raw_user_ids_dict.pkl", "wb+") as f:
-        pickle.dump(new_raw_user_ids_dict, f)
-    # items
-    with open(dict_dp / "filtered_raw_new_item_ids_dict.pkl", "wb+") as f:
-        pickle.dump(raw_new_item_ids_dict, f)
-    with open(dict_dp / "filtered_new_raw_item_ids_dict.pkl", "wb+") as f:
-        pickle.dump(new_raw_item_ids_dict, f)
+    # df_name = "filtered_transactions.feather"
+    # # save preprocessed df
+    # filtered_tr = filtered_tr.reset_index(drop=True)
+    # filtered_tr.to_feather(dr.get_preprocessed_data_path() / df_name)
+    # # save mapping dictionaries
+    # dict_dp = dr.get_mapping_dict_path()
+    # # users
+    # with open(dict_dp / "filtered_raw_new_user_ids_dict.pkl", "wb+") as f:
+    #     pickle.dump(raw_new_user_ids_dict, f)
+    # with open(dict_dp / "filtered_new_raw_user_ids_dict.pkl", "wb+") as f:
+    #     pickle.dump(new_raw_user_ids_dict, f)
+    # # items
+    # with open(dict_dp / "filtered_raw_new_item_ids_dict.pkl", "wb+") as f:
+    #     pickle.dump(raw_new_item_ids_dict, f)
+    # with open(dict_dp / "filtered_new_raw_item_ids_dict.pkl", "wb+") as f:
+    #     pickle.dump(new_raw_item_ids_dict, f)
 
 
 if __name__ == "__main__":

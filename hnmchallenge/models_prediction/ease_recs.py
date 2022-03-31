@@ -29,7 +29,7 @@ class EaseRecs(RecsInterface):
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_month_holdin()
+            self.dataset.get_last_day_holdin()
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )
@@ -70,7 +70,7 @@ class EaseRecs(RecsInterface):
 if __name__ == "__main__":
     KIND = "train"
     TW = True
-    REMOVE_SEEN = False
+    REMOVE_SEEN = True
     L2 = 1e-3
     dataset = StratifiedDataset()
 

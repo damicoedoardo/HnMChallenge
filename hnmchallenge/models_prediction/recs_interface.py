@@ -157,7 +157,6 @@ class RecsInterface(ABC):
 
         # load groundtruth and holdout data
         holdout_groundtruth = self.dataset.get_holdout_groundtruth()
-        holdout = self.dataset.get_last_month_holdout()
 
         # merge recs and item groundtruth
         merged = pd.merge(
@@ -203,7 +202,7 @@ class RecsInterface(ABC):
                 axis=1,
             )
         )
-        ground_truth = holdout[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].copy()
+        ground_truth = holdout_groundtruth[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].copy()
         logger.info(
             f"Remaining Users (at least one hit): {merged_filtered[DEFAULT_USER_COL].nunique()}"
         )

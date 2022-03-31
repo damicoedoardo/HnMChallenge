@@ -237,11 +237,12 @@ class FeatureManager:
 
 
 if __name__ == "__main__":
-    KIND = "full"
-    DATASET_NAME = "full_cutf_100_ItemKNN_tw_True_rs_False"
+    # KIND = "train"
+    DATASET_NAME = "dataset_v00"
     VERSION = 0
 
-    dr = DataReader()
-    dataset = StratifiedDataset()
-    fm = FeatureManager(dataset, KIND)
-    fm.create_features_df(DATASET_NAME, VERSION)
+    for kind in ["train", "full"]:
+        dr = DataReader()
+        dataset = StratifiedDataset()
+        fm = FeatureManager(dataset, kind)
+        fm.create_features_df(DATASET_NAME, VERSION)

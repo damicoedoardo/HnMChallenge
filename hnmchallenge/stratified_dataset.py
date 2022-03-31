@@ -93,3 +93,5 @@ class StratifiedDataset:
 if __name__ == "__main__":
     d = StratifiedDataset()
     d.save_holdout_groundtruth()
+    holdout = d.get_holdout_groundtruth()
+    print(holdout[DEFAULT_USER_COL].nunique())

@@ -15,7 +15,7 @@ class Feature(ABC):
     _KINDS = ["train", "full"]
     FEATURE_NAME = None
 
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+    def __init__(self, dataset, kind: str) -> None:
         self.dataset = dataset
         assert kind in self._KINDS, f"kind should be in {self._KINDS}"
         self.kind = kind
@@ -62,7 +62,7 @@ class Feature(ABC):
 
 
 class UserItemFeature(Feature):
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+    def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
 
     def _check_integrity(self, feature: pd.DataFrame) -> None:
@@ -84,16 +84,16 @@ class UserItemFeature(Feature):
     def _get_keys_df(self) -> pd.DataFrame:
         data_df = None
         if self.kind == "train":
-            data_df = self.dataset.get_last_day_holdin()
+            data_df = self.dataset.get_holdin()
         else:
-            data_df = self.dr.get_filtered_full_data()
+            data_df = self.dr.get_full_data()
 
         data_df = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].drop_duplicates()
         return data_df
 
 
 class ItemFeature(Feature):
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+    def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
 
     def _check_integrity(self, feature: pd.DataFrame) -> None:
@@ -109,16 +109,12 @@ class ItemFeature(Feature):
         assert self.FEATURE_NAME is not None, "feature name has not been set!"
 
     def _get_keys_df(self) -> pd.DataFrame:
-        item_df = (
-            self.dr.get_filtered_articles()[DEFAULT_ITEM_COL]
-            .to_frame()
-            .drop_duplicates()
-        )
+        item_df = self.dr.get_full_articles()[DEFAULT_ITEM_COL].to_frame()
         return item_df
 
 
 class UserFeature(Feature):
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+    def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
 
     def _check_integrity(self, feature: pd.DataFrame) -> None:
@@ -134,9 +130,5 @@ class UserFeature(Feature):
         assert self.FEATURE_NAME is not None, "feature name has not been set!"
 
     def _get_keys_df(self) -> pd.DataFrame:
-        user_df = (
-            self.dr.get_filtered_customers()[DEFAULT_USER_COL]
-            .to_frame()
-            .drop_duplicates()
-        )
+        user_df = self.dr.get_full_customers()[DEFAULT_USER_COL].to_frame()
         return user_df

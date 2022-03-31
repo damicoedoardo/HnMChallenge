@@ -23,7 +23,7 @@ class PopularityRecs(RecsInterface):
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_month_holdin()
+            self.dataset.get_last_day_holdin()
             if self.kind == "train"
             else self.dr.get_filtered_full_data()
         )
@@ -53,12 +53,15 @@ class PopularityRecs(RecsInterface):
         feature_k = feature[feature["rank"] <= self.cutoff]
         feature_k["temp"] = 1
 
-        user = data_df
+        # retrieve the user dfs where all the users are
+        user = self.dr.get_filtered_all_customers_ids_df()
+
         user = user.drop_duplicates([DEFAULT_USER_COL])
         user["temp"] = 1
         user = user[[DEFAULT_USER_COL, "temp"]]
 
         final1 = pd.merge(user, feature_k, on="temp")
+
         final1 = final1.drop("temp", axis=1)
         final1 = final1.drop(
             [
@@ -81,13 +84,11 @@ class PopularityRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    KIND = "full"
-    ALPHA = 0.9
-    EPS = 1e-6
-    CUTOFF = 100
 
+    KIND = "train"
     dataset = StratifiedDataset()
 
-    rec = PopularityRecs(kind=KIND, dataset=dataset, cutoff=CUTOFF)
+    rec = PopularityRecs(kind=KIND, dataset=dataset, cutoff=4)
+    rec.get_recommendations()
     # rec.eval_recommendations(write_log=False)
-    rec.save_recommendations()
+    # rec.save_recommendations()

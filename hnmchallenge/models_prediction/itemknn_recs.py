@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.dataset import Dataset
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.stratified_dataset import StratifiedDataset
@@ -13,7 +14,7 @@ class ItemKNNRecs(RecsInterface):
     def __init__(
         self,
         kind: str,
-        dataset: StratifiedDataset,
+        dataset,
         time_weight: bool = True,
         remove_seen: bool = False,
         cutoff: int = 100,
@@ -27,9 +28,9 @@ class ItemKNNRecs(RecsInterface):
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_day_holdin()
+            self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_filtered_full_data()
+            else self.dr.get_full_data()
         )
         # data that you use to compute similarity
         # Using the full data available perform better
@@ -46,8 +47,8 @@ class ItemKNNRecs(RecsInterface):
         recom.compute_similarity_matrix(data_df)
         recs = recom.recommend_multicore(
             interactions=data_df,
-            batch_size=40_000,
-            num_cpus=72,
+            batch_size=10_000,
+            num_cpus=24,
             remove_seen=self.remove_seen,
             white_list_mb_item=None,
             cutoff=self.cutoff,
@@ -66,13 +67,18 @@ class ItemKNNRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    KIND = "full"
+    # KIND = "full"
     TW = True
     REMOVE_SEEN = False
-    dataset = StratifiedDataset()
+    dataset = Dataset()
 
-    rec_ens = ItemKNNRecs(
-        kind=KIND, cutoff=100, time_weight=TW, remove_seen=REMOVE_SEEN, dataset=dataset
-    )
-    # rec_ens.eval_recommendations()
-    rec_ens.save_recommendations()
+    for kind in ["train", "full"]:
+        rec_ens = ItemKNNRecs(
+            kind=kind,
+            cutoff=100,
+            time_weight=TW,
+            remove_seen=REMOVE_SEEN,
+            dataset=dataset,
+        )
+        rec_ens.eval_recommendations()
+        # rec_ens.save_recommendations()
