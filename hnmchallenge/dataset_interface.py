@@ -23,11 +23,11 @@ class DatasetInterface(ABC):
     _DATASET_PATH = None
     _MAPPING_DICT_PATH = Path(_DATASET_PATH / "mapping_dict")
 
-    _ARTICLE_PATH = None
-    _CUSTOMER_PATH = None
-    _HOLDIN_PATH = None
-    _HOLDOUT_PATH = None
-    _FULL_DATA_PATH = None
+    _ARTICLE_PATH = _DATASET_PATH / "articles.feather"
+    _CUSTOMER_PATH = _DATASET_PATH / "customers.feather"
+    _HOLDIN_PATH = _DATASET_PATH / "holdin.feather"
+    _HOLDOUT_PATH = _DATASET_PATH / "holdout.feather"
+    _FULL_DATA_PATH = _DATASET_PATH / "full_data.feather"
 
     # this should be hardcoded
     _ARTICLES_NUM = None
@@ -54,20 +54,11 @@ class DatasetInterface(ABC):
     @abstractmethod
     def remap_user_item_ids() -> None:
         """
-        Remap user item ids
+        Remap user item ids on transaction customer and articles df and creates the mapping dictionary
         - store full_data
         - create and save mapping dict for user and item ids
-        """
-        pass
-
-    @abstractmethod
-    def create_user_item_dfs() -> None:
-        """
-        Create and store the customer and article df
-        - Map user and item ids from the customer and articles dfs
-        - Update the mapping dicts with the missing users and items in the user and item df
-
-        maybe I can do that all together inside remap user item ids...
+        - create customer and articles df
+        - update the user and item dictionaries with the missing users and items
         """
         pass
 
@@ -81,30 +72,30 @@ class DatasetInterface(ABC):
         """Create the dataset description"""
         pass
 
-    @abstractmethod
     def get_holdin(self) -> pd.DataFrame:
         """Return the holdin for the dataset"""
-        pass
+        df = pd.read_feather(self._HOLDIN_PATH)
+        return df
 
-    @abstractmethod
     def get_holdout(self) -> pd.DataFrame:
         """Return the holdout for the dataset"""
-        pass
+        df = pd.read_feather(self._HOLDOUT_PATH)
+        return df
 
-    @abstractmethod
     def get_full_data(self) -> pd.DataFrame:
         """Return the full dataset"""
-        pass
+        df = pd.read_feather(self._FULL_DATA_PATH)
+        return df
 
-    @abstractmethod
     def get_customers_df(self) -> pd.DataFrame:
         """Return the customer df with user feature"""
-        pass
+        df = pd.read_feather(self._CUSTOMER_PATH)
+        return df
 
-    @abstractmethod
     def get_articles_df(self) -> pd.DataFrame:
         """Return the article df with item feature"""
-        pass
+        df = pd.read_feather(self._ARTICLE_PATH)
+        return df
 
     def get_raw_new_mapping_dict(self) -> Tuple[dict, dict]:
         """Return the RAW -> NEW mapping dict"""
@@ -130,7 +121,8 @@ class DatasetInterface(ABC):
     def create_submission(self, recs_df: pd.DataFrame, sub_name: str) -> None:
         """
         Create submission given the recommendation for the users
-        Check which users are missing and load for those the popularity recommendations
+        Check which users are missing compute for those the popularity recommendations
+        and merge the two recommendations df
         """
         # TODO can be a non abstract method done directly on the dataset interface
         pass
