@@ -1,12 +1,10 @@
 from unicodedata import name
 
-import numpy as np
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.dataset import Dataset
+
 from hnmchallenge.features.feature_interfaces import UserFeature
-from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
 class UserAvgBuyDay(UserFeature):
@@ -40,10 +38,3 @@ class UserAvgBuyDay(UserFeature):
         feature = feature.rename({"date_diff": self.FEATURE_NAME}, axis=1)
         print(feature)
         return feature
-
-
-if __name__ == "__main__":
-    dataset = Dataset()
-    for kind in ["full", "train"]:
-        feature = UserAvgBuyDay(dataset, kind)
-        feature.save_feature()
