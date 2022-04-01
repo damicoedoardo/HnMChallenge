@@ -9,15 +9,12 @@ from xgboost import plot_importance
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.dataset import Dataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
-from hnmchallenge.filtered_dataset import FilterdDataset
 from hnmchallenge.models.ease.ease import EASE
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 from hnmchallenge.models.sgmc.sgmc import SGMC
 from hnmchallenge.models.top_pop import TopPop
-from hnmchallenge.stratified_dataset import StratifiedDataset
 from hnmchallenge.submission_handler import SubmissionHandler
 
 MODEL_NAME = "xgb_v4.json"

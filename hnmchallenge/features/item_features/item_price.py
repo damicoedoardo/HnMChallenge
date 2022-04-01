@@ -3,9 +3,8 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.dataset import Dataset
+
 from hnmchallenge.features.feature_interfaces import ItemFeature
-from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
 class Price(ItemFeature):
@@ -18,7 +17,7 @@ class Price(ItemFeature):
         data_df = (
             self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_full_data()
+            else self.dataset.get_full_data()
         )
         data_df = data_df[[DEFAULT_ITEM_COL, "price"]]
         data_df = data_df.drop_duplicates([DEFAULT_ITEM_COL], keep="last").sort_values(
@@ -34,10 +33,3 @@ class Price(ItemFeature):
 
         print(feature)
         return feature
-
-
-if __name__ == "__main__":
-    dataset = Dataset()
-    for kind in ["train", "full"]:
-        feature = Price(dataset, kind)
-        feature.save_feature()

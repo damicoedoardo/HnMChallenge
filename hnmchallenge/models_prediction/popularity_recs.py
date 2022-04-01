@@ -5,7 +5,7 @@ import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
-from hnmchallenge.stratified_dataset import StratifiedDataset
+
 from hnmchallenge.utils.logger import set_color
 
 
@@ -13,7 +13,7 @@ class PopularityRecs(RecsInterface):
     def __init__(
         self,
         kind: str,
-        dataset: StratifiedDataset,
+        dataset,
         cutoff: int = 100,
     ) -> None:
         super().__init__(kind, dataset, cutoff)

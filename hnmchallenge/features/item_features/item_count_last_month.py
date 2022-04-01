@@ -3,9 +3,7 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.dataset import Dataset
 from hnmchallenge.features.feature_interfaces import ItemFeature
-from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
 class ItemCountLastMonth(ItemFeature):
@@ -18,9 +16,9 @@ class ItemCountLastMonth(ItemFeature):
         data_df = (
             self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_full_data()
+            else self.dataset.get_full_data()
         )
-        data_df = data_df[data_df["t_dat"] >= "2020-09-1"]
+        data_df = data_df[data_df["t_dat"] >= "2020-09-01"]
         duplicated_rows = data_df[
             data_df.duplicated(subset=[DEFAULT_USER_COL, DEFAULT_ITEM_COL])
         ]
@@ -32,10 +30,3 @@ class ItemCountLastMonth(ItemFeature):
         feature = pd.merge(item_df, feature, on=DEFAULT_ITEM_COL, how="left")
         print(feature)
         return feature
-
-
-if __name__ == "__main__":
-    dataset = Dataset()
-    for kind in ["full", "train"]:
-        feature = ItemCountLastMonth(dataset, kind)
-        feature.save_feature()

@@ -4,20 +4,19 @@ import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
 from hnmchallenge.features.feature_interfaces import UserItemFeature
-from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
 class TimesItemBought(UserItemFeature):
     FEATURE_NAME = "times_item_bought"
 
-    def __init__(self, dataset: StratifiedDataset, kind: str) -> None:
+    def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
 
     def _create_feature(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_day_holdin()
+            self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_filtered_full_data()
+            else self.dataset.get_full_data()
         )
         feature = (
             data_df.groupby([DEFAULT_USER_COL, DEFAULT_ITEM_COL])["price"]
@@ -31,10 +30,3 @@ class TimesItemBought(UserItemFeature):
         feature = feature.rename({"number_bought": self.FEATURE_NAME}, axis=1)
         print(feature)
         return feature
-
-
-if __name__ == "__main__":
-    dataset = StratifiedDataset()
-    for kind in ["train", "full"]:
-        feature = TimesItemBought(dataset, kind)
-        feature.save_feature()

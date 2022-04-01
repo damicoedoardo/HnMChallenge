@@ -4,13 +4,13 @@ import pandas as pd
 import seaborn as sns
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.dataset import Dataset
+
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
-from hnmchallenge.filtered_dataset import FilterdDataset
+
 from hnmchallenge.models.ease.ease import EASE
 from hnmchallenge.models.sgmc.sgmc import SGMC
 from hnmchallenge.models.top_pop import TopPop
-from hnmchallenge.stratified_dataset import StratifiedDataset
+
 from hnmchallenge.utils.logger import set_color
 
 # MODEL PARAMETERS

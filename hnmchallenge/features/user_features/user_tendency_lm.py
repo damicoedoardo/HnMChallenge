@@ -4,9 +4,8 @@ import numpy as np
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-from hnmchallenge.dataset import Dataset
+
 from hnmchallenge.features.feature_interfaces import UserFeature
-from hnmchallenge.stratified_dataset import StratifiedDataset
 
 
 class UserTendencyLM(UserFeature):
@@ -19,7 +18,7 @@ class UserTendencyLM(UserFeature):
         data_df = (
             self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_full_data()
+            else self.dataset.get_full_data()
         )
 
         # filter on the last month_data
@@ -46,10 +45,3 @@ class UserTendencyLM(UserFeature):
         feature = feature.rename({"user_tendency": self.FEATURE_NAME}, axis=1)
         print(feature)
         return feature
-
-
-if __name__ == "__main__":
-    dataset = Dataset()
-    for kind in ["full", "train"]:
-        feature = UserTendencyLM(dataset, kind)
-        feature.save_feature()
