@@ -3,7 +3,6 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-
 from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
@@ -19,14 +18,16 @@ class SalesFactor(ItemFeature):
             if self.kind == "train"
             else self.dataset.get_full_data()
         )
-        data_df = data_df[[DEFAULT_ITEM_COL, "price"]]
         data_df["max_price"] = data_df.groupby(DEFAULT_ITEM_COL)["price"].transform(
             "max"
         )
         data_df["sale_factor"] = 1 - (data_df["price"] / data_df["max_price"])
-        data_df = data_df[[DEFAULT_ITEM_COL, "sale_factor"]]
-        data_df = data_df.drop_duplicates([DEFAULT_ITEM_COL], keep="last").sort_values(
-            DEFAULT_ITEM_COL
+        # data_df = data_df[[DEFAULT_ITEM_COL, "sale_factor"]]
+        # edo added sorting
+        data_df = (
+            data_df.sort_values("t_dat")
+            .drop_duplicates([DEFAULT_ITEM_COL], keep="last")
+            .sort_values(DEFAULT_ITEM_COL)
         )
         data_df = data_df.reset_index()
         feature = data_df[[DEFAULT_ITEM_COL, "sale_factor"]]

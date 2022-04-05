@@ -5,18 +5,18 @@ from hnmchallenge.constant import *
 from hnmchallenge.dataset_interface import DatasetInterface
 
 
-class LWLWDataset(DatasetInterface):
+class L2MLWDataset(DatasetInterface):
 
-    DATASET_NAME = "LWLW_dataset"
-    _ARTICLES_NUM = 18_684
-    _CUSTOMERS_NUM = 1_105_000
+    DATASET_NAME = "L2MLW_dataset"
+    _ARTICLES_NUM = 34_870
+    _CUSTOMERS_NUM = 1_219_008
 
     def __init__(self) -> None:
         super().__init__()
 
     def create_dataset_description(self) -> str:
         description = """ 
-        Items: t_dat > 15/09/2020 \n
+        Items: t_dat >= 01/08/2020 \n
         holdout: last_week
         """
         return description
@@ -25,8 +25,8 @@ class LWLWDataset(DatasetInterface):
         tr = self.dr.get_transactions()
 
         # filter on the items present in the last month
-        item_last_week = tr[tr["t_dat"] >= "2020-09-15"][DEFAULT_ITEM_COL].unique()
-        tr = tr[tr[DEFAULT_ITEM_COL].isin(item_last_week)]
+        item_last_month = tr[tr["t_dat"] >= "2020-08-01"][DEFAULT_ITEM_COL].unique()
+        tr = tr[tr[DEFAULT_ITEM_COL].isin(item_last_month)]
 
         print(f"Unique users: {tr[DEFAULT_USER_COL].nunique()}")
         print(f"Unique items: {tr[DEFAULT_ITEM_COL].nunique()}")
@@ -143,6 +143,6 @@ class LWLWDataset(DatasetInterface):
 
 
 if __name__ == "__main__":
-    dataset = LWLWDataset()
+    dataset = L2MLWDataset()
     dataset.remap_user_item_ids()
     dataset.create_holdin_holdout()

@@ -20,11 +20,12 @@ VAL_PERC = 0.1
 TEST_PERC = 0.1
 
 # VERSION = 0
-# DATASET = f"dataset_v00_{VERSION}.feather"
+# DATASET = f"dataset_v11_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
 VERSION = 0
-DATASET = f"cutf_100_ItemKNN_tw_True_rs_False_{VERSION}.feather"
+NAME = "cutf_40_Popularity_cutoff_40"
+DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"xgb_{DATASET}.json"
 
 
@@ -44,7 +45,8 @@ if __name__ == "__main__":
     val_len = math.ceil(len(unique_users) * VAL_PERC)
     test_len = math.ceil(len(unique_users) * TEST_PERC)
 
-    np.random.seed(RANDOM_SEED)
+    # np.random.seed(RANDOM_SEED)
+    np.random.seed(1024)
     np.random.shuffle(unique_users)
     train_users, val_users, test_users = (
         unique_users[:train_len],
@@ -80,12 +82,12 @@ if __name__ == "__main__":
         booster="gbtree",
         objective="rank:map",
         random_state=RANDOM_SEED,
-        learning_rate=0.2,
-        colsample_bytree=0.4,
+        learning_rate=0.1,
+        colsample_bytree=0.6,
         reg_lambda=0.05,
         reg_alpha=0.05,
         eta=0.1,
-        max_depth=5,
+        max_depth=3,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"
@@ -97,8 +99,8 @@ if __name__ == "__main__":
         X_train,
         Y_train,
         qid=qid_train,
-        eval_set=[(X_val, Y_val)],
-        eval_qid=[qid_val],
+        eval_set=[(X_val, Y_val), (X_test, Y_test)],
+        eval_qid=[qid_val, qid_test],
         eval_metric=["map@12"],
         verbose=True,
         early_stopping_rounds=10,

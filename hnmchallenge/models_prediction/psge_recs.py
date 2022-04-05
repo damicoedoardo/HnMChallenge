@@ -3,17 +3,17 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.ease.ease import EASE
+from hnmchallenge.models.psge.psge import PSGE
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.utils.logger import set_color
 
 
-class EaseRecs(RecsInterface):
+class PSGERecs(RecsInterface):
     def __init__(
         self,
-        l2: float,
+        k: int,
         kind: str,
         dataset,
         time_weight: bool = True,
@@ -23,10 +23,10 @@ class EaseRecs(RecsInterface):
         super().__init__(kind, dataset, cutoff)
         self.time_weight = time_weight
         self.remove_seen = remove_seen
-        self.l2 = l2
+        self.k = k
 
         # set recommender name
-        self.RECS_NAME = f"EASE_tw_{time_weight}_rs_{remove_seen}_l2_{l2}"
+        self.RECS_NAME = f"PSGE_tw_{time_weight}_rs_{remove_seen}_k_{k}"
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
@@ -39,7 +39,7 @@ class EaseRecs(RecsInterface):
         data_sim = data_df[data_df["t_dat"] > "2020-08-31"]
 
         # instantiate the recommender algorithm
-        recom = EASE(self.dataset, time_weight=self.time_weight, l2=self.l2)
+        recom = PSGE(self.dataset, time_weight=self.time_weight, k=self.k)
 
         ######
         # this has to be changed only for debugging purposes
@@ -69,20 +69,18 @@ class EaseRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    KIND = "train"
     TW = True
     REMOVE_SEEN = False
-    L2 = 1e-3
-    dataset = LMLWDataset()
-
+    K = 256
+    dataset = LWLWDataset()
     for kind in ["train", "full"]:
-        ease_rec = EaseRecs(
+        rec_ens = PSGERecs(
             kind=kind,
             cutoff=100,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
-            l2=L2,
+            k=K,
         )
-        # rec_ens.eval_recommendations()
-        ease_rec.save_recommendations()
+        rec_ens.eval_recommendations()
+        # rec_ens.save_recommendations()

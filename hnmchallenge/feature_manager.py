@@ -33,23 +33,22 @@ class FeatureManager:
         DepartmentNO,
         # GarmentGroupName,
         # GraphicalAppearanceNO,
-        GarmentGroupNO,
+        # GarmentGroupNO,
         # IndexCode,
-        # IndexGroupName,
-        IndexGroupNO,
+        IndexGroupName,
+        # IndexGroupNO,
         ItemCount,
         ItemCountLastMonth,
         NumberBought,
         PerceivedColourMasterID,
         PerceivedColourValueID,
-        # ProductGroupName,
+        ProductGroupName,
         ProductTypeNO,
         SectionNO,
         Price,
         SalesFactor,
     ]
     _USER_ITEM_FEATURES = [
-        # SalesChannel,
         TimeScore,
         TimeWeight,
         TimesItemBought,
@@ -124,11 +123,13 @@ class FeatureManager:
                 f = item_f.load_feature()
                 item_features_list.append(f)
             print("join item features...")
+
             # joining item features
             item_features_df = reduce(
                 lambda x, y: pd.merge(x, y, on=DEFAULT_ITEM_COL, how="outer"),
                 item_features_list,
             )
+
             # join item features on base df
             print(
                 set_color(
@@ -238,10 +239,13 @@ class FeatureManager:
 
 if __name__ == "__main__":
     # KIND = "train"
-    DATASET_NAME = "cutf_100_ItemKNN_tw_True_rs_False"
+    DATASET_NAME = "cutf_40_Popularity_cutoff_40"
+    # DATASET_NAME = "dataset_v11"
     VERSION = 0
 
+    # for kind in ["full"]:
     for kind in ["train", "full"]:
+        # for kind in ["train"]:
         dr = DataReader()
         dataset = LMLWDataset()
         fm = FeatureManager(dataset, kind)

@@ -1211,6 +1211,19 @@ test = ["pytest (>=6.2)", "virtualenv (>20)"]
 toml = ["setuptools (>=42)"]
 
 [[package]]
+name = "similaripy"
+version = "0.1.2"
+description = "Fast KNN Similarity Algorithms for Collaborative Filtering Models using sparse matrices"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+numpy = ">=1.14.0"
+scipy = ">=1.0.0"
+tqdm = ">=4.19.6"
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -1433,7 +1446,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<4.0"
-content-hash = "f8e6f13be99749547abc8bd7c5983118f7732e8fea04a3aebf2589c9cc3a811f"
+content-hash = "8fe5328626c41c1b43df8b7a2c0bf031ab741ea2307773957feb078572730195"
 
 [metadata.files]
 appnope = [
@@ -2335,6 +2348,9 @@ send2trash = [
 setuptools-scm = [
     {file = "setuptools_scm-6.4.2-py3-none-any.whl", hash = "sha256:acea13255093849de7ccb11af9e1fb8bde7067783450cee9ef7a93139bddf6d4"},
     {file = "setuptools_scm-6.4.2.tar.gz", hash = "sha256:6833ac65c6ed9711a4d5d2266f8024cfa07c533a0e55f4c12f6eff280a5a9e30"},
+]
+similaripy = [
+    {file = "similaripy-0.1.2.tar.gz", hash = "sha256:fc93bd90748571a2a93a19b25235648d09ad0270126d4db587b9bd679105a61b"},
 ]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},

@@ -1,0 +1,11 @@
+method: grid
+metric:
+  goal: maximize
+  name: Recall@100
+parameters:
+  k:
+    values: [100, 250, 500, 1000, 2000, 3500]
+  similarity:
+    values: ["cosine"]
+
+program: irec/model/itemKNN/train_itemKNN.py

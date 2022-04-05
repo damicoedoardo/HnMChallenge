@@ -96,16 +96,23 @@ def interactions_to_sparse_matrix(
 
     if time_weight:
         logger.debug(set_color("Applying time weight on user-item interactions", "red"))
+
         # interactions["last_buy"] = interactions.groupby(DEFAULT_USER_COL)[
         #     "t_dat"
         # ].transform(max)
         # interactions["first_buy"] = interactions.groupby(DEFAULT_USER_COL)[
         #     "t_dat"
         # ].transform(min)
+
         # interactions["time_score"] = (
-        #     (interactions["t_dat"] - interactions["first_buy"])
-        #     / (interactions["last_buy"] - interactions["first_buy"])
-        # ) ** 50
+        #     (interactions["t_dat"] - interactions["first_buy"]).apply(lambda x: x.days)
+        #     + 1
+        # ) / (
+        #     (interactions["last_buy"] - interactions["first_buy"]).apply(
+        #         lambda x: x.days
+        #     )
+        #     + 1
+        # )
 
         # min_dat = interactions["t_dat"].min()
         # max_dat = interactions["t_dat"].max()
@@ -116,19 +123,6 @@ def interactions_to_sparse_matrix(
         interactions["time_score"] = interactions["t_dat"].apply(
             lambda x: 1 / ((datetime.datetime(2020, 9, 23) - x).days)
         )
-
-        # accounting for sale factor
-
-        # interactions["max_price"] = interactions.groupby(DEFAULT_ITEM_COL)[
-        #     "price"
-        # ].transform("max")
-        # interactions["sale_factor"] = (
-        #     1 - (interactions["price"] / interactions["max_price"])
-        # )
-
-        # interactions["time_sale_score"] = (
-        #     interactions["time_score"] * interactions["sale_factor"]
-        # )
 
         data = interactions["time_score"].values
     else:

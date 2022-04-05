@@ -1,15 +1,6 @@
-import logging
-
-import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
-import seaborn as sns
 from hnmchallenge.constant import *
-from hnmchallenge.data_reader import DataReader
-
-from hnmchallenge.evaluation.python_evaluation import map_at_k
-
-from hnmchallenge.models.top_pop import TopPop
+from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
 
 
@@ -26,9 +17,9 @@ class BoughtItemsRecs(RecsInterface):
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_day_holdin()
+            self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_filtered_full_data()
+            else self.dataset.get_full_data()
         )
         # data that you use to compute similarity
         # Using the full data available perform better
@@ -79,8 +70,9 @@ if __name__ == "__main__":
     EPS = 1e-6
     CUTOFF = 100
 
-    dataset = StratifiedDataset()
+    dataset = LMLWDataset()
 
-    rec = BoughtItemsRecs(kind=KIND, dataset=dataset, cutoff=0)
-    rec.eval_recommendations(write_log=False)
-    # rec.save_recommendations()
+    for kind in ["train", "full"]:
+        rec = BoughtItemsRecs(kind=kind, dataset=dataset, cutoff=0)
+        # rec.eval_recommendations(write_log=False)
+        rec.save_recommendations()

@@ -3,7 +3,6 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-
 from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
@@ -26,6 +25,12 @@ class ItemCount(ItemFeature):
         feature = count_mb.reset_index()[[DEFAULT_ITEM_COL, "t_dat"]].rename(
             columns={"t_dat": self.FEATURE_NAME}
         )
+
+        # normalisation popularity
+        feature["popularity"] = (
+            feature["popularity"] - feature["popularity"].min()
+        ) / (feature["popularity"].max() - feature["popularity"].min())
+
         item_df = self._get_keys_df()
         feature = pd.merge(item_df, feature, on=DEFAULT_ITEM_COL, how="left")
         print(feature)

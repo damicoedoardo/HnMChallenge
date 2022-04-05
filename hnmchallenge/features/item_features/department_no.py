@@ -3,15 +3,16 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-
 from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
 class DepartmentNO(ItemFeature):
+    # should be one-hot but too many classes aorund 8k
     FEATURE_NAME = "department_no"
 
     def __init__(self, dataset, kind: str) -> None:
         # we have the feature only for full
+        print(f"Using: {self.FEATURE_NAME}, should be one-hot but it is numerical!")
         kind = "full"
         super().__init__(dataset, kind)
 

@@ -4,7 +4,6 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-
 from hnmchallenge.features.feature_interfaces import UserItemFeature
 
 
@@ -30,5 +29,10 @@ class TimeWeight(UserItemFeature):
             ~(feature[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].duplicated())
         ].drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL], keep="last")
         feature = feature.rename({"tdiff": self.FEATURE_NAME}, axis=1)
+
+        feature["tdiff"] = (feature["tdiff"] - feature["tdiff"].min()) / (
+            feature["tdiff"].max() - feature["tdiff"].min()
+        )
+
         print(feature)
         return feature

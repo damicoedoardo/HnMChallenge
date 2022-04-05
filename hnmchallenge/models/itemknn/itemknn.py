@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import scipy.sparse as sps
+import similaripy
 from hnmchallenge.recommender_interface import ItemSimilarityRecommender
 from hnmchallenge.utils.sparse_matrix import (
     interactions_to_sparse_matrix,
@@ -23,9 +24,11 @@ class ItemKNN(ItemSimilarityRecommender):
             items_num=self.dataset._ARTICLES_NUM,
             users_num=None,
         )
-        sim = cosine_similarity(
-            sparse_interaction.T, sparse_interaction.T, dense_output=False
-        )
+        # sp_int = similaripy.normalization.bm25(sparse_interaction)
+        sim = similaripy.jaccard(sparse_interaction.T, k=2000, shrink=100)
+        # sim = cosine_similarity(
+        #     sparse_interaction.T, sparse_interaction.T, dense_output=False
+        # )
         # setting diag to 0 preventing considering in topk similarity self-similarities
         # np.fill_diagonal(sim, 0)
         # sim = truncate_top_k(sim, self.topk)

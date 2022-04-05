@@ -26,6 +26,15 @@ class ItemCountLastMonth(ItemFeature):
         feature = count_mb.reset_index()[[DEFAULT_ITEM_COL, "t_dat"]].rename(
             columns={"t_dat": self.FEATURE_NAME}
         )
+
+        # normalisation popularity
+        feature["popularity_last_month"] = (
+            feature["popularity_last_month"] - feature["popularity_last_month"].min()
+        ) / (
+            feature["popularity_last_month"].max()
+            - feature["popularity_last_month"].min()
+        )
+
         item_df = self._get_keys_df()
         feature = pd.merge(item_df, feature, on=DEFAULT_ITEM_COL, how="left")
         print(feature)

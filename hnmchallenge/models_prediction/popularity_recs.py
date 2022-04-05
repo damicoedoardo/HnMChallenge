@@ -3,9 +3,10 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
+from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
-
 from hnmchallenge.utils.logger import set_color
 
 
@@ -23,9 +24,9 @@ class PopularityRecs(RecsInterface):
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_day_holdin()
+            self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_filtered_full_data()
+            else self.dataset.get_full_data()
         )
         # data that you use to compute similarity
         # Using the full data available perform better
@@ -54,9 +55,9 @@ class PopularityRecs(RecsInterface):
         feature_k["temp"] = 1
 
         # retrieve the user dfs where all the users are
-        user = self.dr.get_filtered_all_customers_ids_df()
-
-        user = user.drop_duplicates([DEFAULT_USER_COL])
+        u_md, _ = self.dataset.get_new_raw_mapping_dict()
+        all_users = set(np.array(list(u_md.keys())))
+        user = pd.DataFrame(list(all_users), columns=[DEFAULT_USER_COL])
         user["temp"] = 1
         user = user[[DEFAULT_USER_COL, "temp"]]
 
@@ -84,11 +85,9 @@ class PopularityRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-
-    KIND = "train"
-    dataset = StratifiedDataset()
-
-    rec = PopularityRecs(kind=KIND, dataset=dataset, cutoff=4)
-    rec.get_recommendations()
-    # rec.eval_recommendations(write_log=False)
-    # rec.save_recommendations()
+    dataset = LMLWDataset()
+    for kind in ["train", "full"]:
+        rec = PopularityRecs(kind=kind, dataset=dataset, cutoff=40)
+        # rec.get_recommendations()
+        # rec.eval_recommendations()
+        rec.save_recommendations()

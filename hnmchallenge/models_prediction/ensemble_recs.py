@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from functools import reduce
+from functools import partial, reduce
 from pathlib import Path
 from pickle import FALSE
 
@@ -9,6 +9,7 @@ import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
+from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.models_prediction.bought_items_recs import BoughtItemsRecs
 from hnmchallenge.models_prediction.ease_recs import EaseRecs
@@ -28,17 +29,9 @@ class EnsembleRecs(RecsInterface):
         assert (
             len(models_list) > 1
         ), "At least 2 models should be passed to create an Ensemble !"
-        all(
-            [issubclass(m.__class__, RecsInterface) for m in models_list]
-        ), "Not all the models passed are extending `RecsInterface`"
 
-        cutoffs_list = [m.cutoff for m in models_list]
-        super().__init__(kind=kind, dataset=dataset, cutoff=cutoffs_list)
-
-        # we have to check that the kind of the ensamble correspond with the kind of each model passed
-        assert all(
-            [model.kind == kind for model in models_list]
-        ), f"Ensemble kind:{kind}, not all the model passed has the same kind of the ensamble!"
+        cutoff = -1
+        super().__init__(kind=kind, dataset=dataset, cutoff=-1)
 
         self.models_list = models_list
         self.RECS_NAME = self._create_ensemble_name()
@@ -46,50 +39,55 @@ class EnsembleRecs(RecsInterface):
 
     def _create_ensemble_name(self):
         """Create a meaningfull name for the ensamble model"""
-        models_names = [model.RECS_NAME for model in self.models_list]
-        ensemble_name = "\n".join(models_names)
+        ensemble_name = "\n".join(self.models_list)
         print(f"Creating ensemble with:\n{ensemble_name}\n\n")
         return ensemble_name
 
     def get_recommendations(self) -> pd.DataFrame:
-        # retrieve the recommendations from the different models and join them `outer`
-        def _merge_dfs(tup_x, tup_y):
-            recs_x = tup_x[1]
-            recs_y = tup_y[1]
+        # load the recommendations for every model
+        recs_dfs_list = [
+            RecsInterface.load_recommendations(self.dataset, m, kind=self.kind)
+            for m in self.models_list
+        ]
 
-            name_x = tup_x[0]
-            name_y = tup_y[0]
+        def _merge_dfs(kind, df_x, df_y):
+            # search for the names on which perform the join
+            recs_col_x = [c for c in df_x.columns if "recs" in c][0]
+            print(recs_col_x)
+            recs_col_y = [c for c in df_y.columns if "recs" in c][0]
+            print(recs_col_y)
 
-            # change the names for the different recommendation algs
-            if name_x != "recs":
-                name_x = name_x + "_recs"
-
-            if name_y != "recs":
-                name_y = name_y + "_recs"
+            LEFT_ON = [DEFAULT_USER_COL, recs_col_x]
+            RIGHT_ON = [DEFAULT_USER_COL, recs_col_y]
+            if kind == "train":
+                # we have to  merge also on the relevance
+                LEFT_ON = [DEFAULT_USER_COL, recs_col_x, "relevance"]
+                RIGHT_ON = [DEFAULT_USER_COL, recs_col_y, "relevance"]
+            print(LEFT_ON)
+            print(RIGHT_ON)
 
             merged = pd.merge(
-                recs_x,
-                recs_y,
-                left_on=[DEFAULT_USER_COL, name_x],
-                right_on=[DEFAULT_USER_COL, name_y],
+                df_x,
+                df_y,
+                left_on=LEFT_ON,
+                right_on=RIGHT_ON,
                 how="outer",
             )
+
             merged["recs"] = merged.filter(like="recs").ffill(axis=1).iloc[:, -1]
 
-            cols_to_drop = [name for name in [name_x, name_y] if name != "recs"]
+            # drop the unmerged recs columns
+            cols_to_drop = [c for c in merged.columns if "_recs" in c]
+            print(f"dropping cols: {cols_to_drop}")
             merged = merged.drop(cols_to_drop, axis=1)
-            return ("recs", merged)
 
-        # recs_list = [(model_name, recs_df), ...]
-        recs_tup_list = [
-            (model.RECS_NAME, model.get_recommendations()) for model in self.models_list
-        ]
-        merged_recs_df = reduce(_merge_dfs, recs_tup_list)[1]
+            return merged
+
+        _merge_dfs_kind = partial(_merge_dfs, self.kind)
+        merged_recs_df = reduce(_merge_dfs_kind, recs_dfs_list)
 
         # store average recs per user
-        self.avg_recs_per_user = (
-            merged_recs_df.groupby(DEFAULT_USER_COL).size().values.mean()
-        )
+        self.avg_recs_per_user = merged_recs_df.groupby(DEFAULT_USER_COL).size().mean()
         print(f"Average recs per user: {self.avg_recs_per_user}")
 
         # add ensemble_rank column for evaluation
@@ -130,53 +128,6 @@ class EnsembleRecs(RecsInterface):
 
         recs = self.get_recommendations()
         self._check_recommendations_integrity(recs)
-
-        if self.kind == "train":
-            print("Creating Relevance column...")
-            # retrieve the holdout
-            holdout = self.dataset.get_holdout()
-            # retrieve items per user in holdout
-            item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(
-                list
-            )
-            item_per_user_df = item_per_user.to_frame()
-            # items groundtruth
-            holdout_groundtruth = (
-                item_per_user_df.reset_index()
-                .explode(DEFAULT_ITEM_COL)
-                .drop_duplicates()
-            )
-
-            # merge recs and item groundtruth
-            merged = pd.merge(
-                recs,
-                holdout_groundtruth,
-                left_on=[DEFAULT_USER_COL, "recs"],
-                right_on=[DEFAULT_USER_COL, "article_id"],
-                how="left",
-            )
-
-            # we have to remove the user for which we do not do at least one hit,
-            # since we would not have the relavance for the items
-            merged.loc[merged["article_id"].notnull(), "article_id"] = 1
-            merged["hit_sum"] = merged.groupby(DEFAULT_USER_COL)[
-                "article_id"
-            ].transform("sum")
-
-            merged_filtered = merged[merged["hit_sum"] > 0]
-
-            # we can drop the hit sum column
-            merged_filtered = merged_filtered.drop("hit_sum", axis=1)
-
-            # fill with 0 the nan values, the nan are the one for which we do not do an hit
-            merged_filtered["article_id"] = merged_filtered["article_id"].fillna(0)
-
-            # rename the columns
-            merged_filtered = merged_filtered.rename(
-                {"article_id": "relevance"}, axis=1
-            ).reset_index(drop=True)
-            recs = merged_filtered
-            print("Done!")
 
         if self.kind == "full":
             recs = self._add_pop_missing_users(recs)
@@ -227,9 +178,15 @@ class EnsembleRecs(RecsInterface):
         # print how many recs per user we have on average
         logger.info(f"Average recs per user:{self.avg_recs_per_user}")
 
-        # load groundtruth and holdout data
-        holdout_groundtruth = self.dataset.get_holdout_groundtruth()
-        holdout = self.dataset.get_last_day_holdout()
+        # retrieve the holdout
+        holdout = self.dataset.get_holdout()
+        # retrieve items per user in holdout
+        item_per_user = holdout.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(list)
+        item_per_user_df = item_per_user.to_frame()
+        # items groundtruth
+        holdout_groundtruth = (
+            item_per_user_df.reset_index().explode(DEFAULT_ITEM_COL).drop_duplicates()
+        )
 
         # merge recs and item groundtruth
         merged = pd.merge(
@@ -240,16 +197,6 @@ class EnsembleRecs(RecsInterface):
             how="left",
         )
 
-        # we have to remove the user for which we do not do at least one hit,
-        # since we would not have the relavance for the items
-        merged.loc[merged["article_id"].notnull(), "article_id"] = 1
-        merged["hit_sum"] = merged.groupby(DEFAULT_USER_COL)["article_id"].transform(
-            "sum"
-        )
-
-        merged_filtered = merged[merged["hit_sum"] > 0]
-
-        # TODO to be changed ! rank is no more valid
         pred = (
             merged[[DEFAULT_USER_COL, "recs", "rank"]]
             .copy()
@@ -258,55 +205,31 @@ class EnsembleRecs(RecsInterface):
                 axis=1,
             )
         )
-        pred_filtered = (
-            merged_filtered[[DEFAULT_USER_COL, "recs", "rank"]]
-            .copy()
-            .rename(
-                {"recs": DEFAULT_ITEM_COL},
-                axis=1,
-            )
-        )
-        ground_truth = holdout[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].copy()
+
+        ground_truth = holdout_groundtruth[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].copy()
         logger.info(
-            f"Remaining Users (at least one hit): {merged_filtered[DEFAULT_USER_COL].nunique()}"
+            f"Remaining Users (at least one hit): {recs[DEFAULT_USER_COL].nunique()}"
         )
         logger.info("\nMetrics on ALL users")
-        logger.info(f"MAP@{self.cutoff}: {map_at_k(ground_truth, pred)}")
-        logger.info(f"RECALL@{self.cutoff}: {recall_at_k(ground_truth, pred)}")
-        logger.info("\nMetrics on ONE-HIT users")
-        logger.info(f"MAP@{self.cutoff}: {map_at_k(ground_truth, pred_filtered)}")
-        logger.info(
-            f"RECALL@{self.cutoff}: {recall_at_k(ground_truth, pred_filtered)}",
-        )
+        logger.info(f"MAP: {map_at_k(ground_truth, pred)}")
+        logger.info(f"RECALL: {recall_at_k(ground_truth, pred)}")
 
 
 if __name__ == "__main__":
-    # KIND = "full"
-    for kind in ["train", "full"]:
-        dataset = LMLWDataset()
-
-        rec_ens_1 = ItemKNNRecs(
-            kind=kind, cutoff=80, time_weight=True, remove_seen=False, dataset=dataset
-        )
-        # rec_ens_1 = ItemKNNRecs(
-        #     kind=KIND, cutoff=100, time_weight=False, remove_seen=False, dataset=dataset
-        # )
-        rec_ens_2 = EaseRecs(
-            kind=kind,
-            cutoff=80,
-            dataset=dataset,
-            l2=1e-3,
-            remove_seen=False,
-            time_weight=True,
-        )
-        # rec_ens_2 = PopularityRecs(kind=KIND, cutoff=50, dataset=dataset)
-
-        rec_ens_3 = BoughtItemsRecs(kind=kind, dataset=dataset)
-
+    models = [
+        # "cutf_100_PSGE_tw_True_rs_False_k_256",
+        # "cutf_100_Popularity_cutoff_100",
+        # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
+        # "cutf_100_ItemKNN_tw_True_rs_False",
+        "cutf_40_Popularity_cutoff_40",
+        "cutf_0_BoughtItemsRecs",
+    ]
+    dataset = LMLWDataset()
+    for kind in ["full"]:
         ensemble = EnsembleRecs(
-            models_list=[rec_ens_1, rec_ens_2, rec_ens_3],
+            models_list=models,
             kind=kind,
             dataset=dataset,
         )
-        ensemble.save_recommendations(dataset_name="dataset_v00")
-        # ensemble.eval_recommendations(dataset_name="dataset_v13")
+        ensemble.save_recommendations(dataset_name="dataset_v11")
+        # ensemble.eval_recommendations(dataset_name="dataset_v03")
