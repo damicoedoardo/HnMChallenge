@@ -9,6 +9,7 @@ from xgboost import plot_importance
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
@@ -19,18 +20,18 @@ TRAIN_PERC = 0.8
 VAL_PERC = 0.1
 TEST_PERC = 0.1
 
-# VERSION = 0
-# DATASET = f"dataset_v11_{VERSION}.feather"
-# MODEL_NAME = f"xgb_{DATASET}.json"
-
 VERSION = 0
-NAME = "cutf_40_Popularity_cutoff_40"
-DATASET = f"{NAME}_{VERSION}.feather"
+DATASET = f"dataset_v101_{VERSION}.feather"
 MODEL_NAME = f"xgb_{DATASET}.json"
+
+# VERSION = 0
+# NAME = "cutf_100_ItemKNN_tw_True_rs_False"
+# DATASET = f"{NAME}_{VERSION}.feather"
+# MODEL_NAME = f"xgb_{DATASET}.json"
 
 
 if __name__ == "__main__":
-    dataset = LMLWDataset()
+    dataset = LMLDDataset()
     dr = DataReader()
     model_save_path = dataset._DATASET_PATH / "xgb_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
@@ -84,10 +85,10 @@ if __name__ == "__main__":
         random_state=RANDOM_SEED,
         learning_rate=0.1,
         colsample_bytree=0.6,
-        reg_lambda=0.05,
-        reg_alpha=0.05,
+        reg_lambda=0.0,
+        reg_alpha=0.0,
         eta=0.1,
-        max_depth=3,
+        max_depth=5,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"
@@ -103,7 +104,7 @@ if __name__ == "__main__":
         eval_qid=[qid_val, qid_test],
         eval_metric=["map@12"],
         verbose=True,
-        early_stopping_rounds=10,
+        early_stopping_rounds=20,
     )
 
     model_name = model_save_path / MODEL_NAME

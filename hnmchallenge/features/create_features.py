@@ -1,3 +1,4 @@
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.features.item_features import *
@@ -15,6 +16,8 @@ USER_FEATURES = [
     # AvgPrice,
     # UserTendency,
     # UserTendencyLM,
+    # SaleChannelScore,
+    # UserAvgBuyDay,
 ]
 ITEM_FEATURES = [
     # ColourGroupCode,
@@ -25,8 +28,8 @@ ITEM_FEATURES = [
     # IndexCode,
     # IndexGroupName,
     # IndexGroupNO,
-    ItemCount,
-    ItemCountLastMonth,
+    # ItemCount,
+    # ItemCountLastMonth,
     # NumberBought,
     # PerceivedColourMasterID,
     # PerceivedColourValueID,
@@ -35,16 +38,17 @@ ITEM_FEATURES = [
     # SectionNO,
     # Price,
     # SalesFactor,
+    ItemSaleChannelScore,
 ]
 USER_ITEM_FEATURES = [
-    # TimeScore,
+    TimeScore,
     TimeWeight,
-    # TimesItemBought,
+    TimesItemBought,
 ]
 
 if __name__ == "__main__":
     # TODO RECHECK ALL THE FEATURES AND RECREATE THE ONE-HOT ONE
-    dataset = LMLWDataset()
+    dataset = LMLDDataset()
     print(f"Creating features for DATASET:{dataset.DATASET_NAME}\n {print(dataset)}")
 
     # create the user features

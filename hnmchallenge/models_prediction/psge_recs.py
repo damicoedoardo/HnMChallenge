@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.ease.ease import EASE
 from hnmchallenge.models.psge.psge import PSGE
@@ -71,8 +72,8 @@ class PSGERecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = False
-    K = 256
-    dataset = LWLWDataset()
+    K = 512
+    dataset = LMLDDataset()
     for kind in ["train", "full"]:
         rec_ens = PSGERecs(
             kind=kind,

@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.datasets.last2month_last_week import L2MLWDataset
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
@@ -67,15 +68,15 @@ if __name__ == "__main__":
     TW = True
 
     REMOVE_SEEN = False
-    dataset = LMLWDataset()
+    dataset = LMLDDataset()
 
     for kind in ["train", "full"]:
         rec_ens = ItemKNNRecs(
             kind=kind,
-            cutoff=100,
+            cutoff=300,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
         )
-        # rec_ens.eval_recommendations()
+        rec_ens.eval_recommendations()
         rec_ens.save_recommendations()

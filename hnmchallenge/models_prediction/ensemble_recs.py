@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
@@ -219,17 +220,17 @@ if __name__ == "__main__":
     models = [
         # "cutf_100_PSGE_tw_True_rs_False_k_256",
         # "cutf_100_Popularity_cutoff_100",
-        # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
-        # "cutf_100_ItemKNN_tw_True_rs_False",
-        "cutf_40_Popularity_cutoff_40",
-        "cutf_0_BoughtItemsRecs",
+        "cutf_100_EASE_tw_True_rs_False_l2_0.001",
+        "cutf_100_ItemKNN_tw_True_rs_False",
+        # "cutf_40_Popularity_cutoff_40",
+        # "cutf_0_BoughtItemsRecs",
     ]
-    dataset = LMLWDataset()
-    for kind in ["full"]:
+    dataset = LMLDDataset()
+    for kind in ["train", "full"]:
         ensemble = EnsembleRecs(
             models_list=models,
             kind=kind,
             dataset=dataset,
         )
-        ensemble.save_recommendations(dataset_name="dataset_v11")
+        ensemble.save_recommendations(dataset_name="dataset_v101")
         # ensemble.eval_recommendations(dataset_name="dataset_v03")

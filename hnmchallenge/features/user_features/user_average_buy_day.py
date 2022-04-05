@@ -3,7 +3,6 @@ from unicodedata import name
 import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
-
 from hnmchallenge.features.feature_interfaces import UserFeature
 
 
@@ -17,7 +16,7 @@ class UserAvgBuyDay(UserFeature):
         data_df = (
             self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_full_data()
+            else self.dataset.get_full_data()
         )
 
         # filter on the last month_data
