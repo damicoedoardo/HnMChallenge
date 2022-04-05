@@ -14,6 +14,12 @@ from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
+from hnmchallenge.features.light_gbm_features import (
+    graphical_appearance_no_gbm,
+    index_code_gbm,
+    index_group_name_gbm,
+    product_group_name_gbm,
+)
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 import joblib
 
@@ -25,20 +31,32 @@ TEST_PERC = 0.1
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-VERSION = 0
+VERSION = 2
 DATASET = f"cutf_100_ItemKNN_tw_True_rs_False_{VERSION}.feather"
-MODEL_NAME = f"xgb_{DATASET}.json"
+MODEL_NAME = f"lgbm_{DATASET}.json"
+cat = [
+    "index_code_gbm",
+    "product_group_name_gbm",
+    "index_group_name_gbm",
+    "graphical_appearance_no_gbm",
+]
 
 
 if __name__ == "__main__":
     dataset = LMLWDataset()
     dr = DataReader()
-    model_save_path = dataset._DATASET_PATH / "xgb_models"
+    model_save_path = dataset._DATASET_PATH / "lgbm_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
 
     base_load_path = dataset._DATASET_PATH / "dataset_dfs/train"
     dataset_path = base_load_path / DATASET
     features_df = pd.read_feather(dataset_path)
+
+    cat_index = [i for i, c in enumerate(features_df.columns) if c in cat]
+    print(cat_index)
+
+    for col in cat:
+        features_df[col] = pd.Categorical(features_df[col])
 
     unique_users = features_df[DEFAULT_USER_COL].unique()
     print(f"Unique users:{len(unique_users)}")
@@ -80,10 +98,8 @@ if __name__ == "__main__":
     query_train = train_df.groupby(DEFAULT_USER_COL)[DEFAULT_USER_COL].count()
     query_val = val_df.groupby(DEFAULT_USER_COL)[DEFAULT_USER_COL].count()
 
-    print(query_train)
-
     gbm = lgb.LGBMRanker(
-        boosting_type="dart",
+        boosting_type="gbdt",
         objective="lambdarank",
         # device="gpu",
         random_state=RANDOM_SEED,
@@ -109,12 +125,12 @@ if __name__ == "__main__":
         eval_metric="map",
         eval_at=12,
         verbose=True,
-        early_stopping_rounds=10,
+        early_stopping_rounds=2,
+        categorical_feature=cat_index,
     )
 
     model_name = model_save_path / MODEL_NAME
     # save model
     joblib.dump(gbm, "lgb.pkl")
     # load model
-    gbm_pickle = joblib.load("lgb.pkl")
     # gbm.save_model(model_name)

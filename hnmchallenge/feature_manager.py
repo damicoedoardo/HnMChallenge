@@ -10,6 +10,7 @@ from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.features.item_features import *
+from hnmchallenge.features.light_gbm_features import *
 from hnmchallenge.features.user_features import *
 from hnmchallenge.features.user_item_features import *
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
@@ -19,11 +20,17 @@ logger = logging.getLogger(__name__)
 
 
 class FeatureManager:
+    _GBM_FEATURES = [
+        GraphicalAppearanceNOGBM,
+        IndexCodeGBM,
+        IndexGroupNameGBM,
+        ProductGroupNameGBM,
+    ]
     _USER_FEATURES = [
         Active,
-        Age,
-        ClubMemberStatus,
-        FashionNewsFrequency,
+        # Age,
+        # ClubMemberStatus,
+        # FashionNewsFrequency,
         # Fn,
         AvgPrice,
         UserTendency,
@@ -36,27 +43,27 @@ class FeatureManager:
         ItemSaleChannelScore,
         DepartmentNO,
         # GarmentGroupName,
-        # GraphicalAppearanceNO,
+        # # GraphicalAppearanceNO,
         # GarmentGroupNO,
-        # IndexCode,
-        IndexGroupName,
+        # # IndexCode,
+        # # IndexGroupName,
         # IndexGroupNO,
-        ItemCount,
-        ItemCountLastMonth,
-        NumberBought,
-        PerceivedColourMasterID,
-        PerceivedColourValueID,
-        ProductGroupName,
-        ProductTypeNO,
-        SectionNO,
-        Price,
-        SalesFactor,
+        # ItemCount,
+        # ItemCountLastMonth,
+        # NumberBought,
+        # PerceivedColourMasterID,
+        # PerceivedColourValueID,
+        # # ProductGroupName,
+        # ProductTypeNO,
+        # SectionNO,
+        # Price,
+        # SalesFactor,
+        # ItemSaleChannelScore,
     ]
     _USER_ITEM_FEATURES = [
         TimeScore,
-        TimeWeight,
-        TimesItemBought,
-        # UserItemSalesFactor,
+        # TimeWeight,
+        # TimesItemBought,
     ]
 
     def __init__(
@@ -66,6 +73,7 @@ class FeatureManager:
         user_features: list[str] = None,
         item_features: list[str] = None,
         user_item_features: list[str] = None,
+        gbm_features: list[str] = None,
     ) -> None:
 
         # check correctness features passed
@@ -87,6 +95,12 @@ class FeatureManager:
                     useritemf in self._USER_ITEM_FEATURES
                 ), f"feature {useritemf} not in _USER_ITEM_FEATURES, add it on feature_manager.py class!"
 
+        if gbm_features is not None:
+            for gbmf in gbm_features:
+                assert (
+                    gbmf in self._GBM_FEATURES
+                ), f"feature {gbmf} not in _GBM_FEATURES, add it on feature_manager.py class!"
+
         # if not feature passed meaning we use all of them
         if user_features is None:
             logger.info(set_color(f"Using ALL available User features", "cyan"))
@@ -97,16 +111,21 @@ class FeatureManager:
         if user_item_features is None:
             logger.info(set_color(f"Using ALL available Uaer Item features", "cyan"))
             user_item_features = self._USER_ITEM_FEATURES
+        if gbm_features is None:
+            logger.info(set_color(f"Using ALL available GBM features", "cyan"))
+            gbm_features = self._GBM_FEATURES
 
         self.user_features = user_features
         self.item_features = item_features
         self.user_item_features = user_item_features
+        self.gbm_features = gbm_features
         self.kind = kind
         self.dr = DataReader()
         self.dataset = dataset
 
     def create_features_df(self, name: str, dataset_version: int) -> None:
         # load base df
+
         base_df = RecsInterface.load_recommendations(self.dataset, name, self.kind)
 
         # rename the recs column accordingly
@@ -194,6 +213,31 @@ class FeatureManager:
                 on=[DEFAULT_USER_COL, DEFAULT_ITEM_COL],
                 how="left",
             )
+        if len(self._GBM_FEATURES) > 0:
+            # load item features
+            gbm_features_list = []
+            print("Loading item features...")
+            for gbm_f_class in self._GBM_FEATURES:
+                gbm_f = gbm_f_class(self.dataset, self.kind)
+                f = gbm_f.load_feature()
+                gbm_features_list.append(f)
+            print("join item features...")
+
+            # joining item features
+            gbm_features_df = reduce(
+                lambda x, y: pd.merge(x, y, on=DEFAULT_ITEM_COL, how="outer"),
+                gbm_features_list,
+            )
+
+            # join item features on base df
+            print(
+                set_color(
+                    "Merging gbm item features with base df, can take time...", "yellow"
+                )
+            )
+            base_df = pd.merge(
+                base_df, gbm_features_df, on=DEFAULT_ITEM_COL, how="left"
+            )
 
         # save the the feature dataset
         dir_path = Path(f"hnmchallenge/models_prediction/dataset_logs/{name}")
@@ -233,6 +277,10 @@ class FeatureManager:
             for u_i_f in self._USER_ITEM_FEATURES:
                 logger.info(f"{u_i_f.FEATURE_NAME}")
 
+            logger.info("\n\nGBM FEATURES:\n")
+            for g_f in self._GBM_FEATURES:
+                logger.info(f"{g_f.FEATURE_NAME}")
+
         # save features df
         dir_path = self.dataset._DATASET_PATH / Path(f"dataset_dfs/{self.kind}")
         dir_path.mkdir(parents=True, exist_ok=True)
@@ -243,9 +291,9 @@ class FeatureManager:
 
 if __name__ == "__main__":
     # KIND = "train"
-    # DATASET_NAME = "cutf_100_ItemKNN_tw_True_rs_False"
-    DATASET_NAME = "dataset_v101"
-    VERSION = 0
+    DATASET_NAME = "cutf_100_ItemKNN_tw_True_rs_False"
+    # DATASET_NAME = "dataset_v11"
+    VERSION = 2
 
     # for kind in ["full"]:
     for kind in ["train", "full"]:

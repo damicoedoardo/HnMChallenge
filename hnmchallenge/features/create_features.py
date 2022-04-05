@@ -2,6 +2,7 @@ from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.features.item_features import *
+from hnmchallenge.features.light_gbm_features import *
 from hnmchallenge.features.user_features import *
 from hnmchallenge.features.user_item_features import *
 from hnmchallenge.utils.logger import set_color
@@ -18,6 +19,12 @@ USER_FEATURES = [
     # UserTendencyLM,
     # SaleChannelScore,
     # UserAvgBuyDay,
+]
+GBM_FEATURES = [
+    GraphicalAppearanceNOGBM,
+    IndexCodeGBM,
+    IndexGroupNameGBM,
+    ProductGroupNameGBM,
 ]
 ITEM_FEATURES = [
     # ColourGroupCode,
@@ -64,6 +71,15 @@ if __name__ == "__main__":
     print("Saving Item features")
     if len(ITEM_FEATURES) > 0:
         for uf in tqdm(ITEM_FEATURES):
+            print(set_color(f"Saving {uf.FEATURE_NAME}...", "cyan"))
+            for kind in ["train", "full"]:
+                f = uf(kind=kind, dataset=dataset)
+                f.save_feature()
+
+    # create gbm features
+    print("Saving User features")
+    if len(GBM_FEATURES) > 0:
+        for uf in tqdm(GBM_FEATURES):
             print(set_color(f"Saving {uf.FEATURE_NAME}...", "cyan"))
             for kind in ["train", "full"]:
                 f = uf(kind=kind, dataset=dataset)
