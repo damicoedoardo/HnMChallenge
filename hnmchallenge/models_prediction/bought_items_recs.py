@@ -2,6 +2,7 @@ import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 
 
 class BoughtItemsRecs(RecsInterface):
@@ -70,7 +71,7 @@ if __name__ == "__main__":
     EPS = 1e-6
     CUTOFF = 100
 
-    dataset = LMLWDataset()
+    dataset = LMLDDataset()
 
     for kind in ["train", "full"]:
         rec = BoughtItemsRecs(kind=kind, dataset=dataset, cutoff=0)
