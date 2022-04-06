@@ -28,9 +28,9 @@ class FeatureManager:
     ]
     _USER_FEATURES = [
         Active,
-        # Age,
-        # ClubMemberStatus,
-        # FashionNewsFrequency,
+        Age,
+        ClubMemberStatus,
+        FashionNewsFrequency,
         # Fn,
         AvgPrice,
         UserTendency,
@@ -42,28 +42,28 @@ class FeatureManager:
         ColourGroupCode,
         ItemSaleChannelScore,
         DepartmentNO,
-        # GarmentGroupName,
-        # # GraphicalAppearanceNO,
-        # GarmentGroupNO,
-        # # IndexCode,
-        # # IndexGroupName,
-        # IndexGroupNO,
-        # ItemCount,
-        # ItemCountLastMonth,
-        # NumberBought,
-        # PerceivedColourMasterID,
-        # PerceivedColourValueID,
-        # # ProductGroupName,
-        # ProductTypeNO,
-        # SectionNO,
-        # Price,
-        # SalesFactor,
-        # ItemSaleChannelScore,
+        GarmentGroupName,
+        # GraphicalAppearanceNO,
+        GarmentGroupNO,
+        # IndexCode,
+        # IndexGroupName,
+        IndexGroupNO,
+        ItemCount,
+        ItemCountLastMonth,
+        NumberBought,
+        PerceivedColourMasterID,
+        PerceivedColourValueID,
+        # ProductGroupName,
+        ProductTypeNO,
+        SectionNO,
+        Price,
+        SalesFactor,
+        ItemSaleChannelScore,
     ]
     _USER_ITEM_FEATURES = [
         TimeScore,
-        # TimeWeight,
-        # TimesItemBought,
+        TimeWeight,
+        TimesItemBought,
     ]
 
     def __init__(
@@ -216,12 +216,12 @@ class FeatureManager:
         if len(self._GBM_FEATURES) > 0:
             # load item features
             gbm_features_list = []
-            print("Loading item features...")
+            print("Loading GBM features...")
             for gbm_f_class in self._GBM_FEATURES:
                 gbm_f = gbm_f_class(self.dataset, self.kind)
                 f = gbm_f.load_feature()
                 gbm_features_list.append(f)
-            print("join item features...")
+            print("join GBM features...")
 
             # joining item features
             gbm_features_df = reduce(
@@ -291,9 +291,9 @@ class FeatureManager:
 
 if __name__ == "__main__":
     # KIND = "train"
-    DATASET_NAME = "cutf_100_ItemKNN_tw_True_rs_False"
-    # DATASET_NAME = "dataset_v11"
-    VERSION = 2
+    DATASET_NAME = "cutf_100_ItemKNN_tw_True_rs_True"
+    # DATASET_NAME = "dataset_v102"
+    VERSION = 0
 
     # for kind in ["full"]:
     for kind in ["train", "full"]:

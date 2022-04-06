@@ -45,12 +45,12 @@ ITEM_FEATURES = [
     # SectionNO,
     # Price,
     # SalesFactor,
-    ItemSaleChannelScore,
+    # ItemSaleChannelScore,
 ]
 USER_ITEM_FEATURES = [
-    TimeScore,
-    TimeWeight,
-    TimesItemBought,
+    # TimeScore,
+    # TimeWeight,
+    # TimesItemBought,
 ]
 
 if __name__ == "__main__":

@@ -21,6 +21,7 @@ torch = "^1.10.2"
 xgboost = "^1.5.2"
 similaripy = "^0.1.2"
 lightgbm = "^3.3.2"
+graphviz = "^0.19.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
