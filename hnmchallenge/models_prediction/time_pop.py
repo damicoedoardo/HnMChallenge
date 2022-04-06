@@ -1,10 +1,9 @@
 import logging
-
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.models.itemknn.itemknn import ItemKNN
+from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
-
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.utils.logger import set_color
 
 
@@ -14,7 +13,7 @@ class TimePop(RecsInterface):
         kind: str,
         dataset,
         cutoff: int = 100,
-        alpha: float = 0.95,
+        alpha: float = 1.0,
         eps: float = 1e-6,
     ) -> None:
         super().__init__(kind, dataset, cutoff)
@@ -26,9 +25,9 @@ class TimePop(RecsInterface):
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_last_month_holdin()
+            self.dataset.get_holdin()
             if self.kind == "train"
-            else self.dr.get_filtered_full_data()
+            else self.dataset.get_full_data()
         )
         # data that you use to compute similarity
         # Using the full data available perform better
@@ -118,7 +117,7 @@ class TimePop(RecsInterface):
 
         final2 = final2.drop(["time_score", "popularity", "popularity_score"], axis=1)
         recs = final2
-
+        recs = recs[recs["rank"] <= self.cutoff]
         recs = recs.rename(
             {
                 "article_id": f"{self.RECS_NAME}_recs",
@@ -127,17 +126,20 @@ class TimePop(RecsInterface):
             },
             axis=1,
         )
+
         return recs
 
 
 if __name__ == "__main__":
     KIND = "train"
-    ALPHA = 0.0
+    ALPHA = 1.0
     EPS = 1e-6
     CUTOFF = 100
 
-    dataset = StratifiedDataset()
+    dataset = LMLDDataset()
 
-    rec = TimePop(kind=KIND, alpha=ALPHA, eps=EPS, dataset=dataset, cutoff=CUTOFF)
-    # rec.eval_recommendations(write_log=True)
-    rec.save_recommendations()
+    for kind in ["train", "full"]:
+        rec = TimePop(kind=kind, dataset=dataset, cutoff=100)
+        # rec.eval_recommendations(write_log=False)
+        rec.save_recommendations()
+        # rec.eval_recommendations()
