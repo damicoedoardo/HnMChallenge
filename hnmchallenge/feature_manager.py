@@ -291,12 +291,13 @@ class FeatureManager:
 
 if __name__ == "__main__":
     # KIND = "train"
-    DATASET_NAME = "cutf_100_ItemKNN_tw_True_rs_True"
+    # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
     # DATASET_NAME = "dataset_v102"
+    DATASET_NAME = "cutf_200_ItemKNN_tw_True_rs_False"
     VERSION = 0
 
     # for kind in ["full"]:
-    for kind in ["train", "full"]:
+    for kind in ["full"]:  # , "full"]:
         # for kind in ["train"]:
         dr = DataReader()
         dataset = LMLDDataset()

@@ -34,7 +34,9 @@ TEST_PERC = 0.1
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
 VERSION = 0
-DATASET = f"cutf_100_ItemKNN_tw_True_rs_True_{VERSION}.feather"
+# NAME = "cutf_100_TimePop_alpha_1.0"
+NAME = "cutf_200_ItemKNN_tw_True_rs_False"
+DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 cat = [
     "index_code_gbm",
@@ -112,10 +114,10 @@ if __name__ == "__main__":
         random_state=RANDOM_SEED,
         learning_rate=0.2,
         colsample_bytree=0.6,
-        reg_lambda=0.00,
-        reg_alpha=0.00,
-        eta=0.1,
-        max_depth=6,
+        reg_lambda=0.05,
+        reg_alpha=0.05,
+        # eta=0.3,
+        max_depth=4,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"

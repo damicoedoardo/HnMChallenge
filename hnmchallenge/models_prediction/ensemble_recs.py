@@ -72,7 +72,7 @@ class EnsembleRecs(RecsInterface):
                 df_y,
                 left_on=LEFT_ON,
                 right_on=RIGHT_ON,
-                how="left",
+                how="outer",
             )
 
             merged["recs"] = merged.filter(like="recs").ffill(axis=1).iloc[:, -1]
@@ -220,10 +220,13 @@ if __name__ == "__main__":
     models = [
         # "cutf_100_PSGE_tw_True_rs_False_k_256",
         # "cutf_100_Popularity_cutoff_100",
-        "cutf_100_ItemKNN_tw_True_rs_False",
-        "cutf_100_EASE_tw_True_rs_False_l2_0.001",
+        # "cutf_100_ItemKNN_tw_True_rs_False",
+        # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
         # "cutf_40_Popularity_cutoff_40",
         # "cutf_0_BoughtItemsRecs",
+        # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
+        "cutf_200_ItemKNN_tw_True_rs_False",
+        "cutf_100_TimePop_alpha_1.0",
     ]
     dataset = LMLDDataset()
     for kind in ["train"]:  # , "full"]:
@@ -232,5 +235,5 @@ if __name__ == "__main__":
             kind=kind,
             dataset=dataset,
         )
-        ensemble.save_recommendations(dataset_name="dataset_v102")
-        # ensemble.eval_recommendations(dataset_name="dataset_v03")
+        # ensemble.save_recommendations(dataset_name="dataset_v102")
+        ensemble.eval_recommendations(dataset_name="dataset_v1001")
