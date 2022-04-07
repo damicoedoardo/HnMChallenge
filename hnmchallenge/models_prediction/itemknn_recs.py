@@ -67,16 +67,16 @@ class ItemKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
 
-    REMOVE_SEEN = False
+    REMOVE_SEEN = True
     dataset = LMLDDataset()
 
     for kind in ["train", "full"]:
         rec_ens = ItemKNNRecs(
             kind=kind,
-            cutoff=300,
+            cutoff=100,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
         )
-        rec_ens.eval_recommendations()
+        # rec_ens.eval_recommendations()
         rec_ens.save_recommendations()

@@ -20,14 +20,14 @@ TRAIN_PERC = 0.8
 VAL_PERC = 0.1
 TEST_PERC = 0.1
 
-VERSION = 0
-DATASET = f"dataset_v101_{VERSION}.feather"
-MODEL_NAME = f"xgb_{DATASET}.json"
-
 # VERSION = 0
-# NAME = "cutf_100_ItemKNN_tw_True_rs_False"
-# DATASET = f"{NAME}_{VERSION}.feather"
+# DATASET = f"dataset_v101_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
+
+VERSION = 0
+NAME = "cutf_100_ItemKNN_tw_True_rs_False"
+DATASET = f"{NAME}_{VERSION}.feather"
+MODEL_NAME = f"xgb_{DATASET}.json"
 
 
 if __name__ == "__main__":
@@ -40,14 +40,19 @@ if __name__ == "__main__":
     dataset_path = base_load_path / DATASET
     features_df = pd.read_feather(dataset_path)
 
+    # drop rank and score
+    # cols_to_drop = [c for c in features_df.columns if ("EASE" in c) or ("ItemKNN" in c)]
+    # features_df = features_df.drop(cols_to_drop, axis=1)
+    # print(features_df.columns)
+
     unique_users = features_df[DEFAULT_USER_COL].unique()
     print(f"Unique users:{len(unique_users)}")
     train_len = math.ceil(len(unique_users) * TRAIN_PERC)
     val_len = math.ceil(len(unique_users) * VAL_PERC)
     test_len = math.ceil(len(unique_users) * TEST_PERC)
 
-    # np.random.seed(RANDOM_SEED)
-    np.random.seed(1024)
+    np.random.seed(RANDOM_SEED)
+    # np.random.seed(1024)
     np.random.shuffle(unique_users)
     train_users, val_users, test_users = (
         unique_users[:train_len],
@@ -88,7 +93,7 @@ if __name__ == "__main__":
         reg_lambda=0.0,
         reg_alpha=0.0,
         eta=0.1,
-        max_depth=5,
+        max_depth=6,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"

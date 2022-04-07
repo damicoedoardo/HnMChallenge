@@ -1,15 +1,18 @@
 import math
+import re
 
+import joblib
+import lightgbm as lgb
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import xgboost as xgb
-import lightgbm as lgb
 from xgboost import plot_importance
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
@@ -21,7 +24,6 @@ from hnmchallenge.features.light_gbm_features import (
     product_group_name_gbm,
 )
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
-import joblib
 
 TRAIN_PERC = 0.8
 VAL_PERC = 0.1
@@ -31,9 +33,9 @@ TEST_PERC = 0.1
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-VERSION = 2
-DATASET = f"cutf_100_ItemKNN_tw_True_rs_False_{VERSION}.feather"
-MODEL_NAME = f"lgbm_{DATASET}.json"
+VERSION = 0
+DATASET = f"cutf_100_ItemKNN_tw_True_rs_True_{VERSION}.feather"
+MODEL_NAME = f"lgbm_{DATASET}.pkl"
 cat = [
     "index_code_gbm",
     "product_group_name_gbm",
@@ -43,7 +45,7 @@ cat = [
 
 
 if __name__ == "__main__":
-    dataset = LMLWDataset()
+    dataset = LMLDDataset()
     dr = DataReader()
     model_save_path = dataset._DATASET_PATH / "lgbm_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
@@ -57,6 +59,11 @@ if __name__ == "__main__":
 
     for col in cat:
         features_df[col] = pd.Categorical(features_df[col])
+
+    features_df = features_df.rename(columns=lambda x: re.sub("[^A-Za-z0-9_]+", "", x))
+    # features_df = features_df.rename(columns=lambda x: re.sub("/", "", x))
+    # features_df = features_df.rename(columns=lambda x: re.sub(" ", "", x))
+    print(features_df.columns)
 
     unique_users = features_df[DEFAULT_USER_COL].unique()
     print(f"Unique users:{len(unique_users)}")
@@ -104,11 +111,11 @@ if __name__ == "__main__":
         # device="gpu",
         random_state=RANDOM_SEED,
         learning_rate=0.2,
-        colsample_bytree=0.4,
-        reg_lambda=0.05,
-        reg_alpha=0.05,
+        colsample_bytree=0.6,
+        reg_lambda=0.00,
+        reg_alpha=0.00,
         eta=0.1,
-        max_depth=5,
+        max_depth=6,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"
@@ -125,12 +132,12 @@ if __name__ == "__main__":
         eval_metric="map",
         eval_at=12,
         verbose=True,
-        early_stopping_rounds=2,
+        early_stopping_rounds=20,
         categorical_feature=cat_index,
     )
 
     model_name = model_save_path / MODEL_NAME
     # save model
-    joblib.dump(gbm, "lgb.pkl")
+    joblib.dump(gbm, model_name)
     # load model
     # gbm.save_model(model_name)
