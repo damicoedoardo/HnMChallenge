@@ -12,6 +12,7 @@ from xgboost import plot_importance
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last_month_last_4day import LML4DDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
@@ -34,7 +35,7 @@ TEST_PERC = 0.1
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
 VERSION = 0
-# NAME = "cutf_100_TimePop_alpha_1.0"
+# NAME = "dataset_letsgo4"
 NAME = "cutf_200_ItemKNN_tw_True_rs_False"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
@@ -47,7 +48,7 @@ cat = [
 
 
 if __name__ == "__main__":
-    dataset = LMLDDataset()
+    dataset = LML4DDataset()
     dr = DataReader()
     model_save_path = dataset._DATASET_PATH / "lgbm_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
@@ -114,10 +115,10 @@ if __name__ == "__main__":
         random_state=RANDOM_SEED,
         learning_rate=0.2,
         colsample_bytree=0.6,
-        reg_lambda=0.05,
-        reg_alpha=0.05,
+        reg_lambda=0.0,
+        reg_alpha=0.0,
         # eta=0.3,
-        max_depth=4,
+        max_depth=8,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"

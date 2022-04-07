@@ -1,3 +1,4 @@
+from hnmchallenge.datasets.last_month_last_4day import LML4DDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
@@ -9,16 +10,16 @@ from hnmchallenge.utils.logger import set_color
 from tqdm import tqdm
 
 USER_FEATURES = [
-    # Active,
-    # Age,
-    # ClubMemberStatus,
-    # FashionNewsFrequency,
-    # Fn,
-    # AvgPrice,
-    # UserTendency,
-    # UserTendencyLM,
-    # SaleChannelScore,
-    # UserAvgBuyDay,
+    Active,
+    Age,
+    ClubMemberStatus,
+    FashionNewsFrequency,
+    Fn,
+    AvgPrice,
+    UserTendency,
+    UserTendencyLM,
+    SaleChannelScore,
+    UserAvgBuyDay,
 ]
 GBM_FEATURES = [
     GraphicalAppearanceNOGBM,
@@ -27,35 +28,35 @@ GBM_FEATURES = [
     ProductGroupNameGBM,
 ]
 ITEM_FEATURES = [
-    # ColourGroupCode,
-    # DepartmentNO,
-    # GarmentGroupName,
-    # GraphicalAppearanceNO,
-    # GarmentGroupNO,
-    # IndexCode,
-    # IndexGroupName,
-    # IndexGroupNO,
-    # ItemCount,
-    # ItemCountLastMonth,
-    # NumberBought,
-    # PerceivedColourMasterID,
-    # PerceivedColourValueID,
-    # ProductGroupName,
-    # ProductTypeNO,
-    # SectionNO,
-    # Price,
-    # SalesFactor,
-    # ItemSaleChannelScore,
+    ColourGroupCode,
+    DepartmentNO,
+    GarmentGroupName,
+    GraphicalAppearanceNO,
+    GarmentGroupNO,
+    IndexCode,
+    IndexGroupName,
+    IndexGroupNO,
+    ItemCount,
+    ItemCountLastMonth,
+    NumberBought,
+    PerceivedColourMasterID,
+    PerceivedColourValueID,
+    ProductGroupName,
+    ProductTypeNO,
+    SectionNO,
+    Price,
+    SalesFactor,
+    ItemSaleChannelScore,
 ]
 USER_ITEM_FEATURES = [
-    # TimeScore,
-    # TimeWeight,
-    # TimesItemBought,
+    TimeScore,
+    TimeWeight,
+    TimesItemBought,
 ]
 
 if __name__ == "__main__":
     # TODO RECHECK ALL THE FEATURES AND RECREATE THE ONE-HOT ONE
-    dataset = LMLDDataset()
+    dataset = LML4DDataset()
     print(f"Creating features for DATASET:{dataset.DATASET_NAME}\n {print(dataset)}")
 
     # create the user features

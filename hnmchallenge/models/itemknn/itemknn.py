@@ -25,7 +25,7 @@ class ItemKNN(ItemSimilarityRecommender):
             users_num=None,
         )
         # sp_int = similaripy.normalization.bm25(sparse_interaction)
-        sim = similaripy.jaccard(sparse_interaction.T, k=500)
+        sim = similaripy.jaccard(sparse_interaction.T, k=2000)
         # sim = cosine_similarity(
         #     sparse_interaction.T, sparse_interaction.T, dense_output=False
         # )

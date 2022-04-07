@@ -6,6 +6,7 @@ import pandas as pd
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last_month_last_4day import LML4DDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
@@ -292,14 +293,14 @@ class FeatureManager:
 if __name__ == "__main__":
     # KIND = "train"
     # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
-    # DATASET_NAME = "dataset_v102"
+    # DATASET_NAME = "dataset_lml4d"
     DATASET_NAME = "cutf_200_ItemKNN_tw_True_rs_False"
     VERSION = 0
 
-    # for kind in ["full"]:
-    for kind in ["full"]:  # , "full"]:
+    for kind in ["full"]:
+        # for kind in ["train", "full"]:  # , "full"]:
         # for kind in ["train"]:
         dr = DataReader()
-        dataset = LMLDDataset()
+        dataset = LML4DDataset()
         fm = FeatureManager(dataset, kind)
         fm.create_features_df(DATASET_NAME, VERSION)
