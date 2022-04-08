@@ -28,9 +28,13 @@ class PopSales1(ItemFeature):
         )
 
         # normalisation popularity
-        feature["popularity"] = (
-            feature["popularity"] - feature["popularity"].min()
-        ) / (feature["popularity"].max() - feature["popularity"].min())
+        feature["popularity_sales_channel_1"] = (
+            feature["popularity_sales_channel_1"]
+            - feature["popularity_sales_channel_1"].min()
+        ) / (
+            feature["popularity_sales_channel_1"].max()
+            - feature["popularity_sales_channel_1"].min()
+        )
 
         item_df = self._get_keys_df()
         feature = pd.merge(item_df, feature, on=DEFAULT_ITEM_COL, how="left")

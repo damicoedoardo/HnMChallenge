@@ -1,4 +1,5 @@
 import logging
+import time
 from functools import reduce
 from pathlib import Path
 
@@ -21,22 +22,23 @@ logger = logging.getLogger(__name__)
 
 class FeatureManager:
     _GBM_FEATURES = [
-        GraphicalAppearanceNOGBM,
-        IndexCodeGBM,
-        IndexGroupNameGBM,
-        ProductGroupNameGBM,
+        # GraphicalAppearanceNOGBM,
+        # IndexCodeGBM,
+        # IndexGroupNameGBM,
+        # ProductGroupNameGBM,
     ]
     _USER_FEATURES = [
-        Active,
-        Age,
-        ClubMemberStatus,
-        FashionNewsFrequency,
+        # Active,
+        # Age,
+        # ClubMemberStatus,
+        # FashionNewsFrequency,
         # Fn,
         AvgPrice,
         UserTendency,
-        UserTendencyLM,
-        UserAvgBuyDay,
-        SaleChannelScore,
+        # UserTendencyLM,
+        # UserAvgBuyDay,
+        # SaleChannelScore,
+        # UserAvgBuySession,
     ]
     _ITEM_FEATURES = [
         ColourGroupCode,
@@ -59,6 +61,10 @@ class FeatureManager:
         Price,
         SalesFactor,
         ItemSaleChannelScore,
+        PopSales1,
+        PopSales2,
+        ItemAgePop,
+        ItemPriceProduct,
     ]
     _USER_ITEM_FEATURES = [
         TimeScore,
@@ -141,6 +147,7 @@ class FeatureManager:
             # load item features
             item_features_list = []
             print("Loading item features...")
+            # s = time.time()
             for item_f_class in self._ITEM_FEATURES:
                 item_f = item_f_class(self.dataset, self.kind)
                 f = item_f.load_feature()
@@ -162,6 +169,7 @@ class FeatureManager:
             base_df = pd.merge(
                 base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left"
             )
+            # print(f"Taken: {time.time()-s}")
 
         if len(self._USER_FEATURES) > 0:
             # load user features
@@ -239,7 +247,24 @@ class FeatureManager:
                 base_df, gbm_features_df, on=DEFAULT_ITEM_COL, how="left"
             )
 
+        ###################
+        # augment features
+        ###################
+        # fill nan values
+        print("Augmenting features...")
+
+        # try to create features to asses if is the case to predict an item that the user has just bought
+        base_df["times_item_bought"] = base_df["times_item_bought"].fillna(0)
+        base_df["tdiff"] = base_df["tdiff"].fillna(1)
+        # compute augmented features on tendency multiple buy
+        base_df["mb_stats_tdiff"] = (1 - base_df["tdiff"]) * base_df["user_tendency"]
+        base_df["mb_stats_number_bought"] = (
+            base_df["times_item_bought"] * base_df["user_tendency"]
+        )
+
+        ##############################
         # save the the feature dataset
+        ##############################
         dir_path = Path(f"hnmchallenge/models_prediction/dataset_logs/{name}")
         dir_path.mkdir(parents=True, exist_ok=True)
 
@@ -291,12 +316,12 @@ class FeatureManager:
 
 if __name__ == "__main__":
     # KIND = "train"
-    DATASET_NAME = "cutf_100_ItemKNN_tw_True_rs_True"
+    DATASET_NAME = "cutf_200_ItemKNN_tw_True_rs_False"
     # DATASET_NAME = "dataset_v102"
     VERSION = 0
 
-    # for kind in ["full"]:
-    for kind in ["train", "full"]:
+    for kind in ["train"]:
+        # for kind in ["train", "full"]:
         # for kind in ["train"]:
         dr = DataReader()
         dataset = LMLDDataset()

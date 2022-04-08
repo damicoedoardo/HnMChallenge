@@ -7,7 +7,7 @@ from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
 class ItemAgePop(ItemFeature):
-    # FEATURE_NAME = "popularity_last_month"
+    FEATURE_NAME = "item_age_pop"
 
     def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
@@ -87,8 +87,8 @@ class ItemAgePop(ItemFeature):
         feature = pd.merge(feature, fd6, on=[DEFAULT_ITEM_COL, "age"], how="left")
 
         feature = feature[
-            [DEFAULT_ITEM_COL, "age", "pop_25", "pop_25_40", "pop_40_60", "pop_60"]
-        ]
+            [DEFAULT_ITEM_COL, "pop_25", "pop_25_40", "pop_40_60", "pop_60"]
+        ].drop_duplicates()
 
         item_df = self._get_keys_df()
         feature = pd.merge(item_df, feature, on=DEFAULT_ITEM_COL, how="left")
