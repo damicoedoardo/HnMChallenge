@@ -10,3 +10,6 @@ from hnmchallenge.features.user_features.user_average_buy_day import UserAvgBuyD
 from hnmchallenge.features.user_features.user_avg_price import AvgPrice
 from hnmchallenge.features.user_features.user_tendency import UserTendency
 from hnmchallenge.features.user_features.user_tendency_lm import UserTendencyLM
+from hnmchallenge.features.user_features.user_bought_items_per_session import (
+    UserAvgBuySession,
+)

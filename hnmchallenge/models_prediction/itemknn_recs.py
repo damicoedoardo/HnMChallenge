@@ -5,6 +5,7 @@ import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.datasets.last2month_last_week import L2MLWDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
+from hnmchallenge.datasets.last_month_last_day_aug_sep import LMLASDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
@@ -19,7 +20,7 @@ class ItemKNNRecs(RecsInterface):
         dataset,
         time_weight: bool = True,
         remove_seen: bool = False,
-        cutoff: int = 100,
+        cutoff: int = 200,
     ) -> None:
         super().__init__(kind, dataset, cutoff)
         self.time_weight = time_weight
@@ -67,13 +68,13 @@ class ItemKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
 
-    REMOVE_SEEN = True
-    dataset = LMLDDataset()
+    REMOVE_SEEN = False
+    dataset = LMLASDDataset()
 
     for kind in ["train", "full"]:
         rec_ens = ItemKNNRecs(
             kind=kind,
-            cutoff=100,
+            cutoff=200,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,

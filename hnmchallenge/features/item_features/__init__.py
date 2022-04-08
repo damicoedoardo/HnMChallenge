@@ -25,3 +25,12 @@ from hnmchallenge.features.item_features.perceived_colour_value_id import (
 from hnmchallenge.features.item_features.product_group_name import ProductGroupName
 from hnmchallenge.features.item_features.product_type_no import ProductTypeNO
 from hnmchallenge.features.item_features.section_no import SectionNO
+
+from hnmchallenge.features.item_features.item_popularity_sales_channel_1 import (
+    PopSales1,
+)
+from hnmchallenge.features.item_features.item_popularity_sales_channel_2 import (
+    PopSales2,
+)
+from hnmchallenge.features.item_features.item_price_product_no import ItemPriceProduct
+from hnmchallenge.features.item_features.item_age_popularity import ItemAgePop
