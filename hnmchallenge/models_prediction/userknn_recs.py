@@ -9,11 +9,12 @@ from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
+from hnmchallenge.models.userknn.userknn import UserKNN
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.utils.logger import set_color
 
 
-class ItemKNNRecs(RecsInterface):
+class UserKNNRecs(RecsInterface):
     def __init__(
         self,
         kind: str,
@@ -27,7 +28,7 @@ class ItemKNNRecs(RecsInterface):
         self.remove_seen = remove_seen
 
         # set recommender name
-        self.RECS_NAME = f"ItemKNN_tw_{time_weight}_rs_{remove_seen}"
+        self.RECS_NAME = f"UserKNN_tw_{time_weight}_rs_{remove_seen}"
 
     def get_recommendations(self) -> pd.DataFrame:
         data_df = (
@@ -41,17 +42,12 @@ class ItemKNNRecs(RecsInterface):
         # data_sim = data_df[data_df["t_dat"] > "2020-09-01"]
 
         # instantiate the recommender algorithm
-        recom = ItemKNN(self.dataset, time_weight=self.time_weight, topk=1000)
+        recom = UserKNN(self.dataset, time_weight=self.time_weight, topk=1000)
 
         print(set_color("Computing similarity...", "green"))
         recom.compute_similarity_matrix(data_df)
-        recs = recom.recommend_multicore(
-            interactions=data_df,
-            batch_size=40_000,
-            num_cpus=72,
-            remove_seen=self.remove_seen,
-            white_list_mb_item=None,
-            cutoff=self.cutoff,
+        recs = recom.recommend_similaripy(
+            interactions=data_df, cutoff=self.cutoff, remove_seen=self.remove_seen
         )
 
         recs = recs.rename(
@@ -66,12 +62,12 @@ class ItemKNNRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    TW = True
+    TW = False
     REMOVE_SEEN = False
     dataset = LMLWDataset()
 
     for kind in ["train", "full"]:
-        rec_ens = ItemKNNRecs(
+        rec_ens = UserKNNRecs(
             kind=kind,
             cutoff=100,
             time_weight=TW,
