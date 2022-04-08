@@ -9,6 +9,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 import scipy.sparse as sps
+import similaripy
 import torch
 from p_tqdm import p_imap, p_map
 from pathos.pools import ProcessPool
@@ -245,6 +246,15 @@ class AbstractRecommender(ABC):
 
         return recommendation_df
 
+    def recommend_similaripy(
+        self,
+        interactions: pd.DataFrame,
+        cutoff: int = 12,
+        remove_seen: bool = True,
+    ) -> pd.DataFrame:
+        print("Recommend similaripy!")
+        scores = self.predict(interactions, cutoff, remove_seen)
+
 
 class ItemSimilarityRecommender(AbstractRecommender, ABC):
     """Item similarity matrix recommender interface
@@ -285,3 +295,103 @@ class ItemSimilarityRecommender(AbstractRecommender, ABC):
 
         scores_df = pd.DataFrame(scores, index=list(user_mapping_dict.keys()))
         return scores_df
+
+
+class UserSimilarityRecommender(AbstractRecommender, ABC):
+    """Item similarity matrix recommender interface
+
+    Each recommender extending this class has to implement compute_similarity_matrix() method
+    """
+
+    def __init__(self, dataset, time_weight: bool = False):
+        super().__init__(dataset=dataset)
+        self.time_weight = time_weight
+        self.similarity_matrix = None
+
+    @abstractmethod
+    def compute_similarity_matrix(self):
+        """Compute similarity matrix and assign it to self.similarity_matrix"""
+        pass
+
+    def predict(self, interactions: pd.DataFrame, cutoff: int, remove_seen: bool):
+        assert (
+            self.similarity_matrix is not None
+        ), "Similarity matrix is not computed, call compute_similarity_matrix()"
+        if self.time_weight:
+            logger.debug(set_color("Predicting using time_weight importance...", "red"))
+        sparse_interaction, user_mapping_dict, _ = interactions_to_sparse_matrix(
+            interactions,
+            items_num=self.dataset._ARTICLES_NUM,
+            users_num=None,
+            time_weight=self.time_weight,
+        )
+        # compute scores as the dot product between user interactions and the similarity matrix
+        if not sps.issparse(self.similarity_matrix):
+            raise NotImplementedError(
+                "user similarity can only be used with sparse similarity matrices!"
+            )
+        else:
+            logger.debug(set_color(f"SPARSE Item Similarity MUL...", "cyan"))
+
+            print(self.similarity_matrix.shape)
+            print(sparse_interaction.shape)
+            print(cutoff)
+
+            filter_cols = sparse_interaction if remove_seen else None
+            scores = similaripy.dot_product(
+                self.similarity_matrix.T,
+                sparse_interaction,
+                k=cutoff,
+                # filter_cols=filter_cols,
+            )
+            # scores = self.similarity_matrix.dot(sparse_interaction)
+            scores = scores.toarray()
+            print(scores)
+
+        scores_df = pd.DataFrame(scores, index=list(user_mapping_dict.keys()))
+        return scores_df
+
+
+class RepresentationBasedRecommender(AbstractRecommender, ABC):
+    """Representation based recommender interface"""
+
+    def __init__(self, dataset):
+        super().__init__(dataset)
+
+    @abstractmethod
+    def compute_representations(self, interactions: pd.DataFrame) -> pd.DataFrame:
+        """Compute users and items representations
+
+        Args:
+            interactions (pd.Dataframe): interactions of the users for which
+                retrieve predictions stored inside a pd.DataFrame
+
+        Returns:
+            pd.DataFrame, pd.DataFrame: user representations, item representations
+        """
+        pass
+
+    def predict(self, interactions):
+        # TODO CHECK THAT
+
+        # we user the dor product between user and item embeddings to predict the user preference scores
+        users_repr_df, items_repr_df = self.compute_representations(interactions)
+
+        assert isinstance(users_repr_df, pd.DataFrame) and isinstance(
+            items_repr_df, pd.DataFrame
+        ), "Representations have to be stored inside pd.DataFrane objects!\n user: {}, item: {}".format(
+            type(users_repr_df), type(items_repr_df)
+        )
+        assert (
+            users_repr_df.shape[1] == items_repr_df.shape[1]
+        ), "Users and Items representations have not the same shape!\n user: {}, item: {}".format(
+            users_repr_df.shape[1], items_repr_df.shape[1]
+        )
+
+        # sort items representations
+        items_repr_df.sort_index(inplace=True)
+
+        # compute the scores as dot product between users and items representations
+        arr_scores = users_repr_df.to_numpy().dot(items_repr_df.to_numpy().T)
+        scores = pd.DataFrame(arr_scores, index=users_repr_df.index)
+        return scores

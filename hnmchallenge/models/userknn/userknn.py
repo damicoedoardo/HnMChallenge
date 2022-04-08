@@ -2,7 +2,10 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sps
 import similaripy
-from hnmchallenge.recommender_interface import ItemSimilarityRecommender
+from hnmchallenge.recommender_interface import (
+    ItemSimilarityRecommender,
+    UserSimilarityRecommender,
+)
 from hnmchallenge.utils.sparse_matrix import (
     interactions_to_sparse_matrix,
     truncate_top_k,
@@ -11,8 +14,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sparsesvd import sparsesvd
 
 
-class ItemKNN(ItemSimilarityRecommender):
-    name = "ItemKNN"
+class UserKNN(UserSimilarityRecommender):
+    name = "UserKNN"
 
     def __init__(self, dataset, topk: int, time_weight: bool = False):
         super().__init__(dataset=dataset, time_weight=time_weight)
@@ -25,7 +28,7 @@ class ItemKNN(ItemSimilarityRecommender):
             users_num=None,
         )
         # sp_int = similaripy.normalization.bm25(sparse_interaction)
-        sim = similaripy.rp3beta(sparse_interaction.T, k=2000, alpha=0.7, beta=0.3)
+        sim = similaripy.cosine(sparse_interaction, k=2000)
         # sim = cosine_similarity(
         #     sparse_interaction.T, sparse_interaction.T, dense_output=False
         # )
