@@ -22,72 +22,50 @@ class ItemAgePop(ItemFeature):
         customers = customers[[DEFAULT_USER_COL, "age"]]
         fd2 = pd.merge(data_df, customers, on=DEFAULT_USER_COL, how="left")
 
-        fd3 = (
-            fd2[fd2["age"] <= 25]
-            .groupby([DEFAULT_ITEM_COL, "age"])
-            .count()
-            .reset_index()
-        )
-        fd3 = fd3[[DEFAULT_ITEM_COL, "age", "t_dat"]].rename(
-            {"t_dat": "pop_25"}, axis=1
-        )
+        fd3 = fd2[fd2["age"] <= 25].groupby([DEFAULT_ITEM_COL]).count().reset_index()
+        fd3 = fd3[[DEFAULT_ITEM_COL, "t_dat"]].rename({"t_dat": "pop_25"}, axis=1)
         fd3["pop_25"] = (fd3["pop_25"] - fd3["pop_25"].min()) / (
             fd3["pop_25"].max() - fd3["pop_25"].min()
         )
 
         fd4 = (
             fd2[(fd2["age"] > 25) & (fd2["age"] <= 40)]
-            .groupby([DEFAULT_ITEM_COL, "age"])
+            .groupby([DEFAULT_ITEM_COL])
             .count()
             .reset_index()
         )
-        fd4 = fd4[[DEFAULT_ITEM_COL, "age", "t_dat"]].rename(
-            {"t_dat": "pop_25_40"}, axis=1
-        )
+        fd4 = fd4[[DEFAULT_ITEM_COL, "t_dat"]].rename({"t_dat": "pop_25_40"}, axis=1)
         fd4["pop_25_40"] = (fd4["pop_25_40"] - fd4["pop_25_40"].min()) / (
             fd4["pop_25_40"].max() - fd4["pop_25_40"].min()
         )
 
         fd5 = (
             fd2[(fd2["age"] > 40) & (fd2["age"] <= 60)]
-            .groupby([DEFAULT_ITEM_COL, "age"])
+            .groupby([DEFAULT_ITEM_COL])
             .count()
             .reset_index()
         )
-        fd5 = fd5[[DEFAULT_ITEM_COL, "age", "t_dat"]].rename(
-            {"t_dat": "pop_40_60"}, axis=1
-        )
+        fd5 = fd5[[DEFAULT_ITEM_COL, "t_dat"]].rename({"t_dat": "pop_40_60"}, axis=1)
         fd5["pop_40_60"] = (fd5["pop_40_60"] - fd5["pop_40_60"].min()) / (
             fd5["pop_40_60"].max() - fd5["pop_40_60"].min()
         )
 
-        fd6 = (
-            fd2[fd2["age"] > 60]
-            .groupby([DEFAULT_ITEM_COL, "age"])
-            .count()
-            .reset_index()
-        )
-        fd6 = fd6[[DEFAULT_ITEM_COL, "age", "t_dat"]].rename(
-            {"t_dat": "pop_60"}, axis=1
-        )
+        fd6 = fd2[fd2["age"] > 60].groupby([DEFAULT_ITEM_COL]).count().reset_index()
+        fd6 = fd6[[DEFAULT_ITEM_COL, "t_dat"]].rename({"t_dat": "pop_60"}, axis=1)
         fd6["pop_60"] = (fd6["pop_60"] - fd6["pop_60"].min()) / (
             fd6["pop_60"].max() - fd6["pop_60"].min()
         )
 
-        articles = self.dataset.get_articles_df()
-        articles = articles[DEFAULT_ITEM_COL]
-        articles = pd.merge(fd2, articles, on=DEFAULT_ITEM_COL, how="left")
-        articles = articles[
-            articles.duplicated(subset=[DEFAULT_USER_COL, DEFAULT_ITEM_COL])
-        ]
+        articles = self.dataset.get_full_data()
+        articles = articles[DEFAULT_ITEM_COL].drop_duplicates()
 
-        feature = pd.merge(articles, fd3, on=[DEFAULT_ITEM_COL, "age"], how="left")
-        feature = pd.merge(feature, fd4, on=[DEFAULT_ITEM_COL, "age"], how="left")
-        feature = pd.merge(feature, fd5, on=[DEFAULT_ITEM_COL, "age"], how="left")
-        feature = pd.merge(feature, fd6, on=[DEFAULT_ITEM_COL, "age"], how="left")
+        feature = pd.merge(articles, fd3, on=[DEFAULT_ITEM_COL], how="left")
+        feature = pd.merge(feature, fd4, on=[DEFAULT_ITEM_COL], how="left")
+        feature = pd.merge(feature, fd5, on=[DEFAULT_ITEM_COL], how="left")
+        feature = pd.merge(feature, fd6, on=[DEFAULT_ITEM_COL], how="left")
 
         feature = feature[
-            [DEFAULT_ITEM_COL, "age", "pop_25", "pop_25_40", "pop_40_60", "pop_60"]
+            [DEFAULT_ITEM_COL, "pop_25", "pop_25_40", "pop_40_60", "pop_60"]
         ]
 
         item_df = self._get_keys_df()
