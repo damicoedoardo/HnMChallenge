@@ -1,10 +1,9 @@
 import logging
-
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.utils.logger import set_color
 
 
@@ -135,12 +134,12 @@ if __name__ == "__main__":
     KIND = "train"
     ALPHA = 1.0
     EPS = 1e-6
-    CUTOFF = 200
+    CUTOFF = 100
 
     dataset = LMLDDataset()
 
     for kind in ["train", "full"]:
-        rec = TimePop(kind=kind, dataset=dataset, cutoff=CUTOFF)
+        rec = TimePop(kind=kind, dataset=dataset, cutoff=100)
         # rec.eval_recommendations(write_log=False)
-        # rec.save_recommendations()
-        rec.eval_recommendations()
+        rec.save_recommendations()
+        # rec.eval_recommendations()

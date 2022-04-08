@@ -6,9 +6,9 @@ from hnmchallenge.constant import *
 from hnmchallenge.dataset_interface import DatasetInterface
 
 
-class LML4DDataset(DatasetInterface):
+class LMLASDDataset(DatasetInterface):
 
-    DATASET_NAME = "LML4D_dataset"
+    DATASET_NAME = "LMLASD_dataset"
     _ARTICLES_NUM = 26_252
     _CUSTOMERS_NUM = 1_167_050
 
@@ -134,7 +134,7 @@ class LML4DDataset(DatasetInterface):
 
     def create_holdin_holdout(self) -> None:
         fd = self.get_full_data()
-        last_month = fd[(fd["t_dat"] >= "2020-06-01")]
+        last_month = fd[(fd["t_dat"] >= "2020-09-01")]
         sorted_data = last_month.sort_values([DEFAULT_USER_COL, "t_dat"]).reset_index(
             drop=True
         )
@@ -148,10 +148,21 @@ class LML4DDataset(DatasetInterface):
 
         # create holdin
         hold_in1 = sorted_data[sorted_data["t_dat"] != sorted_data["last_buy"]]
-        hold_in2 = fd[(fd["t_dat"] < "2020-06-01")]
+        fd1 = fd[(fd["t_dat"] < "2020-09-01")]
+        intervals = [
+            ("2020-08-01", "2020-08-31"),
+            ("2019-08-01", "2019-09-30"),
+            ("2018-08-01", "2018-09-30"),
+        ]
+        m = np.logical_or.reduce(
+            [np.logical_and(fd1["t_dat"] >= l, fd1["t_dat"] <= u) for l, u in intervals]
+        )
+        hold_in2 = fd1.loc[m]
+
         hold_in = pd.concat([hold_in1, hold_in2], axis=0)
         hold_in = hold_in.drop("last_buy", axis=1)
         hold_in = hold_in.sort_values(by=[DEFAULT_USER_COL, "t_dat"], ignore_index=True)
+        print(f"Holdin users:{hold_in[DEFAULT_USER_COL].nunique()}")
 
         # save holdin holdout
         hold_in.reset_index(drop=True).to_feather(self._HOLDIN_PATH)
@@ -160,6 +171,6 @@ class LML4DDataset(DatasetInterface):
 
 
 if __name__ == "__main__":
-    dataset = LML4DDataset()
+    dataset = LMLASDDataset()
     dataset.remap_user_item_ids()
     dataset.create_holdin_holdout()

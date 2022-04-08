@@ -25,25 +25,15 @@ from matplotlib.pyplot import axis
 class EnsembleRecs(RecsInterface):
     RECS_NAME = None
 
-    def __init__(
-        self, models_list: list, weight_list: list, kind: str, dataset
-    ) -> None:
+    def __init__(self, models_list: list, kind: str, dataset) -> None:
         # Check that all the models passed are extending Recs Interface
         assert (
             len(models_list) > 1
         ), "At least 2 models should be passed to create an Ensemble !"
-        assert len(weight_list) == len(
-            models_list
-        ), "weight and model lists have no the same length!"
+
         cutoff = -1
         super().__init__(kind=kind, dataset=dataset, cutoff=-1)
 
-        # normalise weights
-        weight_sum = np.sum(weight_list)
-        weight_list_norm = [w / weight_sum for w in weight_list]
-        print(weight_list_norm)
-
-        self.weight_list = weight_list_norm
         self.models_list = models_list
         self.RECS_NAME = self._create_ensemble_name()
         self.avg_recs_per_user = None
@@ -82,7 +72,7 @@ class EnsembleRecs(RecsInterface):
                 df_y,
                 left_on=LEFT_ON,
                 right_on=RIGHT_ON,
-                how="outer",
+                how="left",
             )
 
             merged["recs"] = merged.filter(like="recs").ffill(axis=1).iloc[:, -1]
@@ -122,36 +112,6 @@ class EnsembleRecs(RecsInterface):
         # adding final ensemble rank calling it `rank` for evaluation library
         ensemble_recs["rank"] = ensemble_rank
 
-        ######### Modification with the scores
-        ensemble_recs = ensemble_recs.fillna(0)
-        score_cols = [col for col in ensemble_recs.columns if "score" in col]
-        # apply z-score to scores columns
-        for column in score_cols:
-            ensemble_recs[column] = (
-                ensemble_recs[column] - ensemble_recs[column].mean()
-            ) / ensemble_recs[column].std()
-
-        ensemble_recs["weighted_score"] = 0
-        for score_col, model_weight in zip(score_cols, self.weight_list):
-            ensemble_recs["weighted_score"] = (
-                ensemble_recs["weighted_score"]
-                + ensemble_recs[score_col] * model_weight
-            )
-
-        # we do not have the relevance column on full
-        if self.kind == "train":
-            ensemble_recs = ensemble_recs[
-                [DEFAULT_USER_COL, "recs", "weighted_score", "relevance"]
-            ]
-        else:
-            ensemble_recs = ensemble_recs[[DEFAULT_USER_COL, "recs", "weighted_score"]]
-        # create the rank col
-        ensemble_recs["rank"] = (
-            ensemble_recs.groupby(DEFAULT_USER_COL)["weighted_score"]
-            .rank(ascending=False, method="min")
-            .astype(int)
-        )
-
         return ensemble_recs
 
     def save_recommendations(self, dataset_name: str) -> None:
@@ -177,7 +137,7 @@ class EnsembleRecs(RecsInterface):
         # print(col_to_drop)
         # recs = recs.drop(col_to_drop, axis=1)
         # print(recs.columns)
-        # recs = recs.drop("rank", axis=1)
+        recs = recs.drop("rank", axis=1)
 
         # save the retrieved recommendations
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)
@@ -257,31 +217,20 @@ class EnsembleRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    # itemknn_w = 39205 * 0.1397332847340381 * 0.04217208947113406
-    # time_pop_w = 47340 * 0.1839606121190764 * 0.0970550910163751
-    itemknn_w = 0.99
-    time_pop_w = 0.01
-
     models = [
         # "cutf_100_PSGE_tw_True_rs_False_k_256",
         # "cutf_100_Popularity_cutoff_100",
-        # "cutf_100_ItemKNN_tw_True_rs_False",
-        # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
+        "cutf_100_ItemKNN_tw_True_rs_False",
+        "cutf_100_EASE_tw_True_rs_False_l2_0.001",
         # "cutf_40_Popularity_cutoff_40",
         # "cutf_0_BoughtItemsRecs",
-        # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
-        "cutf_100_ItemKNN_tw_True_rs_False",
-        "cutf_100_TimePop_alpha_1.0",
     ]
     dataset = LMLDDataset()
-    for kind in ["train", "full"]:
-        # for kind in ["train"]:
+    for kind in ["train"]:  # , "full"]:
         ensemble = EnsembleRecs(
             models_list=models,
-            weight_list=[itemknn_w, time_pop_w],
             kind=kind,
             dataset=dataset,
         )
-
-        ensemble.save_recommendations(dataset_name="dataset_letsgo4")
-        # ensemble.eval_recommendations(dataset_name="dataset_v1001")
+        ensemble.save_recommendations(dataset_name="dataset_v102")
+        # ensemble.eval_recommendations(dataset_name="dataset_v03")

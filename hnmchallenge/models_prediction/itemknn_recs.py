@@ -4,8 +4,8 @@ import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.datasets.last2month_last_week import L2MLWDataset
-from hnmchallenge.datasets.last_month_last_4day import LML4DDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
+from hnmchallenge.datasets.last_month_last_day_aug_sep import LMLASDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
@@ -20,7 +20,7 @@ class ItemKNNRecs(RecsInterface):
         dataset,
         time_weight: bool = True,
         remove_seen: bool = False,
-        cutoff: int = 100,
+        cutoff: int = 200,
     ) -> None:
         super().__init__(kind, dataset, cutoff)
         self.time_weight = time_weight
@@ -38,7 +38,7 @@ class ItemKNNRecs(RecsInterface):
         # data that you use to compute similarity
 
         # Using the full data available perform better
-        # data_sim = data_df[data_df["t_dat"] > "2020-09-01"]
+        # data_sim = data_df[data_df["t_dat"] > "2020-08-31"]
 
         # instantiate the recommender algorithm
         recom = ItemKNN(self.dataset, time_weight=self.time_weight, topk=1000)
@@ -68,15 +68,15 @@ class ItemKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = False
-    dataset = LMLWDataset()
+    dataset = LMLASDDataset()
 
     for kind in ["train", "full"]:
         rec_ens = ItemKNNRecs(
             kind=kind,
-            cutoff=100,
+            cutoff=200,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
         )
-        rec_ens.eval_recommendations()
-        # rec_ens.save_recommendations()
+        # rec_ens.eval_recommendations()
+        rec_ens.save_recommendations()

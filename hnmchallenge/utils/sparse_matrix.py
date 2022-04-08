@@ -124,7 +124,7 @@ def interactions_to_sparse_matrix(
             lambda x: 1 / ((datetime.datetime(2020, 9, 23) - x).days)
         )
 
-        data = (interactions["time_score"].values) ** (1 / 2)
+        data = interactions["time_score"].values
     else:
         data = np.ones(len(row_data))
 
