@@ -22,23 +22,23 @@ logger = logging.getLogger(__name__)
 
 class FeatureManager:
     _GBM_FEATURES = [
-        # GraphicalAppearanceNOGBM,
-        # IndexCodeGBM,
-        # IndexGroupNameGBM,
-        # ProductGroupNameGBM,
+        GraphicalAppearanceNOGBM,
+        IndexCodeGBM,
+        IndexGroupNameGBM,
+        ProductGroupNameGBM,
     ]
     _USER_FEATURES = [
-        # Active,
-        # Age,
-        # ClubMemberStatus,
-        # FashionNewsFrequency,
-        # Fn,
+        Active,
+        Age,
+        ClubMemberStatus,
+        FashionNewsFrequency,
+        Fn,
         AvgPrice,
         UserTendency,
-        # UserTendencyLM,
-        # UserAvgBuyDay,
-        # SaleChannelScore,
-        # UserAvgBuySession,
+        UserTendencyLM,
+        UserAvgBuyDay,
+        SaleChannelScore,
+        UserAvgBuySession,
     ]
     _ITEM_FEATURES = [
         ColourGroupCode,
@@ -320,10 +320,10 @@ if __name__ == "__main__":
     # DATASET_NAME = "dataset_v102"
     VERSION = 0
 
-    for kind in ["train"]:
+    for kind in ["full"]:
         # for kind in ["train", "full"]:
         # for kind in ["train"]:
         dr = DataReader()
-        dataset = LMLDDataset()
+        dataset = LMLWDataset()
         fm = FeatureManager(dataset, kind)
         fm.create_features_df(DATASET_NAME, VERSION)

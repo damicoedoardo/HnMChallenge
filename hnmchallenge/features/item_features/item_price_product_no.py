@@ -24,13 +24,13 @@ class ItemPriceProduct(ItemFeature):
         last_date_item = (
             data_df.groupby(DEFAULT_ITEM_COL)[["t_dat"]].max().reset_index()
         )
-        feature = pd.merge(
+        data_df = pd.merge(
             data_df, last_date_item, on=[DEFAULT_ITEM_COL, "t_dat"]
         ).drop_duplicates(subset=DEFAULT_ITEM_COL)[[DEFAULT_ITEM_COL, "price"]]
 
         fd2 = pd.merge(data_df, articles, on=DEFAULT_ITEM_COL, how="left")
         fd3 = fd2.groupby(["product_type_no"])["price"].mean().reset_index(name="mean")
-        fd3 = pd.merge(fd2, fd3, on=[DEFAULT_ITEM_COL, "product_type_no"], how="left")
+        fd3 = pd.merge(fd2, fd3, on=["product_type_no"], how="left")
         fd4 = fd2.groupby(["product_type_no"])["price"].min().reset_index(name="min")
         fd4 = pd.merge(fd3, fd4, on=["product_type_no"], how="left")
         fd5 = fd2.groupby(["product_type_no"])["price"].max().reset_index(name="max")

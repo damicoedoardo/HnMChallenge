@@ -25,7 +25,7 @@ TEST_PERC = 0.1
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
 VERSION = 0
-NAME = "cutf_100_ItemKNN_tw_True_rs_False"
+NAME = "cutf_500_ItemKNN_tw_True_rs_False"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"xgb_{DATASET}.json"
 
