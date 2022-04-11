@@ -35,18 +35,26 @@ class ItemKNNRecs(RecsInterface):
             if self.kind == "train"
             else self.dataset.get_full_data()
         )
+
+        if self.kind == "train":
+            # retrieve the holdout
+            holdout = self.dataset.get_holdout()
+            users_holdout = holdout[DEFAULT_USER_COL].unique()
+            prediction_data = data_df[data_df[DEFAULT_USER_COL].isin(users_holdout)]
+        else:
+            prediction_data = data_df
         # data that you use to compute similarity
 
         # Using the full data available perform better
-        # data_sim = data_df[data_df["t_dat"] > "2020-08-31"]
+        data_sim = data_df[data_df["t_dat"] > "2020-09-01"]
 
         # instantiate the recommender algorithm
         recom = ItemKNN(self.dataset, time_weight=self.time_weight, topk=1000)
 
         print(set_color("Computing similarity...", "green"))
-        recom.compute_similarity_matrix(data_df)
+        recom.compute_similarity_matrix(data_sim)
         recs = recom.recommend_multicore(
-            interactions=data_df,
+            interactions=prediction_data,
             batch_size=40_000,
             num_cpus=72,
             remove_seen=self.remove_seen,
@@ -68,7 +76,7 @@ class ItemKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = False
-    dataset = LMLASDDataset()
+    dataset = LMLDDataset()
 
     for kind in ["train", "full"]:
         rec_ens = ItemKNNRecs(
@@ -78,5 +86,5 @@ if __name__ == "__main__":
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
         )
-        # rec_ens.eval_recommendations()
-        rec_ens.save_recommendations()
+        rec_ens.eval_recommendations()
+        # rec_ens.save_recommendations()

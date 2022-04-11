@@ -7,7 +7,7 @@ from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
 class ItemPriceProduct(ItemFeature):
-    # FEATURE_NAME = "popularity_sales_channel_2"
+    FEATURE_NAME = "item_price_stat_product"
 
     def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)

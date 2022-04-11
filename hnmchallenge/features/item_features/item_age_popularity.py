@@ -7,7 +7,7 @@ from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
 class ItemAgePop(ItemFeature):
-    # FEATURE_NAME = "popularity_last_month"
+    FEATURE_NAME = "item_age_pop"
 
     def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)

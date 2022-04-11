@@ -9,6 +9,7 @@ from hnmchallenge.utils.logger import set_color
 from tqdm import tqdm
 
 USER_FEATURES = [
+    # UserAvgBuySession,
     # Active,
     # Age,
     # ClubMemberStatus,
@@ -21,10 +22,10 @@ USER_FEATURES = [
     # UserAvgBuyDay,
 ]
 GBM_FEATURES = [
-    GraphicalAppearanceNOGBM,
-    IndexCodeGBM,
-    IndexGroupNameGBM,
-    ProductGroupNameGBM,
+    # GraphicalAppearanceNOGBM,
+    # IndexCodeGBM,
+    # IndexGroupNameGBM,
+    # ProductGroupNameGBM,
 ]
 ITEM_FEATURES = [
     # ColourGroupCode,
@@ -46,6 +47,10 @@ ITEM_FEATURES = [
     # Price,
     # SalesFactor,
     # ItemSaleChannelScore,
+    # ItemAgePop,
+    # PopSales1,
+    # PopSales2,
+    # ItemPriceProduct,
 ]
 USER_ITEM_FEATURES = [
     # TimeScore,
@@ -67,19 +72,19 @@ if __name__ == "__main__":
                 f = uf(kind=kind, dataset=dataset)
                 f.save_feature()
 
-    # create the item features
-    print("Saving Item features")
-    if len(ITEM_FEATURES) > 0:
-        for uf in tqdm(ITEM_FEATURES):
+    # create gbm features
+    print("Saving gbm features")
+    if len(GBM_FEATURES) > 0:
+        for uf in tqdm(GBM_FEATURES):
             print(set_color(f"Saving {uf.FEATURE_NAME}...", "cyan"))
             for kind in ["train", "full"]:
                 f = uf(kind=kind, dataset=dataset)
                 f.save_feature()
 
-    # create gbm features
-    print("Saving User features")
-    if len(GBM_FEATURES) > 0:
-        for uf in tqdm(GBM_FEATURES):
+    # create the item features
+    print("Saving Item features")
+    if len(ITEM_FEATURES) > 0:
+        for uf in tqdm(ITEM_FEATURES):
             print(set_color(f"Saving {uf.FEATURE_NAME}...", "cyan"))
             for kind in ["train", "full"]:
                 f = uf(kind=kind, dataset=dataset)

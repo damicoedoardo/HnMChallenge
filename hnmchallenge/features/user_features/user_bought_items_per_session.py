@@ -7,7 +7,7 @@ from hnmchallenge.features.feature_interfaces import UserFeature
 
 
 class UserAvgBuySession(UserFeature):
-    FEATURE_NAME = "user_average_buy_day"
+    FEATURE_NAME = "user_average_buy_session"
 
     def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
