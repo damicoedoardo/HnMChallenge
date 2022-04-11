@@ -3,7 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.datasets.last2month_last_week import L2MLWDataset
+from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_day_aug_sep import LMLASDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
@@ -46,13 +46,13 @@ class ItemKNNRecs(RecsInterface):
         # data that you use to compute similarity
 
         # Using the full data available perform better
-        # data_sim = data_df[data_df["t_dat"] > "2020-09-01"]
+        data_sim = data_df[data_df["t_dat"] > "2020-04-01"]
 
         # instantiate the recommender algorithm
         recom = ItemKNN(self.dataset, time_weight=self.time_weight, topk=1000)
 
         print(set_color("Computing similarity...", "green"))
-        recom.compute_similarity_matrix(data_df)
+        recom.compute_similarity_matrix(data_sim)
         recs = recom.recommend_multicore(
             interactions=prediction_data,
             batch_size=40_000,
@@ -76,10 +76,10 @@ class ItemKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = False
-    dataset = LMLWDataset()
+    dataset = L2MLDDataset()
 
-    # for kind in ["train", "full"]:
-    for kind in ["full"]:
+    for kind in ["train", "full"]:
+        # for kind in ["full"]:
         rec_ens = ItemKNNRecs(
             kind=kind,
             cutoff=200,

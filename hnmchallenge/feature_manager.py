@@ -7,6 +7,7 @@ import pandas as pd
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
@@ -324,6 +325,6 @@ if __name__ == "__main__":
         # for kind in ["train", "full"]:
         # for kind in ["train"]:
         dr = DataReader()
-        dataset = LMLWDataset()
+        dataset = L2MLDDataset()
         fm = FeatureManager(dataset, kind)
         fm.create_features_df(DATASET_NAME, VERSION)
