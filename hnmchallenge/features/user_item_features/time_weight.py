@@ -20,17 +20,9 @@ class TimeWeight(UserItemFeature):
             else self.dataset.get_full_data()
         )
         data_df = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat", "price"]]
-        if(self.dataset.DATASET_NAME=="LML3W_dataset"):
-            data_df["tdiff"] = data_df["t_dat"].apply(
-            lambda x: 1 / (datetime.datetime(2020, 9, 09) - x).days)
-        elif(self.dataset.DATASET_NAME=="LML2W_dataset"):
-            data_df["tdiff"] = data_df["t_dat"].apply(
-            lambda x: 1 / (datetime.datetime(2020, 9, 16) - x).days
-        )
-        else:
-            data_df["tdiff"] = data_df["t_dat"].apply(
-            lambda x: 1 / (datetime.datetime(2020, 9, 23) - x).days
-        )
+        fd = self.dataset.get_holdout()
+        max_date = fd["t_dat"].max() + pd.to_timedelta(1, unit="D")
+        data_df["tdiff"] = data_df["t_dat"].apply(lambda x: 1 / (max_date - x).days)
 
         feature = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "tdiff"]]
         feature = feature[
