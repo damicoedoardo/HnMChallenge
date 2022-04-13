@@ -34,3 +34,6 @@ from hnmchallenge.features.item_features.item_popularity_sales_channel_2 import 
 )
 from hnmchallenge.features.item_features.item_price_product_no import ItemPriceProduct
 from hnmchallenge.features.item_features.item_age_popularity import ItemAgePop
+from hnmchallenge.features.item_features.cumulative_popularity import (
+    PopularityCumulative,
+)
