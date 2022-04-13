@@ -7,7 +7,7 @@ from hnmchallenge.dataset_interface import DatasetInterface
 
 class LML3WDataset(DatasetInterface):
 
-    DATASET_NAME = "LMLW_dataset"
+    DATASET_NAME = "LML3W_dataset"
     _ARTICLES_NUM = 26_252
     _CUSTOMERS_NUM = 1_167_050
 

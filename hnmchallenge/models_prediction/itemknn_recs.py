@@ -5,6 +5,8 @@ import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_2week_last_day import L2WLDDataset
+from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
+from hnmchallenge.datasets.last_month_last_3rd_week_dataset import LML3WDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_day_aug_sep import LMLASDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
@@ -78,7 +80,7 @@ class ItemKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = False
-    dataset = LMLWDataset()
+    dataset = LML3WDataset()
 
     # for kind in ["train", "full"]:
     for kind in ["train"]:
