@@ -5,7 +5,7 @@ from hnmchallenge.constant import *
 from hnmchallenge.dataset_interface import DatasetInterface
 
 
-class LMLWDataset(DatasetInterface):
+class LML3WDataset(DatasetInterface):
 
     DATASET_NAME = "LMLW_dataset"
     _ARTICLES_NUM = 26_252
@@ -133,8 +133,12 @@ class LMLWDataset(DatasetInterface):
 
     def create_holdin_holdout(self) -> None:
         fd = self.get_full_data()
-        hold_in = fd[(fd["t_dat"] <= "2020-09-15")]
-        hold_out = fd[(fd["t_dat"] > "2020-09-15")]
+        hold_in = fd[(fd["t_dat"] <= "2020-09-01")]
+        intervals = [("2020-09-02", "2020-09-08")]
+        m = np.logical_or.reduce(
+            [np.logical_and(fd["t_dat"] >= l, fd["t_dat"] <= u) for l, u in intervals]
+        )
+        hold_out = fd.loc[m]
 
         # save holdin holdout
         hold_in.reset_index(drop=True).to_feather(self._HOLDIN_PATH)
@@ -143,6 +147,6 @@ class LMLWDataset(DatasetInterface):
 
 
 if __name__ == "__main__":
-    dataset = LMLWDataset()
+    dataset = LML3WDataset()
     dataset.remap_user_item_ids()
     dataset.create_holdin_holdout()
