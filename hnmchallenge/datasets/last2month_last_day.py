@@ -1,23 +1,24 @@
 import pickle
 
 import numpy as np
+import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.dataset_interface import DatasetInterface
 
 
-class L2MLWDataset(DatasetInterface):
+class L2MLDDataset(DatasetInterface):
 
-    DATASET_NAME = "L2MLW_dataset"
-    _ARTICLES_NUM = 34_870
-    _CUSTOMERS_NUM = 1_219_008
+    DATASET_NAME = "L2MLD_dataset"
+    _ARTICLES_NUM = 26_252
+    _CUSTOMERS_NUM = 1_167_050
 
     def __init__(self) -> None:
         super().__init__()
 
     def create_dataset_description(self) -> str:
         description = """ 
-        Items: t_dat >= 01/08/2020 \n
-        holdout: last_week
+        Items: t_dat > 01/09/2020 \n
+        holdout: last day of buy for each user > 01/09/2020
         """
         return description
 
@@ -25,7 +26,7 @@ class L2MLWDataset(DatasetInterface):
         tr = self.dr.get_transactions()
 
         # filter on the items present in the last month
-        item_last_month = tr[tr["t_dat"] >= "2020-08-01"][DEFAULT_ITEM_COL].unique()
+        item_last_month = tr[tr["t_dat"] >= "2020-09-01"][DEFAULT_ITEM_COL].unique()
         tr = tr[tr[DEFAULT_ITEM_COL].isin(item_last_month)]
 
         print(f"Unique users: {tr[DEFAULT_USER_COL].nunique()}")
@@ -133,8 +134,24 @@ class L2MLWDataset(DatasetInterface):
 
     def create_holdin_holdout(self) -> None:
         fd = self.get_full_data()
-        hold_in = fd[(fd["t_dat"] <= "2020-09-14")]
-        hold_out = fd[(fd["t_dat"] > "2020-09-14")]
+        last_month = fd[(fd["t_dat"] >= "2020-08-01")]
+        sorted_data = last_month.sort_values([DEFAULT_USER_COL, "t_dat"]).reset_index(
+            drop=True
+        )
+        sorted_data["last_buy"] = sorted_data.groupby(DEFAULT_USER_COL)[
+            "t_dat"
+        ].transform(max)
+        # creating holdout
+        hold_out = sorted_data[sorted_data["t_dat"] == sorted_data["last_buy"]]
+        hold_out = hold_out.drop("last_buy", axis=1)
+        print(f"Holdout users:{hold_out[DEFAULT_USER_COL].nunique()}")
+
+        # create holdin
+        hold_in1 = sorted_data[sorted_data["t_dat"] != sorted_data["last_buy"]]
+        hold_in2 = fd[(fd["t_dat"] < "2020-08-01")]
+        hold_in = pd.concat([hold_in1, hold_in2], axis=0)
+        hold_in = hold_in.drop("last_buy", axis=1)
+        hold_in = hold_in.sort_values(by=[DEFAULT_USER_COL, "t_dat"], ignore_index=True)
 
         # save holdin holdout
         hold_in.reset_index(drop=True).to_feather(self._HOLDIN_PATH)
@@ -143,6 +160,6 @@ class L2MLWDataset(DatasetInterface):
 
 
 if __name__ == "__main__":
-    dataset = L2MLWDataset()
+    dataset = L2MLDDataset()
     dataset.remap_user_item_ids()
     dataset.create_holdin_holdout()

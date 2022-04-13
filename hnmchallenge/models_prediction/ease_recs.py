@@ -35,6 +35,15 @@ class EaseRecs(RecsInterface):
             if self.kind == "train"
             else self.dataset.get_full_data()
         )
+
+        if self.kind == "train":
+            # retrieve the holdout
+            holdout = self.dataset.get_holdout()
+            users_holdout = holdout[DEFAULT_USER_COL].unique()
+            prediction_data = data_df[data_df[DEFAULT_USER_COL].isin(users_holdout)]
+        else:
+            prediction_data = data_df
+
         # data that you use to compute similarity
         # Using the full data available perform better
         data_sim = data_df[data_df["t_dat"] > "2020-08-31"]
@@ -49,7 +58,7 @@ class EaseRecs(RecsInterface):
         print(set_color("Computing similarity...", "green"))
         recom.compute_similarity_matrix(data_df)
         recs = recom.recommend_multicore(
-            interactions=data_df,
+            interactions=prediction_data,
             batch_size=40_000,
             num_cpus=72,
             remove_seen=self.remove_seen,
@@ -79,11 +88,11 @@ if __name__ == "__main__":
     for kind in ["train", "full"]:
         ease_rec = EaseRecs(
             kind=kind,
-            cutoff=100,
+            cutoff=200,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
             l2=L2,
         )
-        # rec_ens.eval_recommendations()
-        ease_rec.save_recommendations()
+        ease_rec.eval_recommendations()
+        # ease_rec.save_recommendations()

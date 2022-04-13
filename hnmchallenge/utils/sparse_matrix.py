@@ -114,6 +114,21 @@ def interactions_to_sparse_matrix(
         #     + 1
         # )
 
+        # # interactions["time_score"] = interactions["time_score"].fillna(1)
+        # interactions["time_score"] = 1 / (1.05 - interactions["time_score"])
+
+        # print(interactions["time_score"])
+
+        # interactions["time_score"] = (
+        #     (interactions["t_dat"] - interactions["first_buy"]).apply(lambda x: x.days)
+        #     + 1
+        # ) / (
+        #     (interactions["last_buy"] - interactions["first_buy"]).apply(
+        #         lambda x: x.days
+        #     )
+        #     + 1
+        # )
+
         # min_dat = interactions["t_dat"].min()
         # max_dat = interactions["t_dat"].max()
         # interactions["time_score"] = (
@@ -123,6 +138,7 @@ def interactions_to_sparse_matrix(
         interactions["time_score"] = interactions["t_dat"].apply(
             lambda x: 1 / ((datetime.datetime(2020, 9, 23) - x).days)
         )
+        # print(interactions["time_score"])
 
         data = interactions["time_score"].values
     else:

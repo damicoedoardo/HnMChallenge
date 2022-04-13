@@ -12,6 +12,7 @@ from xgboost import plot_importance
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
@@ -34,7 +35,7 @@ TEST_PERC = 0.1
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
 VERSION = 0
-DATASET = f"cutf_100_ItemKNN_tw_True_rs_True_{VERSION}.feather"
+DATASET = f"cutf_200_ItemKNN_tw_True_rs_False_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 cat = [
     "index_code_gbm",
@@ -45,7 +46,7 @@ cat = [
 
 
 if __name__ == "__main__":
-    dataset = LMLDDataset()
+    dataset = L2MLDDataset()
     dr = DataReader()
     model_save_path = dataset._DATASET_PATH / "lgbm_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
@@ -110,11 +111,11 @@ if __name__ == "__main__":
         objective="lambdarank",
         # device="gpu",
         random_state=RANDOM_SEED,
-        learning_rate=0.2,
+        learning_rate=0.1,
         colsample_bytree=0.6,
         reg_lambda=0.00,
         reg_alpha=0.00,
-        eta=0.1,
+        # eta=0.05,
         max_depth=6,
         n_estimators=500,
         subsample=0.8,

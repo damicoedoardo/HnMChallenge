@@ -7,6 +7,7 @@ import pandas as pd
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
@@ -22,23 +23,23 @@ logger = logging.getLogger(__name__)
 
 class FeatureManager:
     _GBM_FEATURES = [
-        # GraphicalAppearanceNOGBM,
-        # IndexCodeGBM,
-        # IndexGroupNameGBM,
-        # ProductGroupNameGBM,
+        GraphicalAppearanceNOGBM,
+        IndexCodeGBM,
+        IndexGroupNameGBM,
+        ProductGroupNameGBM,
     ]
     _USER_FEATURES = [
-        # Active,
-        # Age,
-        # ClubMemberStatus,
-        # FashionNewsFrequency,
-        # Fn,
+        Active,
+        Age,
+        ClubMemberStatus,
+        FashionNewsFrequency,
+        Fn,
         AvgPrice,
         UserTendency,
-        # UserTendencyLM,
-        # UserAvgBuyDay,
-        # SaleChannelScore,
-        # UserAvgBuySession,
+        UserTendencyLM,
+        UserAvgBuyDay,
+        SaleChannelScore,
+        UserAvgBuySession,
     ]
     _ITEM_FEATURES = [
         ColourGroupCode,
@@ -320,10 +321,10 @@ if __name__ == "__main__":
     # DATASET_NAME = "dataset_v102"
     VERSION = 0
 
-    for kind in ["train"]:
+    for kind in ["full"]:
         # for kind in ["train", "full"]:
         # for kind in ["train"]:
         dr = DataReader()
-        dataset = LMLDDataset()
+        dataset = L2MLDDataset()
         fm = FeatureManager(dataset, kind)
         fm.create_features_df(DATASET_NAME, VERSION)
