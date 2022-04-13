@@ -1,4 +1,4 @@
-import numpy as np
+aimport numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 

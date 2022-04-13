@@ -1,9 +1,10 @@
 import logging
+
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
-from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.utils.logger import set_color
 
 
@@ -29,8 +30,7 @@ class TimePop(RecsInterface):
             if self.kind == "train"
             else self.dataset.get_full_data()
         )
-        # data that you use to compute similarity
-        # Using the full data available perform better
+
         last_month_data = data_df[data_df["t_dat"] > "2020-08-31"].copy()
 
         # drop multiple buys
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     dataset = LMLDDataset()
 
     for kind in ["train", "full"]:
-        rec = TimePop(kind=kind, dataset=dataset, cutoff=100)
+        rec = TimePop(kind=kind, dataset=dataset, cutoff=200)
         # rec.eval_recommendations(write_log=False)
         rec.save_recommendations()
         # rec.eval_recommendations()

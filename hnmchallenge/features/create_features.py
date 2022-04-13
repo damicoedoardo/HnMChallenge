@@ -1,6 +1,7 @@
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
+from hnmchallenge.datasets.last_month_last_week_user import LMLUWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.features.item_features import *
 from hnmchallenge.features.light_gbm_features import *
@@ -61,7 +62,7 @@ USER_ITEM_FEATURES = [
 
 if __name__ == "__main__":
     # TODO RECHECK ALL THE FEATURES AND RECREATE THE ONE-HOT ONE
-    dataset = L2MLDDataset()
+    dataset = LMLUWDataset()
     print(f"Creating features for DATASET:{dataset.DATASET_NAME}\n {print(dataset)}")
 
     # create the user features

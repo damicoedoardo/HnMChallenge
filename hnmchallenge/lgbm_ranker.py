@@ -15,6 +15,7 @@ from hnmchallenge.data_reader import DataReader
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
+from hnmchallenge.datasets.last_month_last_week_user import LMLUWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
@@ -34,8 +35,11 @@ TEST_PERC = 0.1
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
+# NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
+
 VERSION = 0
-DATASET = f"cutf_200_ItemKNN_tw_True_rs_False_{VERSION}.feather"
+NAME = "cutf_200_TimePop_alpha_1.0"
+DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 cat = [
     "index_code_gbm",
@@ -46,7 +50,7 @@ cat = [
 
 
 if __name__ == "__main__":
-    dataset = L2MLDDataset()
+    dataset = LMLDDataset()
     dr = DataReader()
     model_save_path = dataset._DATASET_PATH / "lgbm_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
@@ -109,6 +113,7 @@ if __name__ == "__main__":
     gbm = lgb.LGBMRanker(
         boosting_type="gbdt",
         objective="lambdarank",
+        num_threads=72,
         # device="gpu",
         random_state=RANDOM_SEED,
         learning_rate=0.1,
@@ -116,7 +121,8 @@ if __name__ == "__main__":
         reg_lambda=0.00,
         reg_alpha=0.00,
         # eta=0.05,
-        max_depth=6,
+        num_leaves=40,
+        # max_depth=6,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"

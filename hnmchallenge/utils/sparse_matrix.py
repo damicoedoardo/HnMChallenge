@@ -114,8 +114,8 @@ def interactions_to_sparse_matrix(
         #     + 1
         # )
 
-        # # interactions["time_score"] = interactions["time_score"].fillna(1)
-        # interactions["time_score"] = 1 / (1.05 - interactions["time_score"])
+        # # # interactions["time_score"] = interactions["time_score"].fillna(1)
+        # interactions["time_score"] = 1 / (1.01 - interactions["time_score"])
 
         # print(interactions["time_score"])
 
@@ -163,8 +163,8 @@ def get_top_k(
     Returns:
         np.array, np.array: indices into score matrix for each users top items, scores corresponding to top items.
     """
-    # TODO: Maybe do that in multicore
 
+    # TODO: Maybe do that in multicore
     logger.debug(set_color(f"Sort_top_k:{sort_top_k}", "cyan"))
     # ensure we're working with a dense ndarray
     if isinstance(scores, sps.spmatrix):

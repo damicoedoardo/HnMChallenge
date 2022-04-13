@@ -6,11 +6,11 @@ from hnmchallenge.constant import *
 from hnmchallenge.dataset_interface import DatasetInterface
 
 
-class LMLUWDataset(DatasetInterface):
+class L2WLDDataset(DatasetInterface):
 
-    DATASET_NAME = "LMLUW_dataset"
-    _ARTICLES_NUM = 26_252
-    _CUSTOMERS_NUM = 1_167_050
+    DATASET_NAME = "L2WLD_dataset"
+    _ARTICLES_NUM = 45_975
+    _CUSTOMERS_NUM = 1_266_346
 
     def __init__(self) -> None:
         super().__init__()
@@ -26,7 +26,7 @@ class LMLUWDataset(DatasetInterface):
         tr = self.dr.get_transactions()
 
         # filter on the items present in the last month
-        item_last_month = tr[tr["t_dat"] >= "2020-09-01"][DEFAULT_ITEM_COL].unique()
+        item_last_month = tr[tr["t_dat"] >= "2020-06-01"][DEFAULT_ITEM_COL].unique()
         tr = tr[tr[DEFAULT_ITEM_COL].isin(item_last_month)]
 
         print(f"Unique users: {tr[DEFAULT_USER_COL].nunique()}")
@@ -142,23 +142,15 @@ class LMLUWDataset(DatasetInterface):
             "t_dat"
         ].transform(max)
         # creating holdout
-        hold_out = sorted_data[
-            (
-                sorted_data["t_dat"]
-                > (sorted_data["last_buy"] - pd.to_timedelta(7, unit="D"))
-            )
-            & (sorted_data["t_dat"] <= sorted_data["last_buy"])
-        ]
+        hold_out = sorted_data[sorted_data["t_dat"] == sorted_data["last_buy"]]
         hold_out = hold_out.drop("last_buy", axis=1)
         print(f"Holdout users:{hold_out[DEFAULT_USER_COL].nunique()}")
 
         # create holdin
-        hold_in1 = sorted_data.loc[
-            sorted_data.index.difference(hold_out.index),
-        ]
-        hold_in1 = hold_in1.drop("last_buy", axis=1)
+        hold_in1 = sorted_data[sorted_data["t_dat"] != sorted_data["last_buy"]]
         hold_in2 = fd[(fd["t_dat"] < "2020-09-01")]
         hold_in = pd.concat([hold_in1, hold_in2], axis=0)
+        hold_in = hold_in.drop("last_buy", axis=1)
         hold_in = hold_in.sort_values(by=[DEFAULT_USER_COL, "t_dat"], ignore_index=True)
 
         # save holdin holdout
@@ -168,6 +160,6 @@ class LMLUWDataset(DatasetInterface):
 
 
 if __name__ == "__main__":
-    dataset = LMLUWDataset()
+    dataset = L2WLDDataset()
     dataset.remap_user_item_ids()
     dataset.create_holdin_holdout()

@@ -82,7 +82,7 @@ if __name__ == "__main__":
     KIND = "train"
     TW = True
     REMOVE_SEEN = False
-    L2 = 1e-3
+    L2 = 10
     dataset = LMLDDataset()
 
     for kind in ["train", "full"]:
