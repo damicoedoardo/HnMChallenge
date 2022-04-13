@@ -10,6 +10,7 @@ from hnmchallenge.data_reader import DataReader
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
+from hnmchallenge.datasets.last_month_last_week_user import LMLUWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.features.item_features import *
 from hnmchallenge.features.light_gbm_features import *
@@ -45,7 +46,7 @@ class FeatureManager:
         ColourGroupCode,
         ItemSaleChannelScore,
         DepartmentNO,
-        GarmentGroupName,
+        ##GarmentGroupName,
         # GraphicalAppearanceNO,
         GarmentGroupNO,
         # IndexCode,
@@ -71,6 +72,7 @@ class FeatureManager:
         TimeScore,
         TimeWeight,
         TimesItemBought,
+        ItemKNNScore,
     ]
 
     def __init__(
@@ -252,16 +254,16 @@ class FeatureManager:
         # augment features
         ###################
         # fill nan values
-        print("Augmenting features...")
+        # print("Augmenting features...")
 
-        # try to create features to asses if is the case to predict an item that the user has just bought
-        base_df["times_item_bought"] = base_df["times_item_bought"].fillna(0)
-        base_df["tdiff"] = base_df["tdiff"].fillna(1)
-        # compute augmented features on tendency multiple buy
-        base_df["mb_stats_tdiff"] = (1 - base_df["tdiff"]) * base_df["user_tendency"]
-        base_df["mb_stats_number_bought"] = (
-            base_df["times_item_bought"] * base_df["user_tendency"]
-        )
+        # # try to create features to asses if is the case to predict an item that the user has just bought
+        # base_df["times_item_bought"] = base_df["times_item_bought"].fillna(0)
+        # base_df["tdiff"] = base_df["tdiff"].fillna(1)
+        # # compute augmented features on tendency multiple buy
+        # base_df["mb_stats_tdiff"] = (1 - base_df["tdiff"]) * base_df["user_tendency"]
+        # base_df["mb_stats_number_bought"] = (
+        #     base_df["times_item_bought"] * base_df["user_tendency"]
+        # )
 
         ##############################
         # save the the feature dataset
@@ -317,14 +319,16 @@ class FeatureManager:
 
 if __name__ == "__main__":
     # KIND = "train"
-    DATASET_NAME = "cutf_200_ItemKNN_tw_True_rs_False"
+    DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
     # DATASET_NAME = "dataset_v102"
-    VERSION = 0
+    VERSION = 0/
 
+    s = time.time()
     for kind in ["full"]:
         # for kind in ["train", "full"]:
-        # for kind in ["train"]:
+        # for kind in ["full"]:
         dr = DataReader()
-        dataset = L2MLDDataset()
+        dataset = LMLDDataset()
         fm = FeatureManager(dataset, kind)
         fm.create_features_df(DATASET_NAME, VERSION)
+    print(f"took: {time.time()-s}s")

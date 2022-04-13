@@ -54,5 +54,5 @@ class PSGE(ItemSimilarityRecommender):
         print("Computing eigendecomposition can take time...")
         eigenvalues, eigenvectors = eigsh(gram_matrix, k=self.k, which="LA")
         print("Done!")
-        sim = (d_item_diag @ eigenvectors * eigenvalues**2) @ eigenvectors.T
+        sim = (d_item_diag @ eigenvectors * eigenvalues) @ eigenvectors.T
         self.similarity_matrix = sim
