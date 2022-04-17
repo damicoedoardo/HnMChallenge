@@ -1,7 +1,7 @@
 from unicodedata import name
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 from dotenv import main
 from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
 from hnmchallenge.features.feature_interfaces import ItemFeature
@@ -30,10 +30,7 @@ class PopularityCumulative(ItemFeature):
         df = pd.DataFrame(columns=[DEFAULT_ITEM_COL])
         for idx, i in enumerate(intervals):
             m = np.logical_or.reduce(
-                [
-                    np.logical_and(fd["t_dat"] >= l, fd["t_dat"] <= u)
-                    for l, u in intervals
-                ]
+                [np.logical_and(fd["t_dat"] >= i[0], fd["t_dat"] <= i[1])]
             )
             data_df = fd.loc[m]
             duplicated_rows = data_df[

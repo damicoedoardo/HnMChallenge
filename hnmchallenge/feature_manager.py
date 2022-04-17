@@ -7,7 +7,11 @@ import pandas as pd
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
+from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
+from hnmchallenge.datasets.last_month_last_3rd_week_dataset import LML3WDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_month_last_week_user import LMLUWDataset
@@ -43,6 +47,7 @@ class FeatureManager:
         UserAvgBuySession,
     ]
     _ITEM_FEATURES = [
+        PopularityCumulative,
         ColourGroupCode,
         ItemSaleChannelScore,
         DepartmentNO,
@@ -72,7 +77,7 @@ class FeatureManager:
         TimeScore,
         TimeWeight,
         TimesItemBought,
-        ItemKNNScore,
+        # ItemKNNScore,
     ]
 
     def __init__(
@@ -319,16 +324,19 @@ class FeatureManager:
 
 if __name__ == "__main__":
     # KIND = "train"
-    DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
+    # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
+    DATASET_NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
     # DATASET_NAME = "dataset_v102"
-    VERSION = 0/
+    VERSION = 0
 
-    s = time.time()
-    for kind in ["full"]:
-        # for kind in ["train", "full"]:
-        # for kind in ["full"]:
-        dr = DataReader()
-        dataset = LMLDDataset()
-        fm = FeatureManager(dataset, kind)
-        fm.create_features_df(DATASET_NAME, VERSION)
-    print(f"took: {time.time()-s}s")
+    # dataset = LMLWDataset()
+    DATASETS = [AILMLWDataset()]
+    for dataset in DATASETS:
+        s = time.time()
+        for kind in ["train"]:
+            # for kind in ["train", "full"]:
+            # for kind in ["full"]:
+            dr = DataReader()
+            fm = FeatureManager(dataset, kind)
+            fm.create_features_df(DATASET_NAME, VERSION)
+        print(f"took: {time.time()-s}s")

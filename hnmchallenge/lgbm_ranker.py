@@ -12,7 +12,11 @@ from xgboost import plot_importance
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
+from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
+from hnmchallenge.datasets.last_month_last_3rd_week_dataset import LML3WDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_month_last_week_user import LMLUWDataset
@@ -27,18 +31,18 @@ from hnmchallenge.features.light_gbm_features import (
 )
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 
-TRAIN_PERC = 0.8
+TRAIN_PERC = 0.899
 VAL_PERC = 0.1
-TEST_PERC = 0.1
+TEST_PERC = 0.001
 
 # VERSION = 0
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-# NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
+NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
 
 VERSION = 0
-NAME = "cutf_200_TimePop_alpha_1.0"
+# NAME = "cutf_200_TimePop_alpha_1.0"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 cat = [
@@ -50,14 +54,29 @@ cat = [
 
 
 if __name__ == "__main__":
-    dataset = LMLDDataset()
+    save_dataset = AILMLWDataset()
+    # dataset_list = [save_dataset, LML2WDataset(), LML3WDataset()]
+    dataset_list = [save_dataset]
+
     dr = DataReader()
-    model_save_path = dataset._DATASET_PATH / "lgbm_models"
+    # save the model on the path of the last week dataset !
+    model_save_path = save_dataset._DATASET_PATH / "lgbm_models"
     model_save_path.mkdir(parents=True, exist_ok=True)
 
-    base_load_path = dataset._DATASET_PATH / "dataset_dfs/train"
-    dataset_path = base_load_path / DATASET
-    features_df = pd.read_feather(dataset_path)
+    # load into a list the datasets of the different weeks
+    features_df_list = []
+    for dataset in dataset_list:
+        base_load_path = dataset._DATASET_PATH / "dataset_dfs/train"
+        dataset_path = base_load_path / DATASET
+        features_df = pd.read_feather(dataset_path)
+        features_df_list.append(features_df)
+
+    # the final features_df is the concat of the week datasets
+    features_df = pd.concat(features_df_list, axis=0)
+    print(features_df.columns)
+
+    print(features_df["ItemKNN_tw_True_rs_False_score"])
+    features_df = features_df.drop(["ItemKNN_tw_True_rs_False_rank"], axis=1)
 
     cat_index = [i for i, c in enumerate(features_df.columns) if c in cat]
     print(cat_index)
@@ -117,11 +136,11 @@ if __name__ == "__main__":
         # device="gpu",
         random_state=RANDOM_SEED,
         learning_rate=0.1,
-        colsample_bytree=0.6,
+        colsample_bytree=0.8,
         reg_lambda=0.00,
         reg_alpha=0.00,
         # eta=0.05,
-        num_leaves=40,
+        num_leaves=50,
         # max_depth=6,
         n_estimators=500,
         subsample=0.8,

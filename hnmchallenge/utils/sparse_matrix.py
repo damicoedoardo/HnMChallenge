@@ -151,8 +151,11 @@ def interactions_to_sparse_matrix(
 
 
 def get_top_k(
-    scores: np.array, top_k: int, sort_top_k: bool = True
-) -> Tuple[np.array, np.array]:
+    scores: np.array,
+    top_k: int,
+    sort_top_k: bool = True,
+    ground_truth: list = None,
+):
     """Extract top K element from a matrix of scores for each user-item pair, optionally sort results per user.
 
     Args:
@@ -192,7 +195,40 @@ def get_top_k(
         top_items = top_items[test_user_idx, sort_ind]
         top_scores = top_scores[test_user_idx, sort_ind]
 
-    return np.array(top_items), np.array(top_scores)
+    # if groundtruth
+    u_gt_filtered, i_gt_filtered, gt_scores_filtered = None, None, None
+    if ground_truth is not None:
+        u, i = zip(*ground_truth)
+        gt_scores = scores[u, i]
+        u_gt_filtered, i_gt_filtered, gt_scores_filtered = (
+            np.array(u),
+            np.array(i),
+            np.array(gt_scores),
+        )
+
+        # # remove the one hitted
+        # u_top_scores = np.repeat(test_user_idx, top_k).reshape(len(test_user_idx), -1)
+
+        # recommended_dict = dict(
+        #     zip(zip(u_top_scores, top_items), np.ones(len(u_top_scores)))
+        # )
+
+        # u_gt_filtered, i_gt_filtered, gt_scores_filtered = [], [], []
+
+        # gt_list = list(zip(u, i))
+        # for tup, s in zip(gt_list, gt_scores):
+        #     if tup not in recommended_dict:
+        #         u_gt_filtered.append(tup[0])
+        #         i_gt_filtered.append(tup[1])
+        #         gt_scores_filtered.append(s)
+
+    return (
+        np.array(top_items),
+        np.array(top_scores),
+        u_gt_filtered,
+        i_gt_filtered,
+        gt_scores_filtered,
+    )
 
 
 def truncate_top_k(x, k):

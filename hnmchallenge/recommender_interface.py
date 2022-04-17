@@ -86,6 +86,16 @@ class AbstractRecommender(ABC):
 
         return scores
 
+    @staticmethod
+    def filter_on_candidate(scores: np.ndarray, candidates: np.ndarray) -> np.ndarray:
+        # Filter computed scores on a set of candidates items setting the scores of all the other items to -np.inf
+        print("Filtering scores on candidates...")
+        # creating mask for candidate items
+        mask_array = np.ones(scores.shape[1], dtype=bool)
+        mask_array[candidates] = False
+        scores[:, mask_array] = -np.inf
+        return scores
+
     def recommend(
         self,
         interactions: pd.DataFrame,
@@ -164,6 +174,8 @@ class AbstractRecommender(ABC):
         cutoff: int = 12,
         remove_seen: bool = True,
         white_list_mb_item: Union[np.array, None] = None,
+        filter_on_candidates: bool = False,
+        insert_gt: bool = False,
         batch_size: int = -1,
         num_cpus: int = 5,
     ) -> pd.DataFrame:
@@ -200,7 +212,9 @@ class AbstractRecommender(ABC):
             for u_batch in user_batches
         ]
 
-        def _rec(interactions_df, white_list_mb_item=None):
+        def _rec(
+            interactions_df, white_list_mb_item=None, candidates=None, ground_truth=None
+        ):
             scores = self.predict(interactions_df)
             # set the score of the items used during the training to -inf
             if remove_seen:
@@ -208,17 +222,81 @@ class AbstractRecommender(ABC):
                     scores, interactions_df, white_list_mb_item
                 )
             array_scores = scores.to_numpy()
+
+            # filter the scores on a subset of candidates items
+            if candidates is not None:
+                array_scores = AbstractRecommender.filter_on_candidate(
+                    array_scores, candidates
+                )
+
             user_ids = scores.index.values
-            # TODO: we can use GPU here (tensorflow ?)
-            items, scores = get_top_k(
-                scores=array_scores, top_k=cutoff, sort_top_k=True
+
+            final_gt = None
+            if ground_truth is not None:
+                print("Including ground_truth...")
+                # 1) filter on the user we have
+                # 2) map the user id to the proper one
+                filtered_gt = ground_truth[
+                    ground_truth[DEFAULT_USER_COL].isin(user_ids)
+                ]
+
+                md = dict(zip(user_ids, np.arange(len(user_ids))))
+                inverse_md = {v: k for k, v in md.items()}
+
+                filtered_gt[DEFAULT_USER_COL] = filtered_gt[DEFAULT_USER_COL].apply(
+                    lambda x: md.get(x)
+                )
+
+                user = filtered_gt[DEFAULT_USER_COL].values
+                item = filtered_gt[DEFAULT_ITEM_COL].values
+                final_gt = list(zip(user, item))
+
+            items, scores, u_gt_filtered, i_gt_filtered, gt_scores_filtered = get_top_k(
+                scores=array_scores,
+                top_k=cutoff,
+                sort_top_k=True,
+                ground_truth=final_gt,
             )
+
             # create user array to match shape of retrievied items
             users = np.repeat(user_ids, cutoff).reshape(len(user_ids), -1)
+
             recs_df = pd.DataFrame(
                 zip(users.flatten(), items.flatten(), scores.flatten()),
                 columns=[DEFAULT_USER_COL, DEFAULT_ITEM_COL, DEFAULT_PREDICTION_COL],
             )
+
+            # for gt
+            if u_gt_filtered is not None:
+                u_gt_filtered_mapped = np.array(
+                    list(map(lambda x: inverse_md.get(x), u_gt_filtered))
+                )
+                recs_gt = pd.DataFrame(
+                    zip(u_gt_filtered_mapped, i_gt_filtered, gt_scores_filtered),
+                    columns=[
+                        DEFAULT_USER_COL,
+                        DEFAULT_ITEM_COL,
+                        DEFAULT_PREDICTION_COL,
+                    ],
+                )
+                # overwrite recs_df
+                recs_df = pd.concat([recs_df, recs_gt], axis=0)
+                # drop duplicates created by hits
+                recs_df = recs_df.drop_duplicates()
+
+                # but has to be sorted!
+                recs_df = recs_df.sort_values(
+                    [DEFAULT_USER_COL, DEFAULT_PREDICTION_COL], ascending=[True, False]
+                )
+
+                recs_per_user = recs_df.groupby(DEFAULT_USER_COL).size().values
+                ensemble_rank = np.concatenate(
+                    list(map(lambda x: np.arange(1, x + 1), recs_per_user))
+                )
+                recs_df["rank"] = ensemble_rank
+            else:
+                # add item rank when no gt
+                recs_df["rank"] = np.tile(np.arange(1, cutoff + 1), len(user_ids))
             return recs_df
 
         if batch_size == -1:
@@ -234,26 +312,54 @@ class AbstractRecommender(ABC):
                 recs_dfs_list = p_map(
                     _rec, train_dfs, reps_white_list_mb_item, num_cpus=num_cpus
                 )
+            elif (filter_on_candidates) and (not insert_gt):
+                # pass the candidates
+                # load candidates
+                candidate_items = self.dataset.get_candidate_items()
+                reps_candidate_items = np.repeat(
+                    np.array(candidate_items)[np.newaxis, :], len(train_dfs), axis=0
+                )
+
+                # Creating an array of None for the white list item arg on _rec() function
+                reps_white_list_mb_item = [None] * len(train_dfs)
+
+                recs_dfs_list = p_map(
+                    _rec,
+                    train_dfs,
+                    reps_white_list_mb_item,
+                    reps_candidate_items,
+                    num_cpus=num_cpus,
+                )
+            elif filter_on_candidates and insert_gt:
+                # pass the candidates
+                # load candidates
+                candidate_items = self.dataset.get_candidate_items()
+                reps_candidate_items = np.repeat(
+                    np.array(candidate_items)[np.newaxis, :], len(train_dfs), axis=0
+                )
+
+                # Creating an array of None for the white list item arg on _rec() function
+                reps_white_list_mb_item = [None] * len(train_dfs)
+
+                gt = self.dataset.get_holdout()[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]]
+                reps_gt = [gt.copy() for _ in range(len(train_dfs))]
+
+                recs_dfs_list = p_map(
+                    _rec,
+                    train_dfs,
+                    reps_white_list_mb_item,
+                    reps_candidate_items,
+                    reps_gt,
+                    num_cpus=num_cpus,
+                )
+
             else:
                 recs_dfs_list = p_map(_rec, train_dfs, num_cpus=num_cpus)
 
         # concat all the batch recommendations dfs
         recommendation_df = pd.concat(recs_dfs_list, axis=0)
-        # add item rank
-        recommendation_df["rank"] = np.tile(
-            np.arange(1, cutoff + 1), len(unique_user_ids)
-        )
 
         return recommendation_df
-
-    def recommend_similaripy(
-        self,
-        interactions: pd.DataFrame,
-        cutoff: int = 12,
-        remove_seen: bool = True,
-    ) -> pd.DataFrame:
-        print("Recommend similaripy!")
-        scores = self.predict(interactions, cutoff, remove_seen)
 
 
 class ItemSimilarityRecommender(AbstractRecommender, ABC):

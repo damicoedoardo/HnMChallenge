@@ -3,6 +3,8 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_2week_last_day import L2WLDDataset
 from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
@@ -25,10 +27,12 @@ class ItemKNNRecs(RecsInterface):
         time_weight: bool = True,
         remove_seen: bool = False,
         cutoff: int = 200,
+        filter_on_candidates: bool = False,
     ) -> None:
         super().__init__(kind, dataset, cutoff)
         self.time_weight = time_weight
         self.remove_seen = remove_seen
+        self.filter_on_candidates = filter_on_candidates
 
         # set recommender name
         self.RECS_NAME = f"ItemKNN_tw_{time_weight}_rs_{remove_seen}"
@@ -60,10 +64,12 @@ class ItemKNNRecs(RecsInterface):
         recs = recom.recommend_multicore(
             interactions=prediction_data,
             batch_size=40_000,
-            num_cpus=72,
+            num_cpus=16,
             remove_seen=self.remove_seen,
             white_list_mb_item=None,
+            filter_on_candidates=self.filter_on_candidates,
             cutoff=self.cutoff,
+            insert_gt=True,
         )
 
         recs = recs.rename(
@@ -80,7 +86,9 @@ class ItemKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = False
-    dataset = LML3WDataset()
+    FC = True
+    dataset = AILMLWDataset()
+    # dataset = LMLDDataset()
 
     # for kind in ["train", "full"]:
     for kind in ["train"]:
@@ -90,6 +98,7 @@ if __name__ == "__main__":
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
+            filter_on_candidates=FC,
         )
         # rec_ens.eval_recommendations()
         rec_ens.save_recommendations()

@@ -5,6 +5,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Tuple
 
+import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -57,6 +58,9 @@ class DatasetInterface(ABC):
         self._HOLDIN_PATH = Path(self._DATASET_PATH / Path("holdin.feather"))
         self._HOLDOUT_PATH = Path(self._DATASET_PATH / Path("holdout.feather"))
         self._FULL_DATA_PATH = Path(self._DATASET_PATH / Path("full_data.feather"))
+        self._CANDIDATE_ITEMS_PATH = Path(
+            self._DATASET_PATH / Path("candidate_items.feather")
+        )
 
         self.dr = DataReader()
 
@@ -135,6 +139,9 @@ class DatasetInterface(ABC):
         with open(iids_p, "rb") as f:
             iids_dict = pickle.load(f)
         return uids_dict, iids_dict
+
+    def get_candidate_items(self) -> np.ndarray:
+        raise NotImplementedError("Not implemented for this dataset!")
 
     def create_submission(self, recs_df: pd.DataFrame, sub_name: str) -> None:
 

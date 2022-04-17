@@ -3,6 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
@@ -20,11 +21,13 @@ class EaseRecs(RecsInterface):
         time_weight: bool = True,
         remove_seen: bool = False,
         cutoff: int = 100,
+        filter_on_candidates: bool = False,
     ) -> None:
         super().__init__(kind, dataset, cutoff)
         self.time_weight = time_weight
         self.remove_seen = remove_seen
         self.l2 = l2
+        self.filter_on_candidates = filter_on_candidates
 
         # set recommender name
         self.RECS_NAME = f"EASE_tw_{time_weight}_rs_{remove_seen}_l2_{l2}"
@@ -64,6 +67,7 @@ class EaseRecs(RecsInterface):
             remove_seen=self.remove_seen,
             white_list_mb_item=None,
             cutoff=self.cutoff,
+            filter_on_candidates=self.filter_on_candidates,
         )
 
         # recs_list = recs.groupby(DEFAULT_USER_COL)["article_id"].apply(list).to_frame()
@@ -82,8 +86,8 @@ if __name__ == "__main__":
     KIND = "train"
     TW = True
     REMOVE_SEEN = False
-    L2 = 10
-    dataset = LMLDDataset()
+    L2 = 1e-3
+    dataset = AILMLWDataset()
 
     for kind in ["train", "full"]:
         ease_rec = EaseRecs(
@@ -93,6 +97,7 @@ if __name__ == "__main__":
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
             l2=L2,
+            filter_on_candidates=True,
         )
         ease_rec.eval_recommendations()
         # ease_rec.save_recommendations()
