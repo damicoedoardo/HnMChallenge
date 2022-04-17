@@ -13,3 +13,9 @@ from hnmchallenge.features.user_features.user_tendency_lm import UserTendencyLM
 from hnmchallenge.features.user_features.user_bought_items_per_session import (
     UserAvgBuySession,
 )
+from hnmchallenge.features.user_features.total_items_bought import (
+    TotalItemsBought,
+)
+from hnmchallenge.features.user_features.last_buy_date import (
+    LastBuyDate,
+)

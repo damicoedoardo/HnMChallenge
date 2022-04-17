@@ -15,6 +15,8 @@ from hnmchallenge.utils.logger import set_color
 from tqdm import tqdm
 
 USER_FEATURES = [
+    LastBuyDate,
+    TotalItemsBought,
     UserAvgBuySession,
     Active,
     Age,
