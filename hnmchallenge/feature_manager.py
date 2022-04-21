@@ -34,6 +34,8 @@ class FeatureManager:
         ProductGroupNameGBM,
     ]
     _USER_FEATURES = [
+        LastBuyDate,
+        TotalItemsBought,
         Active,
         Age,
         ClubMemberStatus,
@@ -325,15 +327,16 @@ class FeatureManager:
 if __name__ == "__main__":
     # KIND = "train"
     # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
-    DATASET_NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
-    # DATASET_NAME = "dataset_v102"
+    DATASET_NAME = f"cutf_500_ItemKNN_tw_True_rs_False"
+    # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
+    # DATASET_NAME = "dataset_v1000"
     VERSION = 0
 
     # dataset = LMLWDataset()
-    DATASETS = [AILMLWDataset()]
+    DATASETS = [AILMLDDataset()]
     for dataset in DATASETS:
         s = time.time()
-        for kind in ["train"]:
+        for kind in ["full"]:
             # for kind in ["train", "full"]:
             # for kind in ["full"]:
             dr = DataReader()

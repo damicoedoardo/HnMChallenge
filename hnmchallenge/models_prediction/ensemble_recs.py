@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
@@ -72,7 +73,7 @@ class EnsembleRecs(RecsInterface):
                 df_y,
                 left_on=LEFT_ON,
                 right_on=RIGHT_ON,
-                how="left",
+                how="outer",
             )
 
             merged["recs"] = merged.filter(like="recs").ffill(axis=1).iloc[:, -1]
@@ -221,16 +222,17 @@ if __name__ == "__main__":
         # "cutf_100_PSGE_tw_True_rs_False_k_256",
         # "cutf_100_Popularity_cutoff_100",
         "cutf_100_ItemKNN_tw_True_rs_False",
-        "cutf_100_EASE_tw_True_rs_False_l2_0.001",
+        "cutf_100_TimePop_alpha_1.0",
+        # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
         # "cutf_40_Popularity_cutoff_40",
         # "cutf_0_BoughtItemsRecs",
     ]
-    dataset = LMLDDataset()
-    for kind in ["train"]:  # , "full"]:
+    dataset = AILMLWDataset()
+    for kind in ["full"]:  # , "full"]:
         ensemble = EnsembleRecs(
             models_list=models,
             kind=kind,
             dataset=dataset,
         )
-        ensemble.save_recommendations(dataset_name="dataset_v102")
+        ensemble.save_recommendations(dataset_name="dataset_v1000")
         # ensemble.eval_recommendations(dataset_name="dataset_v03")

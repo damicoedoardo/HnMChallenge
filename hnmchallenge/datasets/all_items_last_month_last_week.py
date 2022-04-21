@@ -141,7 +141,7 @@ class AILMLWDataset(DatasetInterface):
     def create_candidate_items(self) -> None:
         """Create and save the candidate items"""
         full_data = self.get_full_data()
-        candidate_items = full_data[full_data["t_dat"] >= "2020-09-10"][["article_id"]]
+        candidate_items = full_data[full_data["t_dat"] >= "2020-09-01"][["article_id"]]
         candidate_items.reset_index(drop=True).to_feather(self._CANDIDATE_ITEMS_PATH)
 
     def get_candidate_items(self) -> np.ndarray:
@@ -152,6 +152,6 @@ class AILMLWDataset(DatasetInterface):
 
 if __name__ == "__main__":
     dataset = AILMLWDataset()
-    dataset.remap_user_item_ids()
-    dataset.create_holdin_holdout()
+    # dataset.remap_user_item_ids()
+    # dataset.create_holdin_holdout()
     dataset.create_candidate_items()

@@ -54,7 +54,7 @@ class ItemKNNRecs(RecsInterface):
         # data that you use to compute similarity
 
         # Using the full data available perform better
-        # data_sim = data_df[data_df["t_dat"] > "2020-04-01"]
+        # data_sim = data_df[data_df["t_dat"] > "2020-07-31"]
 
         # instantiate the recommender algorithm
         recom = ItemKNN(self.dataset, time_weight=self.time_weight, topk=1000)
@@ -63,13 +63,13 @@ class ItemKNNRecs(RecsInterface):
         recom.compute_similarity_matrix(data_df)
         recs = recom.recommend_multicore(
             interactions=prediction_data,
-            batch_size=40_000,
+            batch_size=20_000,
             num_cpus=16,
             remove_seen=self.remove_seen,
             white_list_mb_item=None,
             filter_on_candidates=self.filter_on_candidates,
             cutoff=self.cutoff,
-            insert_gt=True,
+            insert_gt=False,
         )
 
         recs = recs.rename(
@@ -94,11 +94,11 @@ if __name__ == "__main__":
     for kind in ["train"]:
         rec_ens = ItemKNNRecs(
             kind=kind,
-            cutoff=200,
+            cutoff=100,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
             filter_on_candidates=FC,
         )
-        # rec_ens.eval_recommendations()
-        rec_ens.save_recommendations()
+        rec_ens.eval_recommendations()
+        # rec_ens.save_recommendations()

@@ -20,7 +20,7 @@ class LastBuyDate(UserFeature):
         )
         fd = self.dataset.get_holdout()
         max_date = fd["t_dat"].max() + pd.to_timedelta(1, unit="D")
-        data = fd.groupby([DEFAULT_USER_COL])["t_dat"].max().reset_index()
+        data = data_df.groupby([DEFAULT_USER_COL])["t_dat"].max().reset_index()
         data["t_diff"] = data["t_dat"].apply(lambda x: 1 / (max_date - x).days)
         feature = data[[DEFAULT_USER_COL, "t_diff"]]
         # Losing the users that have bought something for the first time on the last week

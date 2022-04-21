@@ -39,7 +39,9 @@ TEST_PERC = 0.001
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
+# NAME = f"dataset_v1000"
+NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
+# NAME = "cutf_100_TimePop_alpha_1.0"
 
 VERSION = 0
 # NAME = "cutf_200_TimePop_alpha_1.0"
@@ -54,7 +56,7 @@ cat = [
 
 
 if __name__ == "__main__":
-    save_dataset = AILMLWDataset()
+    save_dataset = AILMLDDataset()
     # dataset_list = [save_dataset, LML2WDataset(), LML3WDataset()]
     dataset_list = [save_dataset]
 
@@ -75,8 +77,8 @@ if __name__ == "__main__":
     features_df = pd.concat(features_df_list, axis=0)
     print(features_df.columns)
 
-    print(features_df["ItemKNN_tw_True_rs_False_score"])
-    features_df = features_df.drop(["ItemKNN_tw_True_rs_False_rank"], axis=1)
+    # print(features_df["ItemKNN_tw_True_rs_False_score"])
+    # features_df = features_df.drop(["ItemKNN_tw_True_rs_False_rank"], axis=1)
 
     cat_index = [i for i, c in enumerate(features_df.columns) if c in cat]
     print(cat_index)
@@ -130,18 +132,18 @@ if __name__ == "__main__":
     query_val = val_df.groupby(DEFAULT_USER_COL)[DEFAULT_USER_COL].count()
 
     gbm = lgb.LGBMRanker(
-        boosting_type="gbdt",
+        boosting_type="dart",
         objective="lambdarank",
         num_threads=72,
         # device="gpu",
         random_state=RANDOM_SEED,
         learning_rate=0.1,
-        colsample_bytree=0.8,
+        # colsample_bytree=0.8,
         reg_lambda=0.00,
         reg_alpha=0.00,
         # eta=0.05,
-        num_leaves=50,
-        # max_depth=6,
+        num_leaves=31,
+        max_depth=8,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"

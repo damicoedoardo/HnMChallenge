@@ -23,7 +23,7 @@ class TotalItemsBought(UserFeature):
         df = data_df.drop_duplicates(["t_dat", DEFAULT_USER_COL])
 
         df = df.groupby([DEFAULT_USER_COL]).count().reset_index()
-        feature = df[df[DEFAULT_USER_COL, "price"]]
+        feature = df[[DEFAULT_USER_COL, "price"]]
         user_df = self._get_keys_df()
         feature = pd.merge(user_df, feature, on="customer_id", how="left")
         feature = feature.rename({"price": self.FEATURE_NAME}, axis=1)

@@ -2,6 +2,8 @@ import logging
 
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
@@ -91,13 +93,13 @@ class TimePop(RecsInterface):
         final2 = final2.drop(["rank_time", "rank"], axis=1)
 
         # zscore on time_score and on popularity score
-        print("Computing Z-Score")
-        final2["time_score"] = (
-            final2["time_score"] - final2["time_score"].mean()
-        ) / final2["time_score"].std()
-        final2["popularity_score"] = (
-            final2["popularity_score"] - final2["popularity_score"].mean()
-        ) / final2["popularity_score"].std()
+        # print("Computing Z-Score")
+        # final2["time_score"] = (
+        #     final2["time_score"] - final2["time_score"].mean()
+        # ) / final2["time_score"].std()
+        # final2["popularity_score"] = (
+        #     final2["popularity_score"] - final2["popularity_score"].mean()
+        # ) / final2["popularity_score"].std()
 
         final2["weighted_score"] = (
             self.alpha * final2["time_score"]
@@ -136,10 +138,10 @@ if __name__ == "__main__":
     EPS = 1e-6
     CUTOFF = 100
 
-    dataset = LMLDDataset()
+    dataset = AILMLWDataset()
 
     for kind in ["train", "full"]:
-        rec = TimePop(kind=kind, dataset=dataset, cutoff=200)
+        rec = TimePop(kind=kind, dataset=dataset, cutoff=100)
         # rec.eval_recommendations(write_log=False)
         rec.save_recommendations()
         # rec.eval_recommendations()

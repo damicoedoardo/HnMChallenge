@@ -4,7 +4,9 @@ import time
 
 import joblib
 import lightgbm as lgb
+import numpy as np
 import pandas as pd
+from tqdm import tqdm
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
@@ -24,12 +26,12 @@ SUB_NAME = "300"
 VERSION = 0
 # NAME = f"dataset_v1000"
 # NAME = "cutf_200_TimePop_alpha_1.0"
-NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
+NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 if __name__ == "__main__":
-    dataset = AILMLWDataset()
+    dataset = AILMLDDataset()
     base_load_path = dataset._DATASET_PATH / "lgbm_models"
     model = joblib.load(base_load_path / MODEL_NAME)
 
@@ -55,7 +57,22 @@ if __name__ == "__main__":
 
     s = time.time()
     print("Computing Predictions...")
-    y_pred = model.predict(X, num_iteration=model.best_iteration_, n_jobs=72)
+    y_pred = []
+
+    batch_size = 30_000_000
+    idx = 0
+    while idx + batch_size < X.shape[0]:
+        end = idx + batch_size
+        batch = X.loc[idx : end - 1, :]
+        score = model.predict(batch, num_iteration=model.best_iteration_, n_jobs=72)
+        y_pred.extend(score)
+        idx = end
+    last_batch = X.loc[idx:, :]
+    score = model.predict(last_batch, num_iteration=model.best_iteration_, n_jobs=72)
+    y_pred.extend(score)
+    y_pred = np.array(y_pred)
+    print(y_pred.shape)
+
     print(f"Took: {math.ceil((time.time()-s)/60)} minutes")
 
     customer_article_df["predicted_score"] = y_pred
