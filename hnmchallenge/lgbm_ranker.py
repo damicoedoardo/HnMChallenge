@@ -12,6 +12,8 @@ from xgboost import plot_importance
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
+from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
@@ -39,7 +41,7 @@ TEST_PERC = 0.001
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-# NAME = f"dataset_v1000"
+# NAME = f"dataset_v10000"
 NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 
@@ -58,7 +60,7 @@ cat = [
 if __name__ == "__main__":
     save_dataset = AILMLDDataset()
     # dataset_list = [save_dataset, LML2WDataset(), LML3WDataset()]
-    dataset_list = [save_dataset]
+    dataset_list = [save_dataset, AILML]
 
     dr = DataReader()
     # save the model on the path of the last week dataset !
@@ -132,7 +134,7 @@ if __name__ == "__main__":
     query_val = val_df.groupby(DEFAULT_USER_COL)[DEFAULT_USER_COL].count()
 
     gbm = lgb.LGBMRanker(
-        boosting_type="dart",
+        boosting_type="gbdt",
         objective="lambdarank",
         num_threads=72,
         # device="gpu",
