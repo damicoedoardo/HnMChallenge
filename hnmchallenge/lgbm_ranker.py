@@ -12,9 +12,20 @@ from xgboost import plot_importance
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
-from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
+from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_day_last_2nd_week import (
+    AILMLD2WDataset,
+)
+from hnmchallenge.datasets.all_items_last_month_last_day_last_3rd_week import (
+    AILMLD3WDataset,
+)
+from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import (
+    AILMLD4WDataset,
+)
+from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import (
+    AILMLD5WDataset,
+)
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
@@ -58,9 +69,15 @@ cat = [
 
 
 if __name__ == "__main__":
-    save_dataset = AILMLDDataset()
-    # dataset_list = [save_dataset, LML2WDataset(), LML3WDataset()]
-    dataset_list = [save_dataset, AILML]
+    save_dataset = AILMLDWDataset()
+    dataset_list = [
+        save_dataset,
+        AILMLD2WDataset(),
+        AILMLD3WDataset(),
+        AILMLD4WDataset(),
+        AILMLD5WDataset(),
+    ]
+    # dataset_list = [save_dataset]
 
     dr = DataReader()
     # save the model on the path of the last week dataset !
@@ -144,8 +161,8 @@ if __name__ == "__main__":
         reg_lambda=0.00,
         reg_alpha=0.00,
         # eta=0.05,
-        num_leaves=31,
-        max_depth=8,
+        num_leaves=50,
+        max_depth=10,
         n_estimators=500,
         subsample=0.8,
         # sampling_method="gradient_based"

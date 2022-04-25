@@ -3,9 +3,20 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
-from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
+from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_day_last_2nd_week import (
+    AILMLD2WDataset,
+)
+from hnmchallenge.datasets.all_items_last_month_last_day_last_3rd_week import (
+    AILMLD3WDataset,
+)
+from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import (
+    AILMLD4WDataset,
+)
+from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import (
+    AILMLD5WDataset,
+)
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_2week_last_day import L2WLDDataset
@@ -89,8 +100,8 @@ if __name__ == "__main__":
     TW = False
     REMOVE_SEEN = True
     FC = True
-    # dataset = AILML3WDataset()
-    dataset = AILMLDDataset()
+    dataset = AILMLD5WDataset()
+    # dataset = LMLDDataset()
 
     # for kind in ["train", "full"]:
     for kind in ["train", "full"]:

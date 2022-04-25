@@ -1,6 +1,11 @@
-from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
-from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
+from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import (
+    AILMLD4WDataset,
+)
+from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import (
+    AILMLD5WDataset,
+)
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
@@ -41,17 +46,17 @@ ITEM_FEATURES = [
     ColourGroupCode,
     DepartmentNO,
     GarmentGroupName,
-    GraphicalAppearanceNO,
+    # GraphicalAppearanceNO,
     GarmentGroupNO,
-    IndexCode,
-    IndexGroupName,
+    # IndexCode,
+    # IndexGroupName,
     IndexGroupNO,
     ItemCount,
     ItemCountLastMonth,
     NumberBought,
     PerceivedColourMasterID,
     PerceivedColourValueID,
-    ProductGroupName,
+    # ProductGroupName,
     PopularityCumulative,
     ProductTypeNO,
     SectionNO,
@@ -72,7 +77,7 @@ USER_ITEM_FEATURES = [
 if __name__ == "__main__":
     # TODO RECHECK ALL THE FEATURES AND RECREATE THE ONE-HOT ONE
     # DATASETS = [LML2WDataset(), LML3WDataset()]
-    DATASETS = [AILML2WDataset(), AILML3WDataset()]
+    DATASETS = [AILMLD4WDataset(), AILMLD5WDataset()]
     KINDS = ["train"]
     for d in DATASETS:
         dataset = d
