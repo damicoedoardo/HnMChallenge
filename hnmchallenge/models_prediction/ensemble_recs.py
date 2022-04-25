@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
@@ -221,18 +222,19 @@ if __name__ == "__main__":
     models = [
         # "cutf_100_PSGE_tw_True_rs_False_k_256",
         # "cutf_100_Popularity_cutoff_100",
-        "cutf_100_ItemKNN_tw_True_rs_False",
-        "cutf_100_TimePop_alpha_1.0",
+        "cutf_300_ItemKNN_tw_True_rs_False",
+        "cutf_300_ItemKNN_tw_False_rs_True",
+        # "cutf_100_TimePop_alpha_1.0",
         # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
         # "cutf_40_Popularity_cutoff_40",
         # "cutf_0_BoughtItemsRecs",
     ]
-    dataset = AILMLWDataset()
-    for kind in ["full"]:  # , "full"]:
+    dataset = AILMLDDataset()
+    for kind in ["train", "full"]:  # , "full"]:
         ensemble = EnsembleRecs(
             models_list=models,
             kind=kind,
             dataset=dataset,
         )
-        ensemble.save_recommendations(dataset_name="dataset_v1000")
+        ensemble.save_recommendations(dataset_name="dataset_v10000")
         # ensemble.eval_recommendations(dataset_name="dataset_v03")

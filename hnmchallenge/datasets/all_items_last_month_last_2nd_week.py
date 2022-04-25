@@ -131,11 +131,12 @@ class AILML2WDataset(DatasetInterface):
     def create_holdin_holdout(self) -> None:
         fd = self.get_full_data()
         hold_in = fd[(fd["t_dat"] <= "2020-09-08")]
-        intervals = [("2020-09-09", "2020-09-15")]
-        m = np.logical_or.reduce(
-            [np.logical_and(fd["t_dat"] >= l, fd["t_dat"] <= u) for l, u in intervals]
-        )
-        hold_out = fd.loc[m]
+        # intervals = [("2020-09-09", "2020-09-15")]
+        # m = np.logical_or.reduce(
+        #     [np.logical_and(fd["t_dat"] >= l, fd["t_dat"] <= u) for l, u in intervals]
+        # )
+        # hold_out = fd.loc[m]
+        hold_out = fd[(fd["t_dat"] >= "2020-09-09") & (fd["t_dat"] <= "2020-09-15")]
         # save holdin holdout
         hold_in.reset_index(drop=True).to_feather(self._HOLDIN_PATH)
         hold_out.reset_index(drop=True).to_feather(self._HOLDOUT_PATH)
@@ -144,7 +145,9 @@ class AILML2WDataset(DatasetInterface):
     def create_candidate_items(self) -> None:
         """Create and save the candidate items"""
         full_data = self.get_full_data()
-        candidate_items = full_data[full_data["t_dat"] >= "2020-08-24"][["article_id"]]
+        candidate_items = full_data[
+            (full_data["t_dat"] >= "2020-08-24") & (full_data["t_dat"] <= "2020-09-15")
+        ][["article_id"]].drop_duplicates()
         candidate_items.reset_index(drop=True).to_feather(self._CANDIDATE_ITEMS_PATH)
 
     def get_candidate_items(self) -> np.ndarray:
@@ -152,9 +155,14 @@ class AILML2WDataset(DatasetInterface):
         candidate_items = candidate_items_df.values.squeeze()
         return candidate_items
 
+    def get_full_data(self) -> pd.DataFrame:
+        fd = super().get_full_data()
+        fd = fd[fd["t_dat"] <= "2020-09-15"]
+        return fd
+
 
 if __name__ == "__main__":
     dataset = AILML2WDataset()
-    # dataset.remap_user_item_ids()
-    # dataset.create_holdin_holdout()
+    dataset.remap_user_item_ids()
+    dataset.create_holdin_holdout()
     dataset.create_candidate_items()

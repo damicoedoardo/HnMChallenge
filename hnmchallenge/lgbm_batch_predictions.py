@@ -21,7 +21,7 @@ from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 
-SUB_NAME = "300"
+SUB_NAME = "sing_day"
 
 VERSION = 0
 # NAME = f"dataset_v1000"
@@ -31,7 +31,7 @@ NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 if __name__ == "__main__":
-    dataset = AILMLDDataset()
+    dataset = AILMLWDataset()
     base_load_path = dataset._DATASET_PATH / "lgbm_models"
     model = joblib.load(base_load_path / MODEL_NAME)
 

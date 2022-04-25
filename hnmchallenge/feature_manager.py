@@ -7,6 +7,8 @@ import pandas as pd
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
+from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
+from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
@@ -43,7 +45,7 @@ class FeatureManager:
         Fn,
         AvgPrice,
         UserTendency,
-        UserTendencyLM,
+        # UserTendencyLM,
         UserAvgBuyDay,
         SaleChannelScore,
         UserAvgBuySession,
@@ -327,9 +329,9 @@ class FeatureManager:
 if __name__ == "__main__":
     # KIND = "train"
     # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
-    DATASET_NAME = f"cutf_500_ItemKNN_tw_True_rs_False"
+    DATASET_NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
     # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
-    # DATASET_NAME = "dataset_v1000"
+    DATASET_NAME = "dataset_v10000"
     VERSION = 0
 
     # dataset = LMLWDataset()
