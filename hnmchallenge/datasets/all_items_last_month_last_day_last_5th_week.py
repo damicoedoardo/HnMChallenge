@@ -6,9 +6,9 @@ from hnmchallenge.constant import *
 from hnmchallenge.dataset_interface import DatasetInterface
 
 
-class AILMLD3WDataset(DatasetInterface):
+class AILMLD5WDataset(DatasetInterface):
 
-    DATASET_NAME = "AILMLD3W_dataset"
+    DATASET_NAME = "AILMLD5W_dataset"
     _ARTICLES_NUM = 104_547
     _CUSTOMERS_NUM = 1_362_281
 
@@ -17,7 +17,7 @@ class AILMLD3WDataset(DatasetInterface):
 
     def create_dataset_description(self) -> str:
         description = """ 
-        Items: t_dat > 17/08/2020 \n
+        Items: t_dat > 10/08/2020 \n
         holdout: last_week
         """
         return description
@@ -130,8 +130,8 @@ class AILMLD3WDataset(DatasetInterface):
 
     def create_holdin_holdout(self) -> None:
         fd = self.get_full_data()
-        hold_in2 = fd[(fd["t_dat"] <= "2020-09-01")]
-        intervals = [("2020-09-02", "2020-09-08")]
+        hold_in2 = fd[(fd["t_dat"] <= "2020-08-17")]
+        intervals = [("2020-08-18", "2020-08-24")]
         m = np.logical_or.reduce(
             [np.logical_and(fd["t_dat"] >= l, fd["t_dat"] <= u) for l, u in intervals]
         )
@@ -162,7 +162,7 @@ class AILMLD3WDataset(DatasetInterface):
     def create_candidate_items(self) -> None:
         """Create and save the candidate items"""
         full_data = self.get_full_data()
-        candidate_items = full_data[full_data["t_dat"] >= "2020-08-17"][["article_id"]]
+        candidate_items = full_data[full_data["t_dat"] >= "2020-08-03"][["article_id"]]
         candidate_items.reset_index(drop=True).to_feather(self._CANDIDATE_ITEMS_PATH)
 
     def get_candidate_items(self) -> np.ndarray:
@@ -172,7 +172,7 @@ class AILMLD3WDataset(DatasetInterface):
 
 
 if __name__ == "__main__":
-    dataset = AILMLD3WDataset()
+    dataset = AILMLD5WDataset()
     dataset.remap_user_item_ids()
     dataset.create_holdin_holdout()
     dataset.create_candidate_items()

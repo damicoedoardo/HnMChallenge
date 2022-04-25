@@ -1,4 +1,11 @@
+from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import (
+    AILMLD4WDataset,
+)
+from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import (
+    AILMLD5WDataset,
+)
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
@@ -17,61 +24,61 @@ from tqdm import tqdm
 USER_FEATURES = [
     LastBuyDate,
     TotalItemsBought,
-    # UserAvgBuySession,
-    # Active,
-    # Age,
-    # ClubMemberStatus,
-    # FashionNewsFrequency,
-    # Fn,
-    # AvgPrice,
-    # UserTendency,
-    # UserTendencyLM,
-    # SaleChannelScore,
-    # UserAvgBuyDay,
+    UserAvgBuySession,
+    Active,
+    Age,
+    ClubMemberStatus,
+    FashionNewsFrequency,
+    Fn,
+    AvgPrice,
+    UserTendency,
+    UserTendencyLM,
+    SaleChannelScore,
+    UserAvgBuyDay,
 ]
 GBM_FEATURES = [
-    # GraphicalAppearanceNOGBM,
-    # IndexCodeGBM,
-    # IndexGroupNameGBM,
-    # ProductGroupNameGBM,
+    GraphicalAppearanceNOGBM,
+    IndexCodeGBM,
+    IndexGroupNameGBM,
+    ProductGroupNameGBM,
 ]
 ITEM_FEATURES = [
-    # ColourGroupCode,
-    # DepartmentNO,
-    # GarmentGroupName,
+    ColourGroupCode,
+    DepartmentNO,
+    GarmentGroupName,
     # GraphicalAppearanceNO,
-    # GarmentGroupNO,
+    GarmentGroupNO,
     # IndexCode,
     # IndexGroupName,
-    # IndexGroupNO,
-    # ItemCount,
-    # ItemCountLastMonth,
-    # NumberBought,
-    # PerceivedColourMasterID,
-    # PerceivedColourValueID,
+    IndexGroupNO,
+    ItemCount,
+    ItemCountLastMonth,
+    NumberBought,
+    PerceivedColourMasterID,
+    PerceivedColourValueID,
     # ProductGroupName,
-    # PopularityCumulative,
-    # ProductTypeNO,
-    # SectionNO,
-    # Price,
-    # SalesFactor,
-    # ItemSaleChannelScore,
-    # ItemAgePop,
-    # PopSales1,
-    # PopSales2,
-    # ItemPriceProduct,
+    PopularityCumulative,
+    ProductTypeNO,
+    SectionNO,
+    Price,
+    SalesFactor,
+    ItemSaleChannelScore,
+    ItemAgePop,
+    PopSales1,
+    PopSales2,
+    ItemPriceProduct,
 ]
 USER_ITEM_FEATURES = [
-    # TimeScore,
-    # TimeWeight,
-    # TimesItemBought,
+    TimeScore,
+    TimeWeight,
+    TimesItemBought,
 ]
 
 if __name__ == "__main__":
     # TODO RECHECK ALL THE FEATURES AND RECREATE THE ONE-HOT ONE
     # DATASETS = [LML2WDataset(), LML3WDataset()]
-    DATASETS = [AILMLWDataset()]
-    KINDS = ["train", "full"]
+    DATASETS = [AILMLD4WDataset(), AILMLD5WDataset()]
+    KINDS = ["train"]
     for d in DATASETS:
         dataset = d
         print(
