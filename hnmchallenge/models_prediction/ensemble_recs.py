@@ -89,6 +89,21 @@ class EnsembleRecs(RecsInterface):
         _merge_dfs_kind = partial(_merge_dfs, self.kind)
         merged_recs_df = reduce(_merge_dfs_kind, recs_dfs_list)
 
+        print(merged_recs_df.columns)
+
+        if self.kind == "train":
+            merged_recs_df.loc[~merged_recs_df["relevance"].isnull(), "relevance"] = 1
+            merged_recs_df["relevance"] = merged_recs_df["relevance"].fillna(0)
+            # filter on user at least one hit
+            temp = merged_recs_df.groupby(DEFAULT_USER_COL).sum()
+            temp_filtered = temp[temp["relevance"] > 0]
+            user_with_hit = temp_filtered.reset_index()[DEFAULT_USER_COL].unique()
+
+            print(f"User with at least one hit: {len(user_with_hit)}")
+            merged_recs_df = merged_recs_df[
+                merged_recs_df[DEFAULT_USER_COL].isin(user_with_hit)
+            ]
+
         # store average recs per user
         self.avg_recs_per_user = merged_recs_df.groupby(DEFAULT_USER_COL).size().mean()
         print(f"Average recs per user: {self.avg_recs_per_user}")
@@ -222,19 +237,21 @@ if __name__ == "__main__":
     models = [
         # "cutf_100_PSGE_tw_True_rs_False_k_256",
         # "cutf_100_Popularity_cutoff_100",
-        "cutf_300_ItemKNN_tw_True_rs_False",
-        "cutf_300_ItemKNN_tw_False_rs_True",
+        "cutf_100_ItemKNN_tw_True_rs_False",
+        "cutf_100_EASE_tw_True_rs_True_l2_0.1",
+        # "cutf_100_EASE_tw_True_rs_True_l2_0.1",
+        # "cutf_300_ItemKNN_tw_False_rs_True",
         # "cutf_100_TimePop_alpha_1.0",
         # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
         # "cutf_40_Popularity_cutoff_40",
         # "cutf_0_BoughtItemsRecs",
     ]
-    dataset = AILMLDDataset()
-    for kind in ["train", "full"]:  # , "full"]:
+    dataset = LMLWDataset()
+    for kind in ["full"]:  # , "full"]:  # , "full"]:
         ensemble = EnsembleRecs(
             models_list=models,
             kind=kind,
             dataset=dataset,
         )
-        ensemble.save_recommendations(dataset_name="dataset_v10000")
-        # ensemble.eval_recommendations(dataset_name="dataset_v03")
+        ensemble.save_recommendations(dataset_name="dataset_ala7")
+        # ensemble.eval_recommendations(dataset_name="dataset_AHAH")

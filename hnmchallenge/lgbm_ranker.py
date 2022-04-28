@@ -44,16 +44,18 @@ from hnmchallenge.features.light_gbm_features import (
 )
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 
-TRAIN_PERC = 0.899
-VAL_PERC = 0.1
+TRAIN_PERC = 0.8
+VAL_PERC = 0.199
 TEST_PERC = 0.001
 
 # VERSION = 0
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-# NAME = f"dataset_v10000"
-NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
+NAME = f"dataset_ala7"
+# NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
+# NAME = f"cutf_100_EASE_tw_True_rs_True_l2_0.1"
+# NAME = f"cutf_100_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 
 VERSION = 0
@@ -66,16 +68,16 @@ cat = [
     "index_group_name_gbm",
     "graphical_appearance_no_gbm",
 ]
-
+# cat = []
 
 if __name__ == "__main__":
-    save_dataset = AILMLDWDataset()
+    save_dataset = LMLWDataset()
     dataset_list = [
         save_dataset,
-        AILMLD2WDataset(),
-        AILMLD3WDataset(),
-        AILMLD4WDataset(),
-        AILMLD5WDataset(),
+        # AILMLD2WDataset(),
+        # AILMLD3WDataset(),
+        # AILMLD4WDataset(),
+        # AILMLD5WDataset(),
     ]
     # dataset_list = [save_dataset]
 
@@ -94,7 +96,9 @@ if __name__ == "__main__":
 
     # the final features_df is the concat of the week datasets
     features_df = pd.concat(features_df_list, axis=0)
-    print(features_df.columns)
+    score_col = [c for c in features_df.columns if "_score" in c]
+
+    print(features_df[score_col])
 
     # print(features_df["ItemKNN_tw_True_rs_False_score"])
     # features_df = features_df.drop(["ItemKNN_tw_True_rs_False_rank"], axis=1)
@@ -157,14 +161,16 @@ if __name__ == "__main__":
         # device="gpu",
         random_state=RANDOM_SEED,
         learning_rate=0.1,
-        # colsample_bytree=0.8,
-        reg_lambda=0.00,
-        reg_alpha=0.00,
+        colsample_bytree=1,
+        reg_lambda=0.0,
+        reg_alpha=0.0,
         # eta=0.05,
-        num_leaves=50,
-        max_depth=10,
+        num_leaves=30,
+        max_depth=6,
         n_estimators=500,
-        subsample=0.8,
+        bagging_fraction=0.8,
+        min_data_in_leaf=30,
+        # max_bin=255
         # sampling_method="gradient_based"
         # n_gpus=-1
         # gpu_id=1,
@@ -179,7 +185,7 @@ if __name__ == "__main__":
         eval_metric="map",
         eval_at=12,
         verbose=True,
-        early_stopping_rounds=20,
+        early_stopping_rounds=30,
         categorical_feature=cat_index,
     )
 

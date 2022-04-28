@@ -85,19 +85,19 @@ class EaseRecs(RecsInterface):
 if __name__ == "__main__":
     KIND = "train"
     TW = True
-    REMOVE_SEEN = False
-    L2 = 1e-3
-    dataset = AILMLWDataset()
+    REMOVE_SEEN = True
+    L2 = 1e-1
+    dataset = LMLWDataset()
 
-    for kind in ["train", "full"]:
+    for kind in ["full"]:  # ["train", "full"]:
         ease_rec = EaseRecs(
             kind=kind,
-            cutoff=200,
+            cutoff=100,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
             l2=L2,
-            filter_on_candidates=True,
+            filter_on_candidates=False,
         )
-        ease_rec.eval_recommendations()
-        # ease_rec.save_recommendations()
+        # ease_rec.eval_recommendations()
+        ease_rec.save_recommendations()

@@ -10,7 +10,8 @@ from tqdm import tqdm
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
+from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import \
+    AILMLDWDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
@@ -22,17 +23,18 @@ from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 
-SUB_NAME = "AILMLDW_2nd"
+SUB_NAME = "ala7"
 
 VERSION = 0
-# NAME = f"dataset_v1000"
+NAME = f"dataset_ala7"
 # NAME = "cutf_200_TimePop_alpha_1.0"
-NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
+# NAME = f"cutf_100_ItemKNN_tw_True_rs_False"
+# NAME = f"cutf_300_EASE_tw_True_rs_False_l2_0.1"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 if __name__ == "__main__":
-    dataset = AILMLDWDataset()
+    dataset = LMLWDataset()
     base_load_path = dataset._DATASET_PATH / "lgbm_models"
     model = joblib.load(base_load_path / MODEL_NAME)
 

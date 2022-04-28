@@ -97,17 +97,16 @@ class ItemKNNRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    TW = False
-    REMOVE_SEEN = True
-    FC = True
-    dataset = AILMLD5WDataset()
-    # dataset = LMLDDataset()
-
-    # for kind in ["train", "full"]:
-    for kind in ["train", "full"]:
+    TW = True
+    REMOVE_SEEN = False
+    FC = False
+    # dataset = AILMLD5WDataset()
+    dataset = LMLWDataset()
+    for kind in ["full"]:
+        # for kind in ["train", "full"]:
         rec_ens = ItemKNNRecs(
             kind=kind,
-            cutoff=300,
+            cutoff=100,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,

@@ -1,6 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 from datetime import datetime
+from heapq import merge
 from pathlib import Path
 from typing import Union
 
@@ -123,21 +124,22 @@ class RecsInterface(ABC):
                 right_on=[DEFAULT_USER_COL, "article_id"],
                 how="left",
             )
+            merged_filtered = merged
 
             # we have to remove the user for which we do not do at least one hit,
             # since we would not have the relavance for the items
-            merged.loc[merged["article_id"].notnull(), "article_id"] = 1
-            merged["hit_sum"] = merged.groupby(DEFAULT_USER_COL)[
-                "article_id"
-            ].transform("sum")
+            # merged.loc[merged["article_id"].notnull(), "article_id"] = 1
+            # merged["hit_sum"] = merged.groupby(DEFAULT_USER_COL)[
+            #     "article_id"
+            # ].transform("sum")
 
-            merged_filtered = merged[merged["hit_sum"] > 0]
+            # merged_filtered = merged[merged["hit_sum"] > 0]
 
-            # we can drop the hit sum column
-            merged_filtered = merged_filtered.drop("hit_sum", axis=1)
+            # # we can drop the hit sum column
+            # merged_filtered = merged_filtered.drop("hit_sum", axis=1)
 
             # fill with 0 the nan values, the nan are the one for which we do not do an hit
-            merged_filtered["article_id"] = merged_filtered["article_id"].fillna(0)
+            # merged_filtered["article_id"] = merged_filtered["article_id"].fillna(0)
 
             # rename the columns
             merged_filtered = merged_filtered.rename(

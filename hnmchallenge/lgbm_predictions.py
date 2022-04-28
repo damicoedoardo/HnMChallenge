@@ -29,7 +29,7 @@ NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 if __name__ == "__main__":
-    dataset = AILMLWDataset()
+    dataset = AILMLDWDataset()
     base_load_path = dataset._DATASET_PATH / "lgbm_models"
     model = joblib.load(base_load_path / MODEL_NAME)
 

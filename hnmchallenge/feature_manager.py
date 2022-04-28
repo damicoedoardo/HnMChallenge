@@ -340,13 +340,13 @@ class FeatureManager:
 if __name__ == "__main__":
     # KIND = "train"
     # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
-    DATASET_NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
+    # DATASET_NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
     # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
-    DATASET_NAME = "dataset_v10000"
+    DATASET_NAME = "dataset_ala7"
     VERSION = 0
 
     # dataset = LMLWDataset()
-    DATASETS = [AILMLD4WDataset(), AILMLD5WDataset()]
+    DATASETS = [LMLWDataset()]
     for dataset in DATASETS:
         s = time.time()
         for kind in ["train"]:
