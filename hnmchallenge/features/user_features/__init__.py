@@ -19,3 +19,9 @@ from hnmchallenge.features.user_features.total_items_bought import (
 from hnmchallenge.features.user_features.last_buy_date import (
     LastBuyDate,
 )
+from hnmchallenge.features.user_features.user_age_cluster import (
+    UserAgeCluster,
+)
+from hnmchallenge.features.user_features.user_tendency_cumulative import (
+    UserTendencyCumulative,
+)
