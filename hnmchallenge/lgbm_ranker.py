@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import xgboost as xgb
+from sklearn.preprocessing import PolynomialFeatures
 from xgboost import plot_importance
 
 from hnmchallenge.constant import *
@@ -52,9 +53,9 @@ TEST_PERC = 0.001
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-NAME = f"dataset_ala7"
+NAME = f"dataset_final"
 # NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
-# NAME = f"cutf_100_EASE_tw_True_rs_True_l2_0.1"
+# NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
 # NAME = f"cutf_100_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 
@@ -71,7 +72,7 @@ cat = [
 # cat = []
 
 if __name__ == "__main__":
-    save_dataset = LMLWDataset()
+    save_dataset = LMLDDataset()
     dataset_list = [
         save_dataset,
         # AILMLD2WDataset(),
@@ -96,9 +97,43 @@ if __name__ == "__main__":
 
     # the final features_df is the concat of the week datasets
     features_df = pd.concat(features_df_list, axis=0)
-    score_col = [c for c in features_df.columns if "_score" in c]
 
-    print(features_df[score_col])
+    # features_df.pop("tdiff")
+
+    # performing polynomial transformation
+    # feat_not_transform = [
+    #     DEFAULT_USER_COL,
+    #     DEFAULT_ITEM_COL,
+    #     "colour_group_code",
+    #     "department_no",
+    #     "garment_group_no",
+    #     "index_group_no",
+    #     "perceived_colour_master_id",
+    #     "perceived_colour_value_id",
+    #     "product_type_no",
+    #     "section_no",
+    #     "NONE",
+    #     "None",
+    #     "club_member_status_num",
+    #     "active",
+    #     "Regularly",
+    #     "FN",
+    #     "graphical_appearance_no_gbm",
+    #     "index_code_gbm",
+    #     "index_group_name_gbm",
+    #     "product_group_name_gbm",
+    # ]
+
+    # not_transformed = features_df[feat_not_transform]
+
+    # to_transform = features_df.loc[:, ~features_df.columns.isin(feat_not_transform)]
+    # print(to_transform.columns)
+    # poly = PolynomialFeatures(2)
+    # transformed = poly.fit_transform(to_transform)
+    # print(transformed)
+
+    # score_col = [c for c in features_df.columns if "_score" in c]
+    # print(features_df[score_col])
 
     # print(features_df["ItemKNN_tw_True_rs_False_score"])
     # features_df = features_df.drop(["ItemKNN_tw_True_rs_False_rank"], axis=1)
@@ -168,7 +203,7 @@ if __name__ == "__main__":
         num_leaves=30,
         max_depth=6,
         n_estimators=500,
-        bagging_fraction=0.8,
+        bagging_fraction=0.7,
         min_data_in_leaf=30,
         # max_bin=255
         # sampling_method="gradient_based"

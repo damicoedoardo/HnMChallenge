@@ -138,9 +138,9 @@ if __name__ == "__main__":
     EPS = 1e-6
     CUTOFF = 100
 
-    dataset = AILMLWDataset()
+    dataset = LMLWDataset()
 
-    for kind in ["train", "full"]:
+    for kind in ["full"]:
         rec = TimePop(kind=kind, dataset=dataset, cutoff=100)
         # rec.eval_recommendations(write_log=False)
         rec.save_recommendations()

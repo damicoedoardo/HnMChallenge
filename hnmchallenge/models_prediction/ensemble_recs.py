@@ -22,6 +22,7 @@ from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.models_prediction.time_pop import TimePop
 from hnmchallenge.utils.logger import set_color
 from matplotlib.pyplot import axis
+from tqdm import tqdm
 
 
 class EnsembleRecs(RecsInterface):
@@ -88,6 +89,12 @@ class EnsembleRecs(RecsInterface):
 
         _merge_dfs_kind = partial(_merge_dfs, self.kind)
         merged_recs_df = reduce(_merge_dfs_kind, recs_dfs_list)
+
+        score_cols = [c for c in merged_recs_df.columns if "score" in c]
+        for sc in tqdm(score_cols):
+            merged_recs_df[sc] = (
+                merged_recs_df[sc] - merged_recs_df[sc].mean()
+            ) / merged_recs_df[sc].std()
 
         print(merged_recs_df.columns)
 
@@ -237,8 +244,8 @@ if __name__ == "__main__":
     models = [
         # "cutf_100_PSGE_tw_True_rs_False_k_256",
         # "cutf_100_Popularity_cutoff_100",
-        "cutf_100_ItemKNN_tw_True_rs_False",
-        "cutf_100_EASE_tw_True_rs_True_l2_0.1",
+        "cutf_200_ItemKNN_tw_True_rs_False",
+        "cutf_200_EASE_tw_True_rs_False_l2_0.1",
         # "cutf_100_EASE_tw_True_rs_True_l2_0.1",
         # "cutf_300_ItemKNN_tw_False_rs_True",
         # "cutf_100_TimePop_alpha_1.0",
@@ -246,12 +253,12 @@ if __name__ == "__main__":
         # "cutf_40_Popularity_cutoff_40",
         # "cutf_0_BoughtItemsRecs",
     ]
-    dataset = LMLWDataset()
-    for kind in ["full"]:  # , "full"]:  # , "full"]:
+    dataset = LMLDDataset()
+    for kind in ["train"]:  # , "full"]:  # , "full"]:
         ensemble = EnsembleRecs(
             models_list=models,
             kind=kind,
             dataset=dataset,
         )
-        ensemble.save_recommendations(dataset_name="dataset_ala7")
+        ensemble.save_recommendations(dataset_name="dataset_final")
         # ensemble.eval_recommendations(dataset_name="dataset_AHAH")

@@ -38,5 +38,5 @@ class EASE(ItemSimilarityRecommender):
         P = np.linalg.inv(G)
         B = P / (-np.diag(P))
         # B[diagIndices] = 0
-        # np.fill_diagonal(B, 1)
+        np.fill_diagonal(B, B.max())
         self.similarity_matrix = B

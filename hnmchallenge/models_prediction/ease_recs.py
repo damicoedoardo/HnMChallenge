@@ -85,14 +85,14 @@ class EaseRecs(RecsInterface):
 if __name__ == "__main__":
     KIND = "train"
     TW = True
-    REMOVE_SEEN = True
+    REMOVE_SEEN = False
     L2 = 1e-1
-    dataset = LMLWDataset()
+    dataset = LMLDDataset()
 
     for kind in ["full"]:  # ["train", "full"]:
         ease_rec = EaseRecs(
             kind=kind,
-            cutoff=100,
+            cutoff=200,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,

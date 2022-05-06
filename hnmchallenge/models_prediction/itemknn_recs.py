@@ -101,12 +101,12 @@ if __name__ == "__main__":
     REMOVE_SEEN = False
     FC = False
     # dataset = AILMLD5WDataset()
-    dataset = LMLWDataset()
-    for kind in ["full"]:
+    dataset = LMLDDataset()
+    for kind in ["train", "full"]:
         # for kind in ["train", "full"]:
         rec_ens = ItemKNNRecs(
             kind=kind,
-            cutoff=100,
+            cutoff=200,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,

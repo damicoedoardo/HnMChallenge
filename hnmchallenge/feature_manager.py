@@ -49,11 +49,11 @@ class FeatureManager:
     _USER_FEATURES = [
         LastBuyDate,
         TotalItemsBought,
-        Active,
+        # Active,
         Age,
-        ClubMemberStatus,
-        FashionNewsFrequency,
-        Fn,
+        # ClubMemberStatus,
+        # FashionNewsFrequency,
+        # Fn,
         AvgPrice,
         UserTendency,
         # UserTendencyLM,
@@ -67,17 +67,17 @@ class FeatureManager:
         ItemSaleChannelScore,
         DepartmentNO,
         ##GarmentGroupName,
-        # GraphicalAppearanceNO,
+        GraphicalAppearanceNO,
         GarmentGroupNO,
-        # IndexCode,
-        # IndexGroupName,
+        IndexCode,
+        IndexGroupName,
         IndexGroupNO,
         ItemCount,
-        ItemCountLastMonth,
+        # ItemCountLastMonth,
         NumberBought,
         PerceivedColourMasterID,
         PerceivedColourValueID,
-        # ProductGroupName,
+        ProductGroupName,
         ProductTypeNO,
         SectionNO,
         Price,
@@ -156,6 +156,17 @@ class FeatureManager:
         # load base df
 
         base_df = RecsInterface.load_recommendations(self.dataset, name, self.kind)
+
+        if "dataset" not in name and self.kind == "train":
+            base_df.loc[~base_df["relevance"].isnull(), "relevance"] = 1
+            base_df["relevance"] = base_df["relevance"].fillna(0)
+            # filter on user at least one hit
+            temp = base_df.groupby(DEFAULT_USER_COL).sum()
+            temp_filtered = temp[temp["relevance"] > 0]
+            user_with_hit = temp_filtered.reset_index()[DEFAULT_USER_COL].unique()
+
+            print(f"User with at least one hit: {len(user_with_hit)}")
+            base_df = base_df[base_df[DEFAULT_USER_COL].isin(user_with_hit)]
 
         # rename the recs column accordingly
         # if it is an `ensemble model` we have "recs" column
@@ -342,11 +353,12 @@ if __name__ == "__main__":
     # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
     # DATASET_NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
     # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
-    DATASET_NAME = "dataset_ala7"
+    DATASET_NAME = "dataset_final"
+    # DATASET_NAME = "cutf_200_EASE_tw_True_rs_False_l2_0.1"
     VERSION = 0
 
     # dataset = LMLWDataset()
-    DATASETS = [LMLWDataset()]
+    DATASETS = [LMLDDataset()]
     for dataset in DATASETS:
         s = time.time()
         for kind in ["train"]:
