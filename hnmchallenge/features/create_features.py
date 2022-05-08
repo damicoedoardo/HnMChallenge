@@ -22,7 +22,9 @@ from hnmchallenge.utils.logger import set_color
 from tqdm import tqdm
 
 USER_FEATURES = [
-    # LastBuyDate,
+    # UserTendencyCumulative,
+    # UserAgeCluster,
+    LastBuyDate,
     # TotalItemsBought,
     # UserAvgBuySession,
     # Active,
@@ -61,8 +63,6 @@ ITEM_FEATURES = [
     # PerceivedColourValueID,
     # # ProductGroupName,
     # PopularityCumulative,
-    # PopularityCumulativeMultiple,
-    ##PopularityCumulative,
     # ProductTypeNO,
     # SectionNO,
     # Price,
