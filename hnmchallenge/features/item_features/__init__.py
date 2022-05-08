@@ -49,3 +49,9 @@ from hnmchallenge.features.item_features.cumulative_popularity import (
 from hnmchallenge.features.item_features.item_age_describe import (
     ItemAgeDescribe,
 )
+from hnmchallenge.features.item_features.item_popularity_sales_channel_1_cumulative import (
+    PopSales1Cumulative,
+)
+from hnmchallenge.features.item_features.item_popularity_sales_channel_2_cumulative import (
+    PopSales2Cumulative,
+)

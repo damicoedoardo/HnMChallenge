@@ -6,7 +6,7 @@ from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import (
 from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import (
     AILMLD5WDataset,
 )
-from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
+from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
 from hnmchallenge.datasets.last_month_last_3rd_week_dataset import LML3WDataset
@@ -52,17 +52,17 @@ ITEM_FEATURES = [
     # # IndexGroupName,
     # IndexGroupNO,
     # ItemCount,
-    ItemCountMultiple,
+    # ItemCountMultiple,
     # ItemCountLastMonth,
-    ItemCountLastMonthMultiple,
+    # ItemCountLastMonthMultiple,
     ItemAgeDescribe,
     # NumberBought,
     # PerceivedColourMasterID,
     # PerceivedColourValueID,
     # # ProductGroupName,
     # PopularityCumulative,
-    PopularityCumulativeMultiple,
-    PopularityCumulative,
+    # PopularityCumulativeMultiple,
+    ##PopularityCumulative,
     # ProductTypeNO,
     # SectionNO,
     # Price,
@@ -82,7 +82,7 @@ USER_ITEM_FEATURES = [
 if __name__ == "__main__":
     # TODO RECHECK ALL THE FEATURES AND RECREATE THE ONE-HOT ONE
     # DATASETS = [LML2WDataset(), LML3WDataset()]
-    DATASETS = [LMLDDataset()]
+    DATASETS = [AILMLDDataset()]
     KINDS = ["train", "full"]
     for d in DATASETS:
         dataset = d
