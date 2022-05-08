@@ -22,9 +22,9 @@ from hnmchallenge.utils.logger import set_color
 from tqdm import tqdm
 
 USER_FEATURES = [
-    LastBuyDate,
-    TotalItemsBought,
-    UserAvgBuySession,
+    # LastBuyDate,
+    # TotalItemsBought,
+    # UserAvgBuySession,
     # Active,
     # Age,
     # ClubMemberStatus,
@@ -62,6 +62,7 @@ ITEM_FEATURES = [
     # # ProductGroupName,
     # PopularityCumulative,
     PopularityCumulativeMultiple,
+    PopularityCumulative,
     # ProductTypeNO,
     # SectionNO,
     # Price,
@@ -81,7 +82,7 @@ USER_ITEM_FEATURES = [
 if __name__ == "__main__":
     # TODO RECHECK ALL THE FEATURES AND RECREATE THE ONE-HOT ONE
     # DATASETS = [LML2WDataset(), LML3WDataset()]
-    DATASETS = [LMLWDataset()]
+    DATASETS = [LMLDDataset()]
     KINDS = ["train", "full"]
     for d in DATASETS:
         dataset = d
