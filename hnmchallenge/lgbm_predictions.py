@@ -19,12 +19,12 @@ from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 
-SUB_NAME = "dataset_ip"
+SUB_NAME = "sing_day"
 
 VERSION = 0
-NAME = f"dataset_v1000"
+# NAME = f"dataset_v1000"
 # NAME = "cutf_200_TimePop_alpha_1.0"
-# NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
+NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"

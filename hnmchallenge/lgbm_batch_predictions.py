@@ -33,7 +33,7 @@ NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 if __name__ == "__main__":
-    dataset = AILMLDDataset()
+    dataset = LMLWDataset()
     base_load_path = dataset._DATASET_PATH / "lgbm_models"
     model = joblib.load(base_load_path / MODEL_NAME)
 
@@ -41,8 +41,7 @@ if __name__ == "__main__":
     features = pd.read_feather(dataset._DATASET_PATH / f"dataset_dfs/full/{DATASET}")
     print(features.shape)
     # features = features.drop(["ItemKNN_tw_True_rs_False_rank"], axis=1)
-    # features.pop("tdiff")
-    print("Renaming features magic formula...")
+
     features = features.rename(columns=lambda x: re.sub("[^A-Za-z0-9_]+", "", x))
 
     cat = [

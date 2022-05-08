@@ -99,7 +99,7 @@ class ItemKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = False
-    FC = True
+    FC = False
     # dataset = AILMLD5WDataset()
     dataset = AILMLDDataset()
     for kind in ["train", "full"]:

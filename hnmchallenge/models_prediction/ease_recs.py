@@ -3,7 +3,6 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
@@ -86,20 +85,19 @@ class EaseRecs(RecsInterface):
 if __name__ == "__main__":
     KIND = "train"
     TW = True
-    REMOVE_SEEN = False
-    FC = True
+    REMOVE_SEEN = True
     L2 = 1e-1
-    dataset = AILMLDDataset()
+    dataset = LMLWDataset()
 
-    for kind in ["train", "full"]:  # ["train", "full"]:
+    for kind in ["full"]:  # ["train", "full"]:
         ease_rec = EaseRecs(
             kind=kind,
-            cutoff=300,
+            cutoff=100,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
             l2=L2,
-            filter_on_candidates=FC,
+            filter_on_candidates=False,
         )
         # ease_rec.eval_recommendations()
         ease_rec.save_recommendations()

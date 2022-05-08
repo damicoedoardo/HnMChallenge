@@ -237,21 +237,21 @@ if __name__ == "__main__":
     models = [
         # "cutf_100_PSGE_tw_True_rs_False_k_256",
         # "cutf_100_Popularity_cutoff_100",
-        "cutf_150_ItemKNN_tw_True_rs_False",
-        # "cutf_80_EASE_tw_True_rs_False_l2_0.1",
+        "cutf_100_ItemKNN_tw_True_rs_False",
+        "cutf_100_EASE_tw_True_rs_True_l2_0.1",
         # "cutf_100_EASE_tw_True_rs_True_l2_0.1",
         # "cutf_300_ItemKNN_tw_False_rs_True",
         # "cutf_100_TimePop_alpha_1.0",
         # "cutf_100_EASE_tw_True_rs_False_l2_0.001",
-        "cutf_50_Popularity_cutoff_50",
+        # "cutf_40_Popularity_cutoff_40",
         # "cutf_0_BoughtItemsRecs",
     ]
-    dataset = AILMLDDataset()
-    for kind in ["train"]:  # , "full"]:  # , "full"]:
+    dataset = LMLWDataset()
+    for kind in ["full"]:  # , "full"]:  # , "full"]:
         ensemble = EnsembleRecs(
             models_list=models,
             kind=kind,
             dataset=dataset,
         )
-        ensemble.save_recommendations(dataset_name="dataset_iip")
+        ensemble.save_recommendations(dataset_name="dataset_ala7")
         # ensemble.eval_recommendations(dataset_name="dataset_AHAH")

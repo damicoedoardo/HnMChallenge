@@ -19,8 +19,7 @@ from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
 from hnmchallenge.utils.decorator import timing
 from hnmchallenge.utils.logger import set_color
-from hnmchallenge.utils.sparse_matrix import (get_top_k,
-                                              interactions_to_sparse_matrix)
+from hnmchallenge.utils.sparse_matrix import get_top_k, interactions_to_sparse_matrix
 
 logger = logging.getLogger(__name__)
 
@@ -420,7 +419,7 @@ class UserSimilarityRecommender(AbstractRecommender, ABC):
         """Compute similarity matrix and assign it to self.similarity_matrix"""
         pass
 
-    def predict(self, interactions: pd.DataFrame):
+    def predict(self, interactions: pd.DataFrame, cutoff: int, remove_seen: bool):
         assert (
             self.similarity_matrix is not None
         ), "Similarity matrix is not computed, call compute_similarity_matrix()"
@@ -440,10 +439,20 @@ class UserSimilarityRecommender(AbstractRecommender, ABC):
         else:
             logger.debug(set_color(f"SPARSE Item Similarity MUL...", "cyan"))
 
-            print(f"interactions shape: {sparse_interaction.shape}")
-            print(f"similarity shape: {sparse_interaction.shape}")
-            scores = self.similarity_matrix @ sparse_interaction
+            print(self.similarity_matrix.shape)
+            print(sparse_interaction.shape)
+            print(cutoff)
+
+            filter_cols = sparse_interaction if remove_seen else None
+            scores = similaripy.dot_product(
+                self.similarity_matrix.T,
+                sparse_interaction,
+                k=cutoff,
+                # filter_cols=filter_cols,
+            )
+            # scores = self.similarity_matrix.dot(sparse_interaction)
             scores = scores.toarray()
+            print(scores)
 
         scores_df = pd.DataFrame(scores, index=list(user_mapping_dict.keys()))
         return scores_df

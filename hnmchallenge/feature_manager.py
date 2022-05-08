@@ -1,13 +1,9 @@
 import logging
 import time
-from email.mime import base
 from functools import reduce
 from pathlib import Path
 
-import dask.dataframe as dd
 import pandas as pd
-from dask.distributed import Client
-from numpy import int64
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
@@ -53,9 +49,7 @@ class FeatureManager:
     _USER_FEATURES = [
         LastBuyDate,
         TotalItemsBought,
-        # Active,
-        UserTendencyCumulative,
-        UserAgeCluster,
+        Active,
         Age,
         ClubMemberStatus,
         FashionNewsFrequency,
@@ -417,8 +411,6 @@ class FeatureManager:
 
 
 if __name__ == "__main__":
-    # client = Client()
-    N_PARTITIONS = 1
     # KIND = "train"
     # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
     DATASET_NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
@@ -429,7 +421,7 @@ if __name__ == "__main__":
     VERSION = 0
 
     # dataset = LMLWDataset()
-    DATASETS = [AILMLDDataset()]
+    DATASETS = [LMLWDataset()]
     for dataset in DATASETS:
         s = time.time()
         for kind in ["train"]:

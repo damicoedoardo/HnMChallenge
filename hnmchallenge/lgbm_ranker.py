@@ -72,7 +72,7 @@ cat = [
 # cat = []
 
 if __name__ == "__main__":
-    save_dataset = AILMLDDataset()
+    save_dataset = LMLWDataset()
     dataset_list = [
         save_dataset,
         # AILMLD2WDataset(),
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         # device="gpu",
         random_state=RANDOM_SEED,
         learning_rate=0.1,
-        colsample_bytree=0.8,
+        colsample_bytree=1,
         reg_lambda=0.0,
         reg_alpha=0.0,
         # eta=0.05,

@@ -3,8 +3,6 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
-from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
@@ -87,9 +85,9 @@ class PopularityRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    dataset = AILMLDDataset()
-    for kind in ["train"]:
-        rec = PopularityRecs(kind=kind, dataset=dataset, cutoff=50)
+    dataset = LMLWDataset()
+    for kind in ["train", "full"]:
+        rec = PopularityRecs(kind=kind, dataset=dataset, cutoff=40)
         # rec.get_recommendations()
         # rec.eval_recommendations()
         rec.save_recommendations()
