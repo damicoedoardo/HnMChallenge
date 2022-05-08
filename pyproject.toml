@@ -25,6 +25,8 @@ graphviz = "^0.19.1"
 scipy = "^1.8.0"
 tensorflow = "^2.8.0"
 tensorflow-gpu = "^2.8.0"
+dask = "^2022.5.0"
+distributed = "^2022.5.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

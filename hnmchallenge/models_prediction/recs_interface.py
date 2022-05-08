@@ -49,7 +49,7 @@ class RecsInterface(ABC):
         """Generate recommendation with a given cutoff"""
         pass
 
-    def _add_pop_missing_users(self, recs_df, num_items=100) -> pd.DataFrame:
+    def _add_pop_missing_users(self, recs_df, num_items=12) -> pd.DataFrame:
         assert (
             self.kind == "full"
         ), "this function has be called only for the full recommendations!"
@@ -61,6 +61,10 @@ class RecsInterface(ABC):
 
         # compute popularity
         fd = self.dataset.get_full_data()
+
+        # filter on last month popular items
+        fd = fd[fd["t_dat"] >= "2020-09-01"]
+
         count_mb = fd.groupby(DEFAULT_ITEM_COL).count()
         feature = count_mb.reset_index()[[DEFAULT_ITEM_COL, "t_dat"]].rename(
             columns={"t_dat": "popularity"}

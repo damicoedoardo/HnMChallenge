@@ -53,8 +53,9 @@ TEST_PERC = 0.001
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-NAME = f"dataset_final"
-# NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
+NAME = f"dataset_iip"
+# NAME = f"cutf_150_ItemKNN_tw_True_rs_False"
+# NAME = "cutf_150_Popularity_cutoff_150"
 # NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
 # NAME = f"cutf_100_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_100_TimePop_alpha_1.0"
@@ -72,7 +73,7 @@ cat = [
 # cat = []
 
 if __name__ == "__main__":
-    save_dataset = LMLDDataset()
+    save_dataset = AILMLDDataset()
     dataset_list = [
         save_dataset,
         # AILMLD2WDataset(),
@@ -196,12 +197,12 @@ if __name__ == "__main__":
         # device="gpu",
         random_state=RANDOM_SEED,
         learning_rate=0.1,
-        colsample_bytree=1,
+        colsample_bytree=0.8,
         reg_lambda=0.0,
         reg_alpha=0.0,
         # eta=0.05,
-        num_leaves=30,
-        max_depth=6,
+        num_leaves=50,
+        max_depth=10,
         n_estimators=500,
         bagging_fraction=0.7,
         min_data_in_leaf=30,

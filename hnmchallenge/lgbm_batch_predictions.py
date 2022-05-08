@@ -22,18 +22,18 @@ from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 
-SUB_NAME = "ease_lmld_notdiff"
+SUB_NAME = "dataset_ip_2"
 
-VERSION = 0
-# NAME = f"dataset_ala7"
+VERSION = 2
+NAME = f"dataset_ip"
 # NAME = "cutf_200_TimePop_alpha_1.0"
 # NAME = f"cutf_100_ItemKNN_tw_True_rs_False"
-NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
+# NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 DATASET = f"{NAME}_{VERSION}.feather"
 MODEL_NAME = f"lgbm_{DATASET}.pkl"
 if __name__ == "__main__":
-    dataset = LMLDDataset()
+    dataset = AILMLDDataset()
     base_load_path = dataset._DATASET_PATH / "lgbm_models"
     model = joblib.load(base_load_path / MODEL_NAME)
 
@@ -41,7 +41,8 @@ if __name__ == "__main__":
     features = pd.read_feather(dataset._DATASET_PATH / f"dataset_dfs/full/{DATASET}")
     print(features.shape)
     # features = features.drop(["ItemKNN_tw_True_rs_False_rank"], axis=1)
-    features.pop("tdiff")
+    # features.pop("tdiff")
+    print("Renaming features magic formula...")
     features = features.rename(columns=lambda x: re.sub("[^A-Za-z0-9_]+", "", x))
 
     cat = [

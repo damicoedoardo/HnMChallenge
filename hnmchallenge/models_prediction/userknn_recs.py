@@ -3,8 +3,7 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.datasets.last2month_last_week import L2MLWDataset
-from hnmchallenge.datasets.last_month_last_4day import LML4DDataset
+from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
@@ -22,10 +21,12 @@ class UserKNNRecs(RecsInterface):
         time_weight: bool = True,
         remove_seen: bool = False,
         cutoff: int = 100,
+        filter_on_candidates: bool = False,
     ) -> None:
         super().__init__(kind, dataset, cutoff)
         self.time_weight = time_weight
         self.remove_seen = remove_seen
+        self.filter_on_candidates = filter_on_candidates
 
         # set recommender name
         self.RECS_NAME = f"UserKNN_tw_{time_weight}_rs_{remove_seen}"
@@ -36,6 +37,13 @@ class UserKNNRecs(RecsInterface):
             if self.kind == "train"
             else self.dataset.get_full_data()
         )
+        if self.kind == "train":
+            # retrieve the holdout
+            holdout = self.dataset.get_holdout()
+            users_holdout = holdout[DEFAULT_USER_COL].unique()
+            prediction_data = data_df[data_df[DEFAULT_USER_COL].isin(users_holdout)]
+        else:
+            prediction_data = data_df
         # data that you use to compute similarity
 
         # Using the full data available perform better
@@ -46,8 +54,15 @@ class UserKNNRecs(RecsInterface):
 
         print(set_color("Computing similarity...", "green"))
         recom.compute_similarity_matrix(data_df)
-        recs = recom.recommend_similaripy(
-            interactions=data_df, cutoff=self.cutoff, remove_seen=self.remove_seen
+        recs = recom.recommend_multicore(
+            interactions=prediction_data,
+            batch_size=-1,
+            num_cpus=16,
+            remove_seen=self.remove_seen,
+            white_list_mb_item=None,
+            filter_on_candidates=self.filter_on_candidates,
+            cutoff=self.cutoff,
+            insert_gt=False,
         )
 
         recs = recs.rename(
@@ -64,15 +79,17 @@ class UserKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = False
     REMOVE_SEEN = False
-    dataset = LMLWDataset()
+    FC = True
+    dataset = AILMLDDataset()
 
-    for kind in ["train", "full"]:
+    for kind in ["train"]:
         rec_ens = UserKNNRecs(
             kind=kind,
             cutoff=100,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
+            filter_on_candidates=FC,
         )
         rec_ens.eval_recommendations()
         # rec_ens.save_recommendations()

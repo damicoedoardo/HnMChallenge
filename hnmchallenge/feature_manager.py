@@ -1,9 +1,13 @@
 import logging
 import time
+from email.mime import base
 from functools import reduce
 from pathlib import Path
 
+import dask.dataframe as dd
 import pandas as pd
+from dask.distributed import Client
+from numpy import int64
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
@@ -50,6 +54,8 @@ class FeatureManager:
         LastBuyDate,
         TotalItemsBought,
         # Active,
+        UserTendencyCumulative,
+        UserAgeCluster,
         Age,
         # ClubMemberStatus,
         # FashionNewsFrequency,
@@ -67,17 +73,17 @@ class FeatureManager:
         ItemSaleChannelScore,
         DepartmentNO,
         ##GarmentGroupName,
-        GraphicalAppearanceNO,
+        # GraphicalAppearanceNO,
         GarmentGroupNO,
-        IndexCode,
-        IndexGroupName,
+        # IndexCode,
+        # IndexGroupName,
         IndexGroupNO,
         ItemCount,
         # ItemCountLastMonth,
         NumberBought,
         PerceivedColourMasterID,
         PerceivedColourValueID,
-        ProductGroupName,
+        # ProductGroupName,
         ProductTypeNO,
         SectionNO,
         Price,
@@ -177,6 +183,10 @@ class FeatureManager:
         col_to_rename = col_to_rename[0]
         base_df = base_df.rename({col_to_rename: DEFAULT_ITEM_COL}, axis=1)
 
+        base_df[DEFAULT_USER_COL] = base_df[DEFAULT_USER_COL].astype("int64")
+        base_df[DEFAULT_ITEM_COL] = base_df[DEFAULT_ITEM_COL].astype("int64")
+        dask_base_df = dd.from_pandas(base_df, npartitions=N_PARTITIONS)
+
         if len(self._ITEM_FEATURES) > 0:
             # load item features
             item_features_list = []
@@ -200,9 +210,22 @@ class FeatureManager:
                     "Merging item features with base df, can take time...", "yellow"
                 )
             )
-            base_df = pd.merge(
-                base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left"
+
+            item_features_dask = dd.from_pandas(
+                item_features_df, npartitions=N_PARTITIONS
             )
+            dask_base_df = dd.merge(
+                dask_base_df,
+                item_features_dask,
+                on=DEFAULT_ITEM_COL,
+                how="left",
+            )
+            print(dask_base_df)
+
+            # base_df = pd.merge(
+            #     base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left"
+            # )
+
             # print(f"Taken: {time.time()-s}")
 
         if len(self._USER_FEATURES) > 0:
@@ -224,9 +247,23 @@ class FeatureManager:
                     "Merging user features with base df, can take time...", "yellow"
                 )
             )
-            base_df = pd.merge(
-                base_df, user_features_df, on=DEFAULT_USER_COL, how="left"
+
+            user_features_dask = dd.from_pandas(
+                user_features_df, npartitions=N_PARTITIONS
             )
+            # dask_base_df = dd.from_pandas(dask_base_df, npartitions=N_PARTITIONS)
+
+            dask_base_df = dd.merge(
+                dask_base_df,
+                user_features_dask,
+                on=DEFAULT_USER_COL,
+                how="left",
+            )
+            print(dask_base_df)
+
+            # base_df = pd.merge(
+            #     base_df, user_features_df, on=DEFAULT_USER_COL, how="left"
+            # )
 
         if len(self._USER_ITEM_FEATURES) > 0:
             # load user-item features (context)
@@ -249,12 +286,24 @@ class FeatureManager:
                     "Merging context features with base df, can take time...", "yellow"
                 )
             )
-            base_df = pd.merge(
-                base_df,
-                user_item_features_df,
+
+            user_item_features_df_dask = dd.from_pandas(
+                user_item_features_df, npartitions=N_PARTITIONS
+            )
+            dask_base_df = dd.merge(
+                dask_base_df,
+                user_item_features_df_dask,
                 on=[DEFAULT_USER_COL, DEFAULT_ITEM_COL],
                 how="left",
             )
+            print(dask_base_df)
+
+            # base_df = pd.merge(
+            #     base_df,
+            #     user_item_features_df,
+            #     on=[DEFAULT_USER_COL, DEFAULT_ITEM_COL],
+            #     how="left",
+            # )
         if len(self._GBM_FEATURES) > 0:
             # load item features
             gbm_features_list = []
@@ -277,9 +326,24 @@ class FeatureManager:
                     "Merging gbm item features with base df, can take time...", "yellow"
                 )
             )
-            base_df = pd.merge(
-                base_df, gbm_features_df, on=DEFAULT_ITEM_COL, how="left"
+
+            gbm_features_df_dask = dd.from_pandas(
+                gbm_features_df, npartitions=N_PARTITIONS
             )
+            dask_base_df = dd.merge(
+                dask_base_df,
+                gbm_features_df_dask,
+                on=DEFAULT_ITEM_COL,
+                how="left",
+            )
+            print(dask_base_df)
+
+            # base_df = pd.merge(
+            #     base_df, gbm_features_df, on=DEFAULT_ITEM_COL, how="left"
+            # )
+
+        dask_base_df = dask_base_df.compute()
+        print(dask_base_df)
 
         ###################
         # augment features
@@ -314,9 +378,9 @@ class FeatureManager:
 
         # calculate the correct number of features of the dataset
         number_of_features = (
-            len(base_df.columns) - 3
+            len(dask_base_df.columns) - 3
             if self.kind == "train"
-            else len(base_df.columns) - 2
+            else len(dask_base_df.columns) - 2
         )
 
         if self.kind == "train":
@@ -344,21 +408,25 @@ class FeatureManager:
         dir_path = self.dataset._DATASET_PATH / Path(f"dataset_dfs/{self.kind}")
         dir_path.mkdir(parents=True, exist_ok=True)
         save_name = f"{name}_{dataset_version}.feather"
-        base_df.reset_index(drop=True).to_feather(dir_path / save_name)
+        # base_df.reset_index(drop=True).to_feather(dir_path / save_name)
+        dask_base_df.reset_index(drop=True).to_feather(dir_path / save_name)
         print(f"Dataset saved succesfully in : {dir_path / save_name}")
 
 
 if __name__ == "__main__":
+    # client = Client()
+    N_PARTITIONS = 1
     # KIND = "train"
     # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
-    # DATASET_NAME = f"cutf_300_ItemKNN_tw_True_rs_False"
+    # DATASET_NAME = f"cutf_150_ItemKNN_tw_True_rs_False"
+    # DATASET_NAME = "cutf_150_Popularity_cutoff_150"
     # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
-    DATASET_NAME = "dataset_final"
+    DATASET_NAME = "dataset_iip"
     # DATASET_NAME = "cutf_200_EASE_tw_True_rs_False_l2_0.1"
     VERSION = 0
 
     # dataset = LMLWDataset()
-    DATASETS = [LMLDDataset()]
+    DATASETS = [AILMLDDataset()]
     for dataset in DATASETS:
         s = time.time()
         for kind in ["train"]:

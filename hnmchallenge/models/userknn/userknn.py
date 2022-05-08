@@ -26,9 +26,11 @@ class UserKNN(UserSimilarityRecommender):
             interaction_df,
             items_num=self.dataset._ARTICLES_NUM,
             users_num=None,
+            time_weight=False,
         )
         # sp_int = similaripy.normalization.bm25(sparse_interaction)
         sim = similaripy.cosine(sparse_interaction, k=2000)
+        print(sim.shape)
         # sim = cosine_similarity(
         #     sparse_interaction.T, sparse_interaction.T, dense_output=False
         # )

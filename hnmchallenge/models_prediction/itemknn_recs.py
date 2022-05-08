@@ -99,18 +99,18 @@ class ItemKNNRecs(RecsInterface):
 if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = False
-    FC = False
+    FC = True
     # dataset = AILMLD5WDataset()
-    dataset = LMLDDataset()
-    for kind in ["train", "full"]:
+    dataset = AILMLDDataset()
+    for kind in ["train"]:
         # for kind in ["train", "full"]:
         rec_ens = ItemKNNRecs(
             kind=kind,
-            cutoff=200,
+            cutoff=150,
             time_weight=TW,
             remove_seen=REMOVE_SEEN,
             dataset=dataset,
             filter_on_candidates=FC,
         )
-        # rec_ens.eval_recommendations()
-        rec_ens.save_recommendations()
+        rec_ens.eval_recommendations()
+        # rec_ens.save_recommendations()

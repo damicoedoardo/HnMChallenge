@@ -22,7 +22,8 @@ class LastBuyDate(UserFeature):
         max_date = fd["t_dat"].max() + pd.to_timedelta(1, unit="D")
         data = data_df.groupby([DEFAULT_USER_COL])["t_dat"].max().reset_index()
         data["t_diff"] = data["t_dat"].apply(lambda x: 1 / (max_date - x).days)
-        feature = data[[DEFAULT_USER_COL, "t_diff"]]
+        data["t_diff_linear"] = data["t_dat"].apply(lambda x: (max_date - x).days)
+        feature = data[[DEFAULT_USER_COL, "t_diff", "t_diff_linear"]]
         # Losing the users that have bought something for the first time on the last week
         keys_df = self._get_keys_df()
         feature = pd.merge(keys_df, feature, on=DEFAULT_USER_COL, how="left")
