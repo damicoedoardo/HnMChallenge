@@ -68,29 +68,27 @@ class FeatureManager:
         UserAvgBuySession,
     ]
     _ITEM_FEATURES = [
+        ItemAgeDescribe,
+        Popularity,
+        PopularityLastMonth,
         PopularityCumulative,
+        PopularityMultipleBuy,
+        PopularityLastMonthMultipleBuy,
+        PopularityCumulativeMultipleBuy,
+        PopSales1,
+        PopSales2,
         ColourGroupCode,
         ItemSaleChannelScore,
         DepartmentNO,
-        ##GarmentGroupName,
-        # GraphicalAppearanceNO,
         GarmentGroupNO,
-        # IndexCode,
-        # IndexGroupName,
         IndexGroupNO,
-        ItemCount,
-        ItemCountLastMonth,
         NumberBought,
         PerceivedColourMasterID,
         PerceivedColourValueID,
-        # ProductGroupName,
         ProductTypeNO,
         SectionNO,
         Price,
         SalesFactor,
-        ItemSaleChannelScore,
-        PopSales1,
-        PopSales2,
         ItemAgePop,
         ItemPriceProduct,
     ]
@@ -160,8 +158,19 @@ class FeatureManager:
 
     def create_features_df(self, name: str, dataset_version: int) -> None:
         # load base df
-
+        print(self.kind)
         base_df = RecsInterface.load_recommendations(self.dataset, name, self.kind)
+
+        if "dataset" not in name and self.kind == "train":
+            base_df.loc[~base_df["relevance"].isnull(), "relevance"] = 1
+            base_df["relevance"] = base_df["relevance"].fillna(0)
+            # filter on user at least one hit
+            temp = base_df.groupby(DEFAULT_USER_COL).sum()
+            temp_filtered = temp[temp["relevance"] > 0]
+            user_with_hit = temp_filtered.reset_index()[DEFAULT_USER_COL].unique()
+
+            print(f"User with at least one hit: {len(user_with_hit)}")
+            base_df = base_df[base_df[DEFAULT_USER_COL].isin(user_with_hit)]
 
         # rename the recs column accordingly
         # if it is an `ensemble model` we have "recs" column
@@ -174,7 +183,8 @@ class FeatureManager:
 
         base_df[DEFAULT_USER_COL] = base_df[DEFAULT_USER_COL].astype("int64")
         base_df[DEFAULT_ITEM_COL] = base_df[DEFAULT_ITEM_COL].astype("int64")
-        dask_base_df = dd.from_pandas(base_df, npartitions=N_PARTITIONS)
+        print(base_df[DEFAULT_USER_COL].nunique())
+        # dask_base_df = dd.from_pandas(base_df, npartitions=2)
 
         if len(self._ITEM_FEATURES) > 0:
             # load item features
@@ -184,6 +194,7 @@ class FeatureManager:
             for item_f_class in self._ITEM_FEATURES:
                 item_f = item_f_class(self.dataset, self.kind)
                 f = item_f.load_feature()
+                print(f.shape)
                 item_features_list.append(f)
             print("join item features...")
 
@@ -192,6 +203,7 @@ class FeatureManager:
                 lambda x, y: pd.merge(x, y, on=DEFAULT_ITEM_COL, how="outer"),
                 item_features_list,
             )
+            print(item_features_df.shape)
 
             # join item features on base df
             print(
@@ -200,20 +212,20 @@ class FeatureManager:
                 )
             )
 
-            item_features_dask = dd.from_pandas(
-                item_features_df, npartitions=N_PARTITIONS
-            )
-            dask_base_df = dd.merge(
-                dask_base_df,
-                item_features_dask,
-                on=DEFAULT_ITEM_COL,
-                how="left",
-            )
-            print(dask_base_df)
-
-            # base_df = pd.merge(
-            #     base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left"
+            # item_features_dask = dd.from_pandas(
+            #     item_features_df, npartitions=N_PARTITIONS
             # )
+            # dask_base_df = dd.merge(
+            #     dask_base_df,
+            #     item_features_dask,
+            #     on=DEFAULT_ITEM_COL,
+            #     how="left",
+            # )
+            # print(dask_base_df)
+
+            base_df = pd.merge(
+                base_df, item_features_df, on=DEFAULT_ITEM_COL, how="left"
+            )
 
             # print(f"Taken: {time.time()-s}")
 
@@ -224,12 +236,14 @@ class FeatureManager:
             for user_f_class in self._USER_FEATURES:
                 user_f = user_f_class(self.dataset, self.kind)
                 f = user_f.load_feature()
+                print(f.shape)
                 user_features_list.append(f)
             print("join user features...")
             user_features_df = reduce(
                 lambda x, y: pd.merge(x, y, on=DEFAULT_USER_COL, how="outer"),
                 user_features_list,
             )
+            print(user_features_df.shape)
             # join user features on base df
             print(
                 set_color(
@@ -237,22 +251,21 @@ class FeatureManager:
                 )
             )
 
-            user_features_dask = dd.from_pandas(
-                user_features_df, npartitions=N_PARTITIONS
-            )
-            # dask_base_df = dd.from_pandas(dask_base_df, npartitions=N_PARTITIONS)
-
-            dask_base_df = dd.merge(
-                dask_base_df,
-                user_features_dask,
-                on=DEFAULT_USER_COL,
-                how="left",
-            )
-            print(dask_base_df)
-
-            # base_df = pd.merge(
-            #     base_df, user_features_df, on=DEFAULT_USER_COL, how="left"
+            # user_features_dask = dd.from_pandas(
+            #     user_features_df, npartitions=N_PARTITIONS
             # )
+
+            # dask_base_df = dd.merge(
+            #     dask_base_df,
+            #     user_features_dask,
+            #     on=DEFAULT_USER_COL,
+            #     how="left",
+            # )
+            # print(dask_base_df)
+
+            base_df = pd.merge(
+                base_df, user_features_df, on=DEFAULT_USER_COL, how="left"
+            )
 
         if len(self._USER_ITEM_FEATURES) > 0:
             # load user-item features (context)
@@ -276,23 +289,23 @@ class FeatureManager:
                 )
             )
 
-            user_item_features_df_dask = dd.from_pandas(
-                user_item_features_df, npartitions=N_PARTITIONS
-            )
-            dask_base_df = dd.merge(
-                dask_base_df,
-                user_item_features_df_dask,
-                on=[DEFAULT_USER_COL, DEFAULT_ITEM_COL],
-                how="left",
-            )
-            print(dask_base_df)
-
-            # base_df = pd.merge(
-            #     base_df,
-            #     user_item_features_df,
+            # user_item_features_df_dask = dd.from_pandas(
+            #     user_item_features_df, npartitions=N_PARTITIONS
+            # )
+            # dask_base_df = dd.merge(
+            #     dask_base_df,
+            #     user_item_features_df_dask,
             #     on=[DEFAULT_USER_COL, DEFAULT_ITEM_COL],
             #     how="left",
             # )
+            # print(dask_base_df)
+
+            base_df = pd.merge(
+                base_df,
+                user_item_features_df,
+                on=[DEFAULT_USER_COL, DEFAULT_ITEM_COL],
+                how="left",
+            )
         if len(self._GBM_FEATURES) > 0:
             # load item features
             gbm_features_list = []
@@ -316,23 +329,24 @@ class FeatureManager:
                 )
             )
 
-            gbm_features_df_dask = dd.from_pandas(
-                gbm_features_df, npartitions=N_PARTITIONS
-            )
-            dask_base_df = dd.merge(
-                dask_base_df,
-                gbm_features_df_dask,
-                on=DEFAULT_ITEM_COL,
-                how="left",
-            )
-            print(dask_base_df)
-
-            # base_df = pd.merge(
-            #     base_df, gbm_features_df, on=DEFAULT_ITEM_COL, how="left"
+            # gbm_features_df_dask = dd.from_pandas(
+            #     gbm_features_df, npartitions=N_PARTITIONS
             # )
+            # dask_base_df = dd.merge(
+            #     dask_base_df,
+            #     gbm_features_df_dask,
+            #     on=DEFAULT_ITEM_COL,
+            #     how="left",
+            # )
+            # print(dask_base_df)
 
-        dask_base_df = dask_base_df.compute()
-        print(dask_base_df)
+            base_df = pd.merge(
+                base_df, gbm_features_df, on=DEFAULT_ITEM_COL, how="left"
+            )
+
+        # dask_base_df = dask_base_df.compute()
+        # print(dask_base_df)
+        # print(f"Unique users:{dask_base_df[DEFAULT_USER_COL].nunique()}")
 
         ###################
         # augment features
@@ -367,9 +381,9 @@ class FeatureManager:
 
         # calculate the correct number of features of the dataset
         number_of_features = (
-            len(dask_base_df.columns) - 3
+            len(base_df.columns) - 3
             if self.kind == "train"
-            else len(dask_base_df.columns) - 2
+            else len(base_df.columns) - 2
         )
 
         if self.kind == "train":
@@ -398,7 +412,7 @@ class FeatureManager:
         dir_path.mkdir(parents=True, exist_ok=True)
         save_name = f"{name}_{dataset_version}.feather"
         # base_df.reset_index(drop=True).to_feather(dir_path / save_name)
-        dask_base_df.reset_index(drop=True).to_feather(dir_path / save_name)
+        base_df.reset_index(drop=True).to_feather(dir_path / save_name)
         print(f"Dataset saved succesfully in : {dir_path / save_name}")
 
 
@@ -407,10 +421,10 @@ if __name__ == "__main__":
     N_PARTITIONS = 1
     # KIND = "train"
     # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
-    # DATASET_NAME = f"cutf_150_ItemKNN_tw_True_rs_False"
+    DATASET_NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
     # DATASET_NAME = "cutf_150_Popularity_cutoff_150"
     # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
-    DATASET_NAME = "dataset_iip"
+    # DATASET_NAME = "dataset_ip"
     # DATASET_NAME = "cutf_200_EASE_tw_True_rs_False_l2_0.1"
     VERSION = 0
 

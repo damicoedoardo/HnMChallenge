@@ -6,8 +6,8 @@ from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
 from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
-class ItemCountLastMonthMultiple(ItemFeature):
-    FEATURE_NAME = "popularity_last_month_multiple"
+class PopularityLastMonthMultipleBuy(ItemFeature):
+    FEATURE_NAME = "popularity_last_month_multiple_buy"
 
     def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
@@ -20,7 +20,7 @@ class ItemCountLastMonthMultiple(ItemFeature):
         )
         data_df = data_df[data_df["t_dat"] >= "2020-09-01"]
         duplicated_rows = data_df[
-            data_df.drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL])
+            data_df.duplicated([DEFAULT_USER_COL, DEFAULT_ITEM_COL])
         ]
         count_mb = duplicated_rows.groupby(DEFAULT_ITEM_COL).count()
         feature = count_mb.reset_index()[[DEFAULT_ITEM_COL, "t_dat"]].rename(
@@ -28,12 +28,12 @@ class ItemCountLastMonthMultiple(ItemFeature):
         )
 
         # normalisation popularity
-        feature["popularity_last_month_multiple"] = (
-            feature["popularity_last_month_multiple"]
-            - feature["popularity_last_month_multiple"].min()
+        feature["popularity_last_month_multiple_buy"] = (
+            feature["popularity_last_month_multiple_buy"]
+            - feature["popularity_last_month_multiple_buy"].min()
         ) / (
-            feature["popularity_last_month_multiple"].max()
-            - feature["popularity_last_month_multiple"].min()
+            feature["popularity_last_month_multiple_buy"].max()
+            - feature["popularity_last_month_multiple_buy"].min()
         )
 
         item_df = self._get_keys_df()

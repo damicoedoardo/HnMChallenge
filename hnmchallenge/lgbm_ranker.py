@@ -52,8 +52,8 @@ TEST_PERC = 0.001
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-NAME = f"dataset_iip"
-# NAME = f"cutf_150_ItemKNN_tw_True_rs_False"
+# NAME = f"dataset_iip"
+NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_150_Popularity_cutoff_150"
 # NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
 # NAME = f"cutf_100_ItemKNN_tw_True_rs_False"
@@ -158,6 +158,7 @@ if __name__ == "__main__":
     gbm = lgb.LGBMRanker(
         boosting_type="gbdt",
         objective="lambdarank",
+        importance_type="gain",
         num_threads=72,
         # device="gpu",
         random_state=RANDOM_SEED,
@@ -166,8 +167,8 @@ if __name__ == "__main__":
         reg_lambda=0.0,
         reg_alpha=0.0,
         # eta=0.05,
-        num_leaves=50,
-        max_depth=10,
+        num_leaves=30,
+        max_depth=8,
         n_estimators=500,
         bagging_fraction=0.8,
         min_data_in_leaf=30,

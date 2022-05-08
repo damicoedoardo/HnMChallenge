@@ -7,8 +7,8 @@ from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
 from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
-class PopularityCumulativeMultiple(ItemFeature):
-    FEATURE_NAME = "popularity_cumulative_multiple"
+class PopularityCumulativeMultipleBuy(ItemFeature):
+    FEATURE_NAME = "popularity_cumulative_multiple_buy"
 
     def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
@@ -38,14 +38,14 @@ class PopularityCumulativeMultiple(ItemFeature):
             ]
             count_mb = duplicated_rows.groupby(DEFAULT_ITEM_COL).count()
             feature = count_mb.reset_index()[[DEFAULT_ITEM_COL, "t_dat"]].rename(
-                columns={"t_dat": f"popularity_{idx+1}_multiple"}
+                columns={"t_dat": f"popularity_{idx+1}_multiple_buy"}
             )
-            feature[f"popularity_{idx+1}_multiple"] = (
-                feature[f"popularity_{idx+1}_multiple"]
-                - feature[f"popularity_{idx+1}_multiple"].min()
+            feature[f"popularity_{idx+1}_multiple_buy"] = (
+                feature[f"popularity_{idx+1}_multiple_buy"]
+                - feature[f"popularity_{idx+1}_multiple_buy"].min()
             ) / (
-                feature[f"popularity_{idx+1}_multiple"].max()
-                - feature[f"popularity_{idx+1}_multiple"].min()
+                feature[f"popularity_{idx+1}_multiple_buy"].max()
+                - feature[f"popularity_{idx+1}_multiple_buy"].min()
             )
             df = df.merge(feature, on=DEFAULT_ITEM_COL, how="outer")
         feature = df

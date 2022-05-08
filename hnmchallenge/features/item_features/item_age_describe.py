@@ -34,8 +34,8 @@ class ItemAgeDescribe(ItemFeature):
                 "50%": "age_50%",
                 "75%": "age_75%",
             },
-            inplace=True,
-        )
+            inplace=False,
+        ).reset_index()
 
         item_df = self._get_keys_df()
         feature = pd.merge(item_df, feature, on=DEFAULT_ITEM_COL, how="left")

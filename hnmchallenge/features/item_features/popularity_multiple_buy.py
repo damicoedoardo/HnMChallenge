@@ -6,8 +6,8 @@ from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
 from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
-class ItemCountMultiple(ItemFeature):
-    FEATURE_NAME = "popularity_multiple"
+class PopularityMultipleBuy(ItemFeature):
+    FEATURE_NAME = "popularity_multiple_buy"
 
     def __init__(self, dataset, kind: str) -> None:
         super().__init__(dataset, kind)
@@ -27,10 +27,12 @@ class ItemCountMultiple(ItemFeature):
         )
 
         # normalisation popularity
-        feature["popularity_multiple"] = (
-            feature["popularity_multiple"] - feature["popularity_multiple"].min()
+        feature["popularity_multiple_buy"] = (
+            feature["popularity_multiple_buy"]
+            - feature["popularity_multiple_buy"].min()
         ) / (
-            feature["popularity_multiple"].max() - feature["popularity_multiple"].min()
+            feature["popularity_multiple_buy"].max()
+            - feature["popularity_multiple_buy"].min()
         )
 
         item_df = self._get_keys_df()

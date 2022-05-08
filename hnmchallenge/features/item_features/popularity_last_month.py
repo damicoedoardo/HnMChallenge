@@ -6,7 +6,7 @@ from hnmchallenge.constant import DEFAULT_ITEM_COL, DEFAULT_USER_COL
 from hnmchallenge.features.feature_interfaces import ItemFeature
 
 
-class ItemCountLastMonth(ItemFeature):
+class PopularityLastMonth(ItemFeature):
     FEATURE_NAME = "popularity_last_month"
 
     def __init__(self, dataset, kind: str) -> None:

@@ -22,12 +22,12 @@ from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 
-SUB_NAME = "dataset_ip_2"
+SUB_NAME = "iknn_200"
 
-VERSION = 2
-NAME = f"dataset_ip"
+VERSION = 0
+# NAME = f"dataset_ip"
 # NAME = "cutf_200_TimePop_alpha_1.0"
-# NAME = f"cutf_100_ItemKNN_tw_True_rs_False"
+NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
 # NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 DATASET = f"{NAME}_{VERSION}.feather"

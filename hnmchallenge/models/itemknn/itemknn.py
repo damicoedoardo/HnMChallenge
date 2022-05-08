@@ -23,7 +23,7 @@ class ItemKNN(ItemSimilarityRecommender):
             interaction_df,
             items_num=self.dataset._ARTICLES_NUM,
             users_num=None,
-            time_weight=False,
+            time_weight=True,
         )
         # sparse_interaction = similaripy.normalization.bm25(sparse_interaction)
 
