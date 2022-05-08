@@ -1,10 +1,11 @@
-from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import \
-    AILMLDWDataset
+from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
-from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import \
-    AILMLD4WDataset
-from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import \
-    AILMLD5WDataset
+from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import (
+    AILMLD4WDataset,
+)
+from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import (
+    AILMLD5WDataset,
+)
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
 from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
@@ -21,8 +22,8 @@ from hnmchallenge.utils.logger import set_color
 from tqdm import tqdm
 
 USER_FEATURES = [
-    #UserTendencyCumulative,
-    #UserAgeCluster,
+    # UserTendencyCumulative,
+    # UserAgeCluster,
     LastBuyDate,
     # TotalItemsBought,
     # UserAvgBuySession,
@@ -53,7 +54,10 @@ ITEM_FEATURES = [
     # # IndexGroupName,
     # IndexGroupNO,
     # ItemCount,
+    ItemCountMultiple,
     # ItemCountLastMonth,
+    ItemCountLastMonthMultiple,
+    ItemAgeDescribe,
     # NumberBought,
     # PerceivedColourMasterID,
     # PerceivedColourValueID,

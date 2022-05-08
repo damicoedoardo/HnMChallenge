@@ -8,8 +8,14 @@ from hnmchallenge.features.item_features.graphical_appearance_no import (
 from hnmchallenge.features.item_features.index_code import IndexCode
 from hnmchallenge.features.item_features.index_group_name import IndexGroupName
 from hnmchallenge.features.item_features.index_group_no import IndexGroupNO
+from hnmchallenge.features.item_features.item_count_multiple import ItemCountMultiple
 from hnmchallenge.features.item_features.item_count import ItemCount
-from hnmchallenge.features.item_features.item_count_last_month import ItemCountLastMonth
+from hnmchallenge.features.item_features.item_count_last_month_multiple import (
+    ItemCountLastMonthMultiple,
+)
+from hnmchallenge.features.item_features.item_count_last_month import (
+    ItemCountLastMonth,
+)
 from hnmchallenge.features.item_features.item_price import Price
 from hnmchallenge.features.item_features.item_sales_channel_score import (
     ItemSaleChannelScore,
@@ -34,6 +40,12 @@ from hnmchallenge.features.item_features.item_popularity_sales_channel_2 import 
 )
 from hnmchallenge.features.item_features.item_price_product_no import ItemPriceProduct
 from hnmchallenge.features.item_features.item_age_popularity import ItemAgePop
+from hnmchallenge.features.item_features.cumulative_popularity_multiple import (
+    PopularityCumulativeMultiple,
+)
 from hnmchallenge.features.item_features.cumulative_popularity import (
     PopularityCumulative,
+)
+from hnmchallenge.features.item_features.item_age_describe import (
+    ItemAgeDescribe,
 )

@@ -22,7 +22,6 @@ from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.models_prediction.time_pop import TimePop
 from hnmchallenge.utils.logger import set_color
 from matplotlib.pyplot import axis
-from tqdm import tqdm
 
 
 class EnsembleRecs(RecsInterface):
@@ -89,12 +88,6 @@ class EnsembleRecs(RecsInterface):
 
         _merge_dfs_kind = partial(_merge_dfs, self.kind)
         merged_recs_df = reduce(_merge_dfs_kind, recs_dfs_list)
-
-        score_cols = [c for c in merged_recs_df.columns if "score" in c]
-        for sc in tqdm(score_cols):
-            merged_recs_df[sc] = (
-                merged_recs_df[sc] - merged_recs_df[sc].mean()
-            ) / merged_recs_df[sc].std()
 
         print(merged_recs_df.columns)
 

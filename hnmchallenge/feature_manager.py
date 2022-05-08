@@ -57,9 +57,9 @@ class FeatureManager:
         UserTendencyCumulative,
         UserAgeCluster,
         Age,
-        # ClubMemberStatus,
-        # FashionNewsFrequency,
-        # Fn,
+        ClubMemberStatus,
+        FashionNewsFrequency,
+        Fn,
         AvgPrice,
         UserTendency,
         # UserTendencyLM,
@@ -79,7 +79,7 @@ class FeatureManager:
         # IndexGroupName,
         IndexGroupNO,
         ItemCount,
-        # ItemCountLastMonth,
+        ItemCountLastMonth,
         NumberBought,
         PerceivedColourMasterID,
         PerceivedColourValueID,
@@ -162,17 +162,6 @@ class FeatureManager:
         # load base df
 
         base_df = RecsInterface.load_recommendations(self.dataset, name, self.kind)
-
-        if "dataset" not in name and self.kind == "train":
-            base_df.loc[~base_df["relevance"].isnull(), "relevance"] = 1
-            base_df["relevance"] = base_df["relevance"].fillna(0)
-            # filter on user at least one hit
-            temp = base_df.groupby(DEFAULT_USER_COL).sum()
-            temp_filtered = temp[temp["relevance"] > 0]
-            user_with_hit = temp_filtered.reset_index()[DEFAULT_USER_COL].unique()
-
-            print(f"User with at least one hit: {len(user_with_hit)}")
-            base_df = base_df[base_df[DEFAULT_USER_COL].isin(user_with_hit)]
 
         # rename the recs column accordingly
         # if it is an `ensemble model` we have "recs" column
