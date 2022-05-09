@@ -3,6 +3,8 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
+from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
 from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
@@ -87,17 +89,29 @@ if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = True
     L2 = 1e-1
-    dataset = LMLWDataset()
+    # dataset = LMLWDataset()
+    DATASETS = [AILMLWDataset(), AILML2WDataset(), AILML3WDataset()]
+    for dataset in DATASETS:
+        for kind in ["train"]:  # ["train", "full"]:
+            ease_rec = EaseRecs(
+                kind=kind,
+                cutoff=200,
+                time_weight=TW,
+                remove_seen=REMOVE_SEEN,
+                dataset=dataset,
+                l2=L2,
+                filter_on_candidates=True,
+            )
+            # ease_rec.eval_recommendations()
+            ease_rec.save_recommendations()
 
-    for kind in ["full"]:  # ["train", "full"]:
-        ease_rec = EaseRecs(
-            kind=kind,
-            cutoff=100,
-            time_weight=TW,
-            remove_seen=REMOVE_SEEN,
-            dataset=dataset,
-            l2=L2,
-            filter_on_candidates=False,
-        )
-        # ease_rec.eval_recommendations()
-        ease_rec.save_recommendations()
+    ease_rec = EaseRecs(
+        kind="full",
+        cutoff=200,
+        time_weight=TW,
+        remove_seen=REMOVE_SEEN,
+        dataset=AILMLWDataset(),
+        l2=L2,
+        filter_on_candidates=True,
+    )
+    ease_rec.save_recommendations()

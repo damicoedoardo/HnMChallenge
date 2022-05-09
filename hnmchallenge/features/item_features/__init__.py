@@ -13,8 +13,14 @@ from hnmchallenge.features.item_features.item_age_popularity import ItemAgePop
 from hnmchallenge.features.item_features.item_popularity_sales_channel_1 import (
     PopSales1,
 )
+from hnmchallenge.features.item_features.item_popularity_sales_channel_1_cumulative import (
+    PopSales1Cumulative,
+)
 from hnmchallenge.features.item_features.item_popularity_sales_channel_2 import (
     PopSales2,
+)
+from hnmchallenge.features.item_features.item_popularity_sales_channel_2_cumulative import (
+    PopSales2Cumulative,
 )
 from hnmchallenge.features.item_features.item_price import Price
 from hnmchallenge.features.item_features.item_price_product_no import ItemPriceProduct

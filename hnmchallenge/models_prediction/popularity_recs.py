@@ -3,6 +3,10 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
+from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
+from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
@@ -30,7 +34,7 @@ class PopularityRecs(RecsInterface):
         )
         # data that you use to compute similarity
         # Using the full data available perform better
-        last_month_data = data_df[data_df["t_dat"] > "2020-08-31"]
+        last_month_data = data_df[data_df["t_dat"] > "2020-09-08"]
 
         # drop multiple buys
         # data_df = data_df.drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL])
@@ -85,9 +89,16 @@ class PopularityRecs(RecsInterface):
 
 
 if __name__ == "__main__":
-    dataset = LMLWDataset()
-    for kind in ["train", "full"]:
-        rec = PopularityRecs(kind=kind, dataset=dataset, cutoff=40)
-        # rec.get_recommendations()
-        # rec.eval_recommendations()
-        rec.save_recommendations()
+    # dataset = LMLWDataset()
+    DATASETS = [AILMLDDataset()]
+    for dataset in DATASETS:
+        for kind in ["full"]:
+            rec = PopularityRecs(kind=kind, dataset=dataset, cutoff=30)
+            # rec.get_recommendations()
+            # rec.eval_recommendations()
+            rec.save_recommendations()
+
+    # rec = PopularityRecs(kind="train", dataset=AILMLWDataset(), cutoff=200)
+    # # rec.get_recommendations()
+    # # rec.eval_recommendations()
+    # rec.save_recommendations()

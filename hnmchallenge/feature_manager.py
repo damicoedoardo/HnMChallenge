@@ -8,6 +8,8 @@ import pandas as pd
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
 from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
+from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
+from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
 from hnmchallenge.datasets.all_items_last_month_last_day_last_2nd_week import (
     AILMLD2WDataset,
@@ -64,10 +66,10 @@ class FeatureManager:
     _ITEM_FEATURES = [
         ItemAgeDescribe,
         Popularity,
-        PopularityLastMonth,
+        # PopularityLastMonth,
         PopularityCumulative,
         PopularityMultipleBuy,
-        PopularityLastMonthMultipleBuy,
+        # PopularityLastMonthMultipleBuy,
         PopularityCumulativeMultipleBuy,
         PopSales1,
         PopSales2,
@@ -85,6 +87,8 @@ class FeatureManager:
         SalesFactor,
         ItemAgePop,
         ItemPriceProduct,
+        PopSales2Cumulative,
+        PopSales1Cumulative,
     ]
     _USER_ITEM_FEATURES = [
         TimeScore,
@@ -413,18 +417,18 @@ class FeatureManager:
 if __name__ == "__main__":
     # KIND = "train"
     # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
-    DATASET_NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
+    # DATASET_NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
     # DATASET_NAME = "cutf_150_Popularity_cutoff_150"
     # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
-    # DATASET_NAME = "dataset_ip"
-    # DATASET_NAME = "cutf_200_EASE_tw_True_rs_False_l2_0.1"
+    DATASET_NAME = "dataset_last_2"
+    # DATASET_NAME = "cutf_200_EASE_tw_True_rs_True_l2_0.1"
     VERSION = 0
 
     # dataset = LMLWDataset()
-    DATASETS = [LMLWDataset()]
+    DATASETS = [AILMLDDataset()]
     for dataset in DATASETS:
         s = time.time()
-        for kind in ["train"]:
+        for kind in ["full"]:
             # for kind in ["train", "full"]:
             # for kind in ["full"]:
             dr = DataReader()

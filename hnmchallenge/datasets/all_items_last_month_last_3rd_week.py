@@ -130,7 +130,7 @@ class AILML3WDataset(DatasetInterface):
 
     def create_holdin_holdout(self) -> None:
         fd = self.get_full_data()
-        hold_in = fd[(fd["t_dat"] <= "2020-09-01")]
+        hold_in = fd[(fd["t_dat"] < "2020-09-02")]
         # intervals = [("2020-09-02", "2020-09-08")]
         # m = np.logical_or.reduce(
         #     [np.logical_and(fd["t_dat"] >= l, fd["t_dat"] <= u) for l, u in intervals]
@@ -145,9 +145,9 @@ class AILML3WDataset(DatasetInterface):
     def create_candidate_items(self) -> None:
         """Create and save the candidate items"""
         full_data = self.get_full_data()
-        candidate_items = full_data[full_data["t_dat"] >= "2020-08-17"][
-            ["article_id"]
-        ].drop_duplicates()
+        candidate_items = full_data[
+            (full_data["t_dat"] >= "2020-08-26") & (full_data["t_dat"] <= "2020-09-08")
+        ][["article_id"]].drop_duplicates()
         candidate_items.reset_index(drop=True).to_feather(self._CANDIDATE_ITEMS_PATH)
 
     def get_candidate_items(self) -> np.ndarray:

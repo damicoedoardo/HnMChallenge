@@ -1,0 +1,3 @@
+python hnmchallenge/models_prediction/ease_recs.py
+python hnmchallenge/models_prediction/itemknn_recs.py
+python hnmchallenge/models_prediction/popularity_recs.py

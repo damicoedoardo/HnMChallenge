@@ -13,6 +13,8 @@ from xgboost import plot_importance
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
 from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
+from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
+from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
 from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
 from hnmchallenge.datasets.all_items_last_month_last_day_last_2nd_week import (
     AILMLD2WDataset,
@@ -52,10 +54,10 @@ TEST_PERC = 0.001
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-# NAME = f"dataset_iip"
-NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
+NAME = f"dataset_last_2"
+# NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_150_Popularity_cutoff_150"
-# NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
+# NAME = f"cutf_200_EASE_tw_True_rs_True_l2_0.1"
 # NAME = f"cutf_100_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 
@@ -72,13 +74,11 @@ cat = [
 # cat = []
 
 if __name__ == "__main__":
-    save_dataset = LMLWDataset()
+    save_dataset = AILMLDDataset()
     dataset_list = [
         save_dataset,
-        # AILMLD2WDataset(),
-        # AILMLD3WDataset(),
-        # AILMLD4WDataset(),
-        # AILMLD5WDataset(),
+        # AILML2WDataset(),
+        # AILML3WDataset(),
     ]
     # dataset_list = [save_dataset]
 
@@ -88,11 +88,16 @@ if __name__ == "__main__":
     model_save_path.mkdir(parents=True, exist_ok=True)
 
     # load into a list the datasets of the different weeks
+    c_id_offset = 0
     features_df_list = []
     for dataset in dataset_list:
         base_load_path = dataset._DATASET_PATH / "dataset_dfs/train"
         dataset_path = base_load_path / DATASET
         features_df = pd.read_feather(dataset_path)
+        print(features_df[DEFAULT_USER_COL].nunique())
+        features_df[DEFAULT_USER_COL] = features_df[DEFAULT_USER_COL] + c_id_offset
+        c_id_offset += features_df[DEFAULT_USER_COL].nunique()
+        print(features_df)
         features_df_list.append(features_df)
 
     # the final features_df is the concat of the week datasets
@@ -158,7 +163,7 @@ if __name__ == "__main__":
     gbm = lgb.LGBMRanker(
         boosting_type="gbdt",
         objective="lambdarank",
-        importance_type="gain",
+        # importance_type="gain",
         num_threads=72,
         # device="gpu",
         random_state=RANDOM_SEED,
@@ -168,7 +173,7 @@ if __name__ == "__main__":
         reg_alpha=0.0,
         # eta=0.05,
         num_leaves=30,
-        max_depth=8,
+        max_depth=6,
         n_estimators=500,
         bagging_fraction=0.8,
         min_data_in_leaf=30,
