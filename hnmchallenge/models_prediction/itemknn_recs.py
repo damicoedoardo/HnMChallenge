@@ -104,17 +104,17 @@ if __name__ == "__main__":
     FC = True
     # dataset = AILMLD5WDataset()
     # dataset = AILMLDDataset()
-    DATASETS = [AILMLDDataset()]
+    DATASETS = [AILML3WDataset()]
     for dataset in DATASETS:
-        for kind in ["full"]:  # , "full"]:
+        for kind in ["train"]:  # , "full"]:
             # for kind in ["train", "full"]:
             rec_ens = ItemKNNRecs(
                 kind=kind,
-                cutoff=30,
+                cutoff=200,
                 time_weight=TW,
                 remove_seen=REMOVE_SEEN,
                 dataset=dataset,
                 filter_on_candidates=FC,
             )
-            # rec_ens.eval_recommendations()
+            rec_ens.eval_recommendations()
             rec_ens.save_recommendations()

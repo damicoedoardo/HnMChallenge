@@ -1,5 +1,9 @@
 import pandas as pd
 from hnmchallenge.constant import *
+from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
+from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
+from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
+from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.datasets.last_month_last_day import LMLDDataset
@@ -69,11 +73,11 @@ if __name__ == "__main__":
     KIND = "train"
     ALPHA = 0.9
     EPS = 1e-6
-    CUTOFF = 100
+    CUTOFF = 200
 
-    dataset = LMLDDataset()
+    dataset = AILML3WDataset()
 
-    for kind in ["train", "full"]:
+    for kind in ["train"]:
         rec = BoughtItemsRecs(kind=kind, dataset=dataset, cutoff=0)
         # rec.eval_recommendations(write_log=False)
         rec.save_recommendations()

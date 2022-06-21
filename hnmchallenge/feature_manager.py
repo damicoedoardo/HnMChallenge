@@ -164,6 +164,7 @@ class FeatureManager:
             base_df["relevance"] = base_df["relevance"].fillna(0)
             # filter on user at least one hit
             temp = base_df.groupby(DEFAULT_USER_COL).sum()
+            # print(temp)
             temp_filtered = temp[temp["relevance"] > 0]
             user_with_hit = temp_filtered.reset_index()[DEFAULT_USER_COL].unique()
 
@@ -420,16 +421,16 @@ if __name__ == "__main__":
     # DATASET_NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
     # DATASET_NAME = "cutf_150_Popularity_cutoff_150"
     # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
-    DATASET_NAME = "dataset_last_2"
+    DATASET_NAME = "cutf_200_EASE_tw_True_rs_False_l2_0.1"
     # DATASET_NAME = "cutf_200_EASE_tw_True_rs_True_l2_0.1"
     VERSION = 0
 
     # dataset = LMLWDataset()
-    DATASETS = [AILMLDDataset()]
+    DATASETS = [AILMLWDataset(), AILML2WDataset(), AILML3WDataset()]
     for dataset in DATASETS:
         s = time.time()
-        for kind in ["full"]:
-            # for kind in ["train", "full"]:
+        for kind in ["train"]:
+            # for kind in ["train", "full"]:cd
             # for kind in ["full"]:
             dr = DataReader()
             fm = FeatureManager(dataset, kind)

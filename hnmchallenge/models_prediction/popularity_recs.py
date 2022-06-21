@@ -19,7 +19,7 @@ class PopularityRecs(RecsInterface):
         self,
         kind: str,
         dataset,
-        cutoff: int = 100,
+        cutoff: int = 200,
     ) -> None:
         super().__init__(kind, dataset, cutoff)
 
@@ -34,7 +34,7 @@ class PopularityRecs(RecsInterface):
         )
         # data that you use to compute similarity
         # Using the full data available perform better
-        last_month_data = data_df[data_df["t_dat"] > "2020-09-08"]
+        last_month_data = data_df[data_df["t_dat"] > "2020-08-24"]
 
         # drop multiple buys
         # data_df = data_df.drop_duplicates([DEFAULT_USER_COL, DEFAULT_ITEM_COL])
@@ -90,10 +90,10 @@ class PopularityRecs(RecsInterface):
 
 if __name__ == "__main__":
     # dataset = LMLWDataset()
-    DATASETS = [AILMLDDataset()]
+    DATASETS = [AILML3WDataset()]
     for dataset in DATASETS:
-        for kind in ["full"]:
-            rec = PopularityRecs(kind=kind, dataset=dataset, cutoff=30)
+        for kind in ["train"]:
+            rec = PopularityRecs(kind=kind, dataset=dataset, cutoff=200)
             # rec.get_recommendations()
             # rec.eval_recommendations()
             rec.save_recommendations()

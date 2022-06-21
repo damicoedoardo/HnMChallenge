@@ -64,8 +64,8 @@ class EaseRecs(RecsInterface):
         recom.compute_similarity_matrix(data_df)
         recs = recom.recommend_multicore(
             interactions=prediction_data,
-            batch_size=40_000,
-            num_cpus=72,
+            batch_size=10_000,
+            num_cpus=32,
             remove_seen=self.remove_seen,
             white_list_mb_item=None,
             cutoff=self.cutoff,
@@ -87,10 +87,10 @@ class EaseRecs(RecsInterface):
 if __name__ == "__main__":
     KIND = "train"
     TW = True
-    REMOVE_SEEN = True
+    REMOVE_SEEN = False
     L2 = 1e-1
     # dataset = LMLWDataset()
-    DATASETS = [AILMLWDataset(), AILML2WDataset(), AILML3WDataset()]
+    DATASETS = [AILML2WDataset(), AILML3WDataset()]
     for dataset in DATASETS:
         for kind in ["train"]:  # ["train", "full"]:
             ease_rec = EaseRecs(
@@ -102,16 +102,16 @@ if __name__ == "__main__":
                 l2=L2,
                 filter_on_candidates=True,
             )
-            # ease_rec.eval_recommendations()
+            # ase_rec.eval_recommendations()
             ease_rec.save_recommendations()
 
-    ease_rec = EaseRecs(
-        kind="full",
-        cutoff=200,
-        time_weight=TW,
-        remove_seen=REMOVE_SEEN,
-        dataset=AILMLWDataset(),
-        l2=L2,
-        filter_on_candidates=True,
-    )
-    ease_rec.save_recommendations()
+    # ease_rec = EaseRecs(
+    #     kind="full",
+    #     cutoff=200,
+    #     time_weight=TW,
+    #     remove_seen=REMOVE_SEEN,
+    #     dataset=AILMLWDataset(),
+    #     l2=L2,
+    #     filter_on_candidates=True,
+    # )
+    # ease_rec.save_recommendations()

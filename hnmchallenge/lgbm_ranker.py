@@ -9,6 +9,7 @@ import pandas as pd
 import seaborn as sns
 import xgboost as xgb
 from xgboost import plot_importance
+from sklearn.metrics import *
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
@@ -54,7 +55,8 @@ TEST_PERC = 0.001
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-NAME = f"dataset_last_2"
+NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
+
 # NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_150_Popularity_cutoff_150"
 # NAME = f"cutf_200_EASE_tw_True_rs_True_l2_0.1"
@@ -74,7 +76,7 @@ cat = [
 # cat = []
 
 if __name__ == "__main__":
-    save_dataset = AILMLDDataset()
+    save_dataset = AILMLWDataset()
     dataset_list = [
         save_dataset,
         # AILML2WDataset(),
@@ -163,7 +165,7 @@ if __name__ == "__main__":
     gbm = lgb.LGBMRanker(
         boosting_type="gbdt",
         objective="lambdarank",
-        # importance_type="gain",
+        importance_type="gain",
         num_threads=72,
         # device="gpu",
         random_state=RANDOM_SEED,
@@ -172,8 +174,8 @@ if __name__ == "__main__":
         reg_lambda=0.0,
         reg_alpha=0.0,
         # eta=0.05,
-        num_leaves=30,
-        max_depth=6,
+        num_leaves=60,
+        max_depth=8,
         n_estimators=500,
         bagging_fraction=0.8,
         min_data_in_leaf=30,
@@ -201,3 +203,4 @@ if __name__ == "__main__":
     joblib.dump(gbm, model_name)
     # load model
     # gbm.save_model(model_name)
+    y_pred = gbm.predict(X_val, num_iteration=gbm.best_iteration_, n_jobs=72)

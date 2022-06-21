@@ -16,3 +16,5 @@ hnmchallenge/models/ease/__pycache__/ease.cpython-39.pyc
 hnmchallenge/models_prediction/logs/*
 hnmchallenge/models_prediction/evaluation_logs/*
 hnmchallenge/models_prediction/dataset_logs/*
+hnm_data/*
+*.csv
