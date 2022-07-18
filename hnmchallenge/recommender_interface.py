@@ -312,10 +312,10 @@ class AbstractRecommender(ABC):
                 recs_dfs_list = p_map(
                     _rec, train_dfs, reps_white_list_mb_item, num_cpus=num_cpus
                 )
-            elif (filter_on_candidates) and (not insert_gt):
+            elif (filter_on_candidates is not None) and (not insert_gt):
                 # pass the candidates
                 # load candidates
-                candidate_items = self.dataset.get_candidate_items()
+                candidate_items = filter_on_candidates
                 reps_candidate_items = np.repeat(
                     np.array(candidate_items)[np.newaxis, :], len(train_dfs), axis=0
                 )
@@ -330,10 +330,12 @@ class AbstractRecommender(ABC):
                     reps_candidate_items,
                     num_cpus=num_cpus,
                 )
-            elif filter_on_candidates and insert_gt:
+            elif (filter_on_candidates is not None) and (insert_gt):
                 # pass the candidates
                 # load candidates
-                candidate_items = self.dataset.get_candidate_items()
+                candidate_items = (
+                    filter_on_candidates  # self.dataset.get_candidate_items()
+                )
                 reps_candidate_items = np.repeat(
                     np.array(candidate_items)[np.newaxis, :], len(train_dfs), axis=0
                 )

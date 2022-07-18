@@ -78,8 +78,8 @@ class ItemKNNRecs(RecsInterface):
         recom.compute_similarity_matrix(data_df)
         recs = recom.recommend_multicore(
             interactions=prediction_data,
-            batch_size=20_000,
-            num_cpus=16,
+            batch_size=100_000,
+            num_cpus=64,
             remove_seen=self.remove_seen,
             white_list_mb_item=None,
             filter_on_candidates=self.filter_on_candidates,
@@ -111,11 +111,13 @@ if __name__ == "__main__":
             candidate_items = dataset.get_candidate_items()
             rec_ens = ItemKNNRecs(
                 kind=kind,
-                cutoff=200,
+                cutoff=12,
                 time_weight=TW,
                 remove_seen=REMOVE_SEEN,
                 dataset=dataset,
                 filter_on_candidates=candidate_items,
             )
-            rec_ens.eval_recommendations()
-            rec_ens.save_recommendations()
+            map_score, recall_score = rec_ens.eval_recommendations()
+            print(map_score)
+            print(recall_score)
+            # rec_ens.save_recommendations()
