@@ -42,7 +42,7 @@ class ItemKNNRecs(RecsInterface):
         time_weight: bool = True,
         remove_seen: bool = False,
         cutoff: int = 200,
-        filter_on_candidates: bool = False,
+        filter_on_candidates=None,
     ) -> None:
         super().__init__(kind, dataset, cutoff)
         self.time_weight = time_weight
@@ -104,17 +104,18 @@ if __name__ == "__main__":
     FC = True
     # dataset = AILMLD5WDataset()
     # dataset = AILMLDDataset()
-    DATASETS = [AILML3WDataset()]
+    DATASETS = [AILMLWDataset()]
     for dataset in DATASETS:
         for kind in ["train"]:  # , "full"]:
             # for kind in ["train", "full"]:
+            candidate_items = dataset.get_candidate_items()
             rec_ens = ItemKNNRecs(
                 kind=kind,
                 cutoff=200,
                 time_weight=TW,
                 remove_seen=REMOVE_SEEN,
                 dataset=dataset,
-                filter_on_candidates=FC,
+                filter_on_candidates=candidate_items,
             )
             rec_ens.eval_recommendations()
             rec_ens.save_recommendations()

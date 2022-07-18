@@ -185,25 +185,25 @@ class RecsInterface(ABC):
         log_filename = dir_path / f"{log_name}.log"
         print(log_filename)
 
-        log_format = "%(levelname)s %(asctime)s - %(message)s"
-        # pass the correct handlers depending on if you want to write a log file or not
-        if write_log:
-            handlers = [
-                logging.StreamHandler(),
-                logging.FileHandler(log_filename, mode="w+"),
-            ]
+        # log_format = "%(levelname)s %(asctime)s - %(message)s"
+        # # pass the correct handlers depending on if you want to write a log file or not
+        # if write_log:
+        #     handlers = [
+        #         logging.StreamHandler(),
+        #         logging.FileHandler(log_filename, mode="w+"),
+        #     ]
 
-        else:
-            handlers = [
-                logging.StreamHandler(),
-            ]
+        # else:
+        #     handlers = [
+        #         logging.StreamHandler(),
+        #     ]
 
-        logging.basicConfig(level=logging.INFO, handlers=handlers, format=log_format)
-        logger = logging.getLogger(__name__)
-        logger.info(
-            f"Dataset: {self.dataset.DATASET_NAME},\n description:{print(self.dataset)} \n"
-        )
-        logger.info(f"Evaluating: {self.RECS_NAME}, cutoff:{self.cutoff} \n")
+        # logging.basicConfig(level=logging.INFO, handlers=handlers, format=log_format)
+        # logger = logging.getLogger(__name__)
+        # logger.info(
+        #     f"Dataset: {self.dataset.DATASET_NAME},\n description:{print(self.dataset)} \n"
+        # )
+        # logger.info(f"Evaluating: {self.RECS_NAME}, cutoff:{self.cutoff} \n")
 
         # retrieve recs
         recs = self.get_recommendations()
@@ -264,14 +264,17 @@ class RecsInterface(ABC):
             )
         )
         ground_truth = holdout_groundtruth[[DEFAULT_USER_COL, DEFAULT_ITEM_COL]].copy()
-        logger.info(
-            f"Remaining Users (at least one hit): {merged_filtered[DEFAULT_USER_COL].nunique()}"
-        )
-        logger.info("\nMetrics on ALL users")
-        logger.info(f"MAP@{self.cutoff}: {map_at_k(ground_truth, pred)}")
-        logger.info(f"RECALL@{self.cutoff}: {recall_at_k(ground_truth, pred)}")
-        logger.info("\nMetrics on ONE-HIT users")
-        logger.info(f"MAP@{self.cutoff}: {map_at_k(ground_truth, pred_filtered)}")
-        logger.info(
-            f"RECALL@{self.cutoff}: {recall_at_k(ground_truth, pred_filtered)}",
-        )
+        # logger.info(
+        #     f"Remaining Users (at least one hit): {merged_filtered[DEFAULT_USER_COL].nunique()}"
+        # )
+        # logger.info("\nMetrics on ALL users")
+        # logger.info(f"MAP@{self.cutoff}: {map_at_k(ground_truth, pred)}")
+        # logger.info(f"RECALL@{self.cutoff}: {recall_at_k(ground_truth, pred)}")
+        # logger.info("\nMetrics on ONE-HIT users")
+        # logger.info(f"MAP@{self.cutoff}: {map_at_k(ground_truth, pred_filtered)}")
+        # logger.info(
+        #     f"RECALL@{self.cutoff}: {recall_at_k(ground_truth, pred_filtered)}",
+        # )
+        score = map_at_k(ground_truth, pred)
+        recall = recall_at_k(ground_truth, pred)
+        return score, recall
