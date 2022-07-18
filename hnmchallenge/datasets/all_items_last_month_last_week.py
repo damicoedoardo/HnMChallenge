@@ -140,7 +140,7 @@ class AILMLWDataset(DatasetInterface):
 
     def create_candidate_items(self) -> None:
         """Create and save the candidate items"""
-        full_data = self.get_full_data()
+        full_data = self.get_holdin()
         # filtered_full_data = full_data[full_data["t_dat"] >= "2020-09-10"]
         # candidate_items = (
         #     filtered_full_data.groupby("article_id")
