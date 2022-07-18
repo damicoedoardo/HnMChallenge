@@ -18,3 +18,4 @@ hnmchallenge/models_prediction/evaluation_logs/*
 hnmchallenge/models_prediction/dataset_logs/*
 hnm_data/*
 *.csv
+plots/*
