@@ -150,7 +150,7 @@ class AILMLWDataset(DatasetInterface):
         #     .loc[0:1000][["article_id"]]
         # )
         # full_data.groupby("article_id").count().sort_values("price", ascending=False).reset_index().loc[0:5000][["article_id"]]
-        candidate_items = full_data[full_data["t_dat"] >= "2020-09-08"][
+        candidate_items = full_data[full_data["t_dat"] >= "2020-08-15"][
             ["article_id"]
         ].drop_duplicates()
         print(candidate_items)

@@ -15,12 +15,12 @@ class TimeWeight(UserItemFeature):
 
     def _create_feature(self) -> pd.DataFrame:
         data_df = (
-            self.dataset.get_holdin()
+            self.dataset.get_holdin()  
             if self.kind == "train"
             else self.dataset.get_full_data()
         )
         data_df = data_df[[DEFAULT_USER_COL, DEFAULT_ITEM_COL, "t_dat", "price"]]
-        fd = self.dataset.get_holdout()
+        fd = self.dataset.get_full_data()
         max_date = fd["t_dat"].max() + pd.to_timedelta(1, unit="D")
         data_df["tdiff"] = data_df["t_dat"].apply(lambda x: 1 / (max_date - x).days)
 

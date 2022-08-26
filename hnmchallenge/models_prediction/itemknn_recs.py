@@ -3,32 +3,13 @@ import logging
 import numpy as np
 import pandas as pd
 from hnmchallenge.constant import *
-from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
-from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
-from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
-from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
-from hnmchallenge.datasets.all_items_last_month_last_day_last_2nd_week import (
-    AILMLD2WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_day_last_3rd_week import (
-    AILMLD3WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import (
-    AILMLD4WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import (
-    AILMLD5WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
-from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
-from hnmchallenge.datasets.last_2week_last_day import L2WLDDataset
-from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
-from hnmchallenge.datasets.last_month_last_3rd_week_dataset import LML3WDataset
-from hnmchallenge.datasets.last_month_last_day import LMLDDataset
-from hnmchallenge.datasets.last_month_last_day_aug_sep import LMLASDDataset
-from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
-from hnmchallenge.datasets.last_month_last_week_user import LMLUWDataset
-from hnmchallenge.datasets.last_week_last_week import LWLWDataset
+
+from hnmchallenge.datasets.first_week_dataset import FirstWeekDataset
+from hnmchallenge.datasets.second_week_dataset import SecondWeekDataset
+from hnmchallenge.datasets.third_week_dataset import ThirdWeekDataset
+from hnmchallenge.datasets.fourth_week_dataset import FourthWeekDataset
+from hnmchallenge.datasets.fifth_week_dataset import FifthWeekDataset
+
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
 from hnmchallenge.models_prediction.recs_interface import RecsInterface
 from hnmchallenge.utils.logger import set_color
@@ -64,8 +45,11 @@ class ItemKNNRecs(RecsInterface):
             holdout = self.dataset.get_holdout()
             users_holdout = holdout[DEFAULT_USER_COL].unique()
             prediction_data = data_df[data_df[DEFAULT_USER_COL].isin(users_holdout)]
+        # this is done when performin local evaluation, if used for the challenge comment else block
         else:
-            prediction_data = data_df
+            eval_data = self.dataset.get_evaluation_data()
+            users_eval = eval_data[DEFAULT_USER_COL].unique()
+            prediction_data = data_df[data_df[DEFAULT_USER_COL].isin(users_eval)]
         # data that you use to compute similarity
 
         # Using the full data available perform better
@@ -78,14 +62,15 @@ class ItemKNNRecs(RecsInterface):
         recom.compute_similarity_matrix(data_df)
         recs = recom.recommend_multicore(
             interactions=prediction_data,
-            batch_size=100_000,
-            num_cpus=64,
+            batch_size=10_000,
+            num_cpus=12,
             remove_seen=self.remove_seen,
             white_list_mb_item=None,
             filter_on_candidates=self.filter_on_candidates,
             cutoff=self.cutoff,
             insert_gt=False,
         )
+        print(recs)
 
         recs = recs.rename(
             {
@@ -102,22 +87,31 @@ if __name__ == "__main__":
     TW = True
     REMOVE_SEEN = False
     FC = True
-    # dataset = AILMLD5WDataset()
-    # dataset = AILMLDDataset()
-    DATASETS = [AILMLWDataset()]
+
+    DATASETS = [
+        FirstWeekDataset(),
+        # SecondWeekDataset(),
+        # ThirdWeekDataset(),
+        # FourthWeekDataset(),
+        # FifthWeekDataset(),
+    ]
+
     for dataset in DATASETS:
-        for kind in ["train"]:  # , "full"]:
+        for kind in ["full"]:  # , "full"]:
             # for kind in ["train", "full"]:
-            candidate_items = dataset.get_candidate_items()
+            candidate_items = dataset.get_candidate_items(kind=kind)
+            print(len(candidate_items))
             rec_ens = ItemKNNRecs(
                 kind=kind,
-                cutoff=12,
+                cutoff=200,
                 time_weight=TW,
                 remove_seen=REMOVE_SEEN,
                 dataset=dataset,
                 filter_on_candidates=candidate_items,
             )
-            map_score, recall_score = rec_ens.eval_recommendations()
-            print(map_score)
-            print(recall_score)
-            # rec_ens.save_recommendations()
+
+            if kind == "train":
+                map_score, recall_score = rec_ens.eval_recommendations()
+                print(map_score)
+                print(recall_score)
+            rec_ens.save_recommendations()

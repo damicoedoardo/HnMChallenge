@@ -6,18 +6,26 @@ from hnmchallenge.constant import *
 from hnmchallenge.dataset_interface import DatasetInterface
 
 
-class AILMLD5WDataset(DatasetInterface):
+class FourthWeekDataset(DatasetInterface):
 
-    DATASET_NAME = "AILMLD5W_dataset"
+    DATASET_NAME = "FourthWeekDataset"
     _ARTICLES_NUM = 104_547
     _CUSTOMERS_NUM = 1_362_281
+
+    HOLDOUT_START_DATE = "2020-08-17"
+    HOLDOUT_END_DATE = "2020-08-24"
+
+    EVALUATION_START_DATE = "2020-09-15"
+
+    TRAIN_CANDIDATE_DATE = "2020-07-17"
+    FULL_CANDIDATE_DATE = "2020-07-24"
 
     def __init__(self) -> None:
         super().__init__()
 
     def create_dataset_description(self) -> str:
         description = """ 
-        Items: t_dat > 10/08/2020 \n
+        Items: t_dat > 01/09/2020 \n
         holdout: last_week
         """
         return description
@@ -128,51 +136,54 @@ class AILMLD5WDataset(DatasetInterface):
             pickle.dump(new_raw_item_ids_dict, f)
         print("- items mapping dicts saved")
 
+    def get_full_data(self) -> pd.DataFrame:
+        # this full data does not include the actual last week of the training data available
+        # this is done to have a way of evaluating the reranker locally
+        holdin = self.get_holdin()
+        holdout = self.get_holdout()
+        fd = pd.concat([holdin, holdout], axis=0)
+        return fd
+
+    def get_evaluation_data(self) -> pd.DataFrame:
+        fd = super(FourthWeekDataset, self).get_full_data()
+        evaluation_data = fd[fd["t_dat"] > self.EVALUATION_START_DATE]
+        return evaluation_data
+
     def create_holdin_holdout(self) -> None:
-        fd = self.get_full_data()
-        hold_in2 = fd[(fd["t_dat"] <= "2020-08-17")]
-        intervals = [("2020-08-18", "2020-08-24")]
-        m = np.logical_or.reduce(
-            [np.logical_and(fd["t_dat"] >= l, fd["t_dat"] <= u) for l, u in intervals]
-        )
-        last_week = fd.loc[m]
+        fd = super(FourthWeekDataset, self).get_full_data()
+        hold_in = fd[(fd["t_dat"] <= self.HOLDOUT_START_DATE)]
+        hold_out = fd[
+            (fd["t_dat"] > self.HOLDOUT_START_DATE)
+            & (fd["t_dat"] <= self.HOLDOUT_END_DATE)
+        ]
 
-        sorted_data = last_week.sort_values([DEFAULT_USER_COL, "t_dat"]).reset_index(
-            drop=True
-        )
-        sorted_data["last_buy"] = sorted_data.groupby(DEFAULT_USER_COL)[
-            "t_dat"
-        ].transform(max)
-
-        # creating holdout
-        hold_out = sorted_data[sorted_data["t_dat"] == sorted_data["last_buy"]]
-        hold_out = hold_out.drop("last_buy", axis=1)
-        print(f"Holdout users:{hold_out[DEFAULT_USER_COL].nunique()}")
-
-        # create holdin
-        hold_in1 = sorted_data[sorted_data["t_dat"] != sorted_data["last_buy"]]
-        hold_in = pd.concat([hold_in1, hold_in2], axis=0)
-        hold_in = hold_in.drop("last_buy", axis=1)
-        hold_in = hold_in.sort_values(by=[DEFAULT_USER_COL, "t_dat"], ignore_index=True)
         # save holdin holdout
         hold_in.reset_index(drop=True).to_feather(self._HOLDIN_PATH)
         hold_out.reset_index(drop=True).to_feather(self._HOLDOUT_PATH)
         print("- done")
 
-    def create_candidate_items(self) -> None:
-        """Create and save the candidate items"""
-        full_data = self.get_holdin()
-        candidate_items = full_data[full_data["t_dat"] >= "2020-07-17"][["article_id"]]
-        candidate_items.reset_index(drop=True).to_feather(self._CANDIDATE_ITEMS_PATH)
+    def get_candidate_items(self, kind) -> np.ndarray:
+        if kind == "train":
+            data = self.get_holdin()
+            candidate_items = data[data["t_dat"] >= self.TRAIN_CANDIDATE_DATE][
+                ["article_id"]
+            ].drop_duplicates()
+        else:
+            data = self.get_full_data()
+            candidate_items = data[data["t_dat"] >= self.FULL_CANDIDATE_DATE][
+                ["article_id"]
+            ].drop_duplicates()
 
-    def get_candidate_items(self) -> np.ndarray:
-        candidate_items_df = pd.read_feather(self._CANDIDATE_ITEMS_PATH)
-        candidate_items = candidate_items_df.values.squeeze()
+        candidate_items = candidate_items.values.squeeze()
         return candidate_items
 
 
 if __name__ == "__main__":
-    dataset = AILMLD5WDataset()
+    dataset = FourthWeekDataset()
     dataset.remap_user_item_ids()
     dataset.create_holdin_holdout()
-    dataset.create_candidate_items()
+    fd = dataset.get_evaluation_data()
+    print(fd["t_dat"].max())
+    print(fd["t_dat"].min())
+
+    # print(fd_2["t_dat"].max())

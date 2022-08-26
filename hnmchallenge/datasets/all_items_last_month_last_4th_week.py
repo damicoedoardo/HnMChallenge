@@ -6,9 +6,9 @@ from hnmchallenge.constant import *
 from hnmchallenge.dataset_interface import DatasetInterface
 
 
-class AILMLD5WDataset(DatasetInterface):
+class AILML3WDataset(DatasetInterface):
 
-    DATASET_NAME = "AILMLD5W_dataset"
+    DATASET_NAME = "AILML3W_dataset"
     _ARTICLES_NUM = 104_547
     _CUSTOMERS_NUM = 1_362_281
 
@@ -17,7 +17,7 @@ class AILMLD5WDataset(DatasetInterface):
 
     def create_dataset_description(self) -> str:
         description = """ 
-        Items: t_dat > 10/08/2020 \n
+        Items: t_dat > 01/09/2020 \n
         holdout: last_week
         """
         return description
@@ -130,30 +130,13 @@ class AILMLD5WDataset(DatasetInterface):
 
     def create_holdin_holdout(self) -> None:
         fd = self.get_full_data()
-        hold_in2 = fd[(fd["t_dat"] <= "2020-08-17")]
-        intervals = [("2020-08-18", "2020-08-24")]
-        m = np.logical_or.reduce(
-            [np.logical_and(fd["t_dat"] >= l, fd["t_dat"] <= u) for l, u in intervals]
-        )
-        last_week = fd.loc[m]
-
-        sorted_data = last_week.sort_values([DEFAULT_USER_COL, "t_dat"]).reset_index(
-            drop=True
-        )
-        sorted_data["last_buy"] = sorted_data.groupby(DEFAULT_USER_COL)[
-            "t_dat"
-        ].transform(max)
-
-        # creating holdout
-        hold_out = sorted_data[sorted_data["t_dat"] == sorted_data["last_buy"]]
-        hold_out = hold_out.drop("last_buy", axis=1)
-        print(f"Holdout users:{hold_out[DEFAULT_USER_COL].nunique()}")
-
-        # create holdin
-        hold_in1 = sorted_data[sorted_data["t_dat"] != sorted_data["last_buy"]]
-        hold_in = pd.concat([hold_in1, hold_in2], axis=0)
-        hold_in = hold_in.drop("last_buy", axis=1)
-        hold_in = hold_in.sort_values(by=[DEFAULT_USER_COL, "t_dat"], ignore_index=True)
+        hold_in = fd[(fd["t_dat"] < "2020-08-26")]
+        # intervals = [("2020-09-02", "2020-09-08")]
+        # m = np.logical_or.reduce(
+        #     [np.logical_and(fd["t_dat"] >= l, fd["t_dat"] <= u) for l, u in intervals]
+        # )
+        # hold_out = fd.loc[m]
+        hold_out = fd[(fd["t_dat"] >= "2020-08-26") & (fd["t_dat"] <= "2020-09-02")]
         # save holdin holdout
         hold_in.reset_index(drop=True).to_feather(self._HOLDIN_PATH)
         hold_out.reset_index(drop=True).to_feather(self._HOLDOUT_PATH)
@@ -162,7 +145,9 @@ class AILMLD5WDataset(DatasetInterface):
     def create_candidate_items(self) -> None:
         """Create and save the candidate items"""
         full_data = self.get_holdin()
-        candidate_items = full_data[full_data["t_dat"] >= "2020-07-17"][["article_id"]]
+        candidate_items = full_data[(full_data["t_dat"] >= "2020-08-12")][
+            ["article_id"]
+        ].drop_duplicates()
         candidate_items.reset_index(drop=True).to_feather(self._CANDIDATE_ITEMS_PATH)
 
     def get_candidate_items(self) -> np.ndarray:
@@ -170,9 +155,14 @@ class AILMLD5WDataset(DatasetInterface):
         candidate_items = candidate_items_df.values.squeeze()
         return candidate_items
 
+    def get_full_data(self) -> pd.DataFrame:
+        fd = super().get_full_data()
+        fd = fd[fd["t_dat"] <= "2020-09-08"]
+        return fd
+
 
 if __name__ == "__main__":
-    dataset = AILMLD5WDataset()
+    dataset = AILML3WDataset()
     dataset.remap_user_item_ids()
     dataset.create_holdin_holdout()
     dataset.create_candidate_items()

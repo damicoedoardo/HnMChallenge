@@ -21,19 +21,20 @@ from hnmchallenge.datasets.last_week_last_week import LWLWDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
 from hnmchallenge.models.itemknn.itemknn import ItemKNN
+from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
 
 SUB_NAME = "final_sub_gg_2"
 
 VERSION = 0
-NAME = f"dataset_last_2"
+NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_200_TimePop_alpha_1.0"
 # NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
 # NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
 # NAME = "cutf_100_TimePop_alpha_1.0"
 DATASET = f"{NAME}_{VERSION}.feather"
-MODEL_NAME = f"lgbm_{DATASET}.pkl"
+MODEL_NAME = f"lgbm_{DATASET}_1.pkl"
 if __name__ == "__main__":
-    dataset = AILMLDDataset()
+    dataset = AILMLWDataset()
     base_load_path = dataset._DATASET_PATH / "lgbm_models"
     model = joblib.load(base_load_path / MODEL_NAME)
 
@@ -98,5 +99,22 @@ if __name__ == "__main__":
     customer_article_df = customer_article_df.drop("predicted_score", axis=1)
 
     print("Creating submission...")
-    dataset.create_submission(customer_article_df, sub_name=SUB_NAME)
+    user_map_dict, item_map_dict = dataset.get_new_raw_mapping_dict()
+
+    grp_recs_df = customer_article_df.groupby(DEFAULT_USER_COL)[DEFAULT_ITEM_COL].apply(
+        list
+    )
+    grp_recs_df = grp_recs_df.to_frame().reset_index()
+    # map back to original ids
+    grp_recs_df[DEFAULT_USER_COL] = grp_recs_df[DEFAULT_USER_COL].apply(
+        lambda x: user_map_dict.get(x)
+    )
+    grp_recs_df[DEFAULT_ITEM_COL] = grp_recs_df[DEFAULT_ITEM_COL].apply(
+        lambda x: " ".join(list(map(item_map_dict.get, x)))
+    )
+    grp_recs_df = grp_recs_df.rename(columns={DEFAULT_ITEM_COL: DEFAULT_PREDICTION_COL})
+
+    final_recs = grp_recs_df
+    # recs_df = dataset.create_submission(customer_article_df, sub_name=SUB_NAME)
+    final_recs.to_csv("submission_1week.csv", index=False)
     print("(⊙﹏⊙) Submission created succesfully (⊙﹏⊙)")

@@ -151,9 +151,11 @@ class RecsInterface(ABC):
             print("Done!")
 
         if self.kind == "full":
-            print("Adding pop predictions on missing users")
-            recs = self._add_pop_missing_users(recs)
+            # print("Adding pop predictions on missing users")
+            # recs = self._add_pop_missing_users(recs)
+            pass
 
+        print(recs)
         # save the retrieved recommendations
         save_name = f"cutf_{self.cutoff}_{self.RECS_NAME}.feather"
         recs.reset_index(drop=True).to_feather(self.save_path / save_name)

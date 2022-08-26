@@ -7,30 +7,13 @@ import pandas as pd
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
-from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
-from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
-from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
-from hnmchallenge.datasets.all_items_last_month_last_day_last_2nd_week import (
-    AILMLD2WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_day_last_3rd_week import (
-    AILMLD3WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import (
-    AILMLD4WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import (
-    AILMLD5WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
-from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
-from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
-from hnmchallenge.datasets.last_month_last_3rd_week_dataset import LML3WDataset
-from hnmchallenge.datasets.last_month_last_day import LMLDDataset
-from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
-from hnmchallenge.datasets.last_month_last_week_user import LMLUWDataset
-from hnmchallenge.datasets.last_week_last_week import LWLWDataset
+
+from hnmchallenge.datasets.first_week_dataset import FirstWeekDataset
+from hnmchallenge.datasets.second_week_dataset import SecondWeekDataset
+from hnmchallenge.datasets.third_week_dataset import ThirdWeekDataset
+from hnmchallenge.datasets.fourth_week_dataset import FourthWeekDataset
+from hnmchallenge.datasets.fifth_week_dataset import FifthWeekDataset
+
 from hnmchallenge.features.item_features import *
 from hnmchallenge.features.light_gbm_features import *
 from hnmchallenge.features.user_features import *
@@ -418,18 +401,24 @@ class FeatureManager:
 if __name__ == "__main__":
     # KIND = "train"
     # DATASET_NAME = "cutf_200_TimePop_alpha_1.0"
-    # DATASET_NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
+    DATASET_NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
     # DATASET_NAME = "cutf_150_Popularity_cutoff_150"
     # DATASET_NAME = "cutf_100_TimePop_alpha_1.0"
-    DATASET_NAME = "cutf_200_EASE_tw_True_rs_False_l2_0.1"
+    # DATASET_NAME = "cutf_200_EASE_tw_True_rs_False_l2_0.1"
     # DATASET_NAME = "cutf_200_EASE_tw_True_rs_True_l2_0.1"
     VERSION = 0
 
     # dataset = LMLWDataset()
-    DATASETS = [AILMLWDataset(), AILML2WDataset(), AILML3WDataset()]
+    DATASETS = [
+        FirstWeekDataset(),
+        # SecondWeekDataset(),
+        # ThirdWeekDataset(),
+        # FourthWeekDataset(),
+        # FifthWeekDataset(),
+    ]
     for dataset in DATASETS:
         s = time.time()
-        for kind in ["train"]:
+        for kind in ["full"]:
             # for kind in ["train", "full"]:cd
             # for kind in ["full"]:
             dr = DataReader()

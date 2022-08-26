@@ -47,6 +47,7 @@ class SubmissionHandler:
             str(self.dr.get_submission_folder() / sub_name) + ".csv", index=False
         )
         logger.info(set_color(f"Submission: {sub_name} created succesfully!", "yellow"))
+        return final_recs
 
     def create_submission_filtered_data(
         self, recs_dfs: list[pd.DataFrame], sub_name: str

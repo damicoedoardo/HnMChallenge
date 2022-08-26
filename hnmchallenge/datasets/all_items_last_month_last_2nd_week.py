@@ -145,9 +145,9 @@ class AILML2WDataset(DatasetInterface):
     def create_candidate_items(self) -> None:
         """Create and save the candidate items"""
         full_data = self.get_full_data()
-        candidate_items = full_data[
-            (full_data["t_dat"] >= "2020-09-02") & (full_data["t_dat"] <= "2020-09-15")
-        ][["article_id"]].drop_duplicates()
+        candidate_items = full_data[(full_data["t_dat"] >= "2020-09-02")][
+            ["article_id"]
+        ].drop_duplicates()
         candidate_items.reset_index(drop=True).to_feather(self._CANDIDATE_ITEMS_PATH)
 
     def get_candidate_items(self) -> np.ndarray:

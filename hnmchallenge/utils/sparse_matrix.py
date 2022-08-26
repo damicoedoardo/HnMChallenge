@@ -131,8 +131,9 @@ def interactions_to_sparse_matrix(
 
         # min_dat = interactions["t_dat"].min()
         # max_dat = interactions["t_dat"].max()
-        # interactions["time_score"] = (
-        #     (interactions["t_dat"] - min_dat) / (max_dat - min_dat)
+        # interactions["time_score"] = (interactions["t_dat"] - min_dat) / (
+        #     max_dat - min_dat
+        # )
         # ) ** 50
 
         interactions["time_score"] = interactions["t_dat"].apply(

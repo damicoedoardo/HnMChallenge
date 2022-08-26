@@ -13,30 +13,11 @@ from sklearn.metrics import *
 
 from hnmchallenge.constant import *
 from hnmchallenge.data_reader import DataReader
-from hnmchallenge.datasets.all_items_last_mont__last_day_last_week import AILMLDWDataset
-from hnmchallenge.datasets.all_items_last_month_last_2nd_week import AILML2WDataset
-from hnmchallenge.datasets.all_items_last_month_last_3rd_week import AILML3WDataset
-from hnmchallenge.datasets.all_items_last_month_last_day import AILMLDDataset
-from hnmchallenge.datasets.all_items_last_month_last_day_last_2nd_week import (
-    AILMLD2WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_day_last_3rd_week import (
-    AILMLD3WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_day_last_4th_week import (
-    AILMLD4WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_day_last_5th_week import (
-    AILMLD5WDataset,
-)
-from hnmchallenge.datasets.all_items_last_month_last_week import AILMLWDataset
-from hnmchallenge.datasets.last2month_last_day import L2MLDDataset
-from hnmchallenge.datasets.last_month_last_2nd_week_dataset import LML2WDataset
-from hnmchallenge.datasets.last_month_last_3rd_week_dataset import LML3WDataset
-from hnmchallenge.datasets.last_month_last_day import LMLDDataset
-from hnmchallenge.datasets.last_month_last_week_dataset import LMLWDataset
-from hnmchallenge.datasets.last_month_last_week_user import LMLUWDataset
-from hnmchallenge.datasets.last_week_last_week import LWLWDataset
+from hnmchallenge.datasets.first_week_dataset import FirstWeekDataset
+from hnmchallenge.datasets.second_week_dataset import SecondWeekDataset
+from hnmchallenge.datasets.third_week_dataset import ThirdWeekDataset
+from hnmchallenge.datasets.fourth_week_dataset import FourthWeekDataset
+from hnmchallenge.datasets.fifth_week_dataset import FifthWeekDataset
 from hnmchallenge.evaluation.python_evaluation import map_at_k, recall_at_k
 from hnmchallenge.feature_manager import FeatureManager
 from hnmchallenge.features.light_gbm_features import (
@@ -55,9 +36,9 @@ TEST_PERC = 0.001
 # DATASET = f"dataset_v00_{VERSION}.feather"
 # MODEL_NAME = f"xgb_{DATASET}.json"
 
-NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
+# NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
 
-# NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
+NAME = f"cutf_200_ItemKNN_tw_True_rs_False"
 # NAME = "cutf_150_Popularity_cutoff_150"
 # NAME = f"cutf_200_EASE_tw_True_rs_True_l2_0.1"
 # NAME = f"cutf_100_ItemKNN_tw_True_rs_False"
@@ -66,7 +47,7 @@ NAME = f"cutf_200_EASE_tw_True_rs_False_l2_0.1"
 VERSION = 0
 # NAME = "cutf_200_TimePop_alpha_1.0"
 DATASET = f"{NAME}_{VERSION}.feather"
-MODEL_NAME = f"lgbm_{DATASET}.pkl"
+MODEL_NAME = f"lgbm_{DATASET}_4.pkl"
 cat = [
     "index_code_gbm",
     "product_group_name_gbm",
@@ -76,14 +57,15 @@ cat = [
 # cat = []
 
 if __name__ == "__main__":
-    save_dataset = AILMLWDataset()
+    save_dataset = FirstWeekDataset()
     dataset_list = [
         save_dataset,
-        # AILML2WDataset(),
-        # AILML3WDataset(),
+        SecondWeekDataset(),
+        ThirdWeekDataset(),
+        FourthWeekDataset(),
+        # FifthWeekDataset(),
+        # dataset_list = [save_dataset]
     ]
-    # dataset_list = [save_dataset]
-
     dr = DataReader()
     # save the model on the path of the last week dataset !
     model_save_path = save_dataset._DATASET_PATH / "lgbm_models"
@@ -170,15 +152,15 @@ if __name__ == "__main__":
         # device="gpu",
         random_state=RANDOM_SEED,
         learning_rate=0.1,
-        colsample_bytree=1,
+        colsample_bytree=0.8,
         reg_lambda=0.0,
         reg_alpha=0.0,
         # eta=0.05,
-        num_leaves=60,
-        max_depth=8,
+        num_leaves=25,
+        max_depth=5,
         n_estimators=500,
         bagging_fraction=0.8,
-        min_data_in_leaf=30,
+        # min_data_in_leaf=30,
         # max_bin=255
         # sampling_method="gradient_based"
         # n_gpus=-1
