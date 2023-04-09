@@ -1,7 +1,7 @@
 # **HnM Challenge 2022 - Fashion Recommendations** (Kaggle)
 **Challenge Link:** [HnM Challenge Kaggle](https://www.kaggle.com/c/h-and-m-personalized-fashion-recommendations/overview)
 \
-**Authors:** Edoardo D'Amico (edoardo.damico@insight-centre.org) and Aayush Singharoy (aayush.singharoy@insight-centre.org)
+**Authors:** Edoardo D'Amico (edoardo.damico@insight-centre.org) and Aayush Singharoy (aayush.singharoy@insight-centre.org)\
 **Final Position:** 43/2954 (Top 2%)
 
 ## Methodology
